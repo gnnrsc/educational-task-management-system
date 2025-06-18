@@ -142,70 +142,74 @@ function TaskForm({ onSubmit }) {
                   >
                     <div>
                       <strong>Attenzione:</strong> gli studenti evidenziati
-                      hanno già partecipato ad almeno 2 compiti
-                      precedenti con uno degli studenti selezionati e non
-                      possono essere aggiunti al gruppo.
+                      hanno già partecipato ad almeno 2 compiti precedenti con
+                      uno degli studenti selezionati e non possono essere
+                      aggiunti al gruppo.
                     </div>
                   </div>
                 )}
               </div>
 
-              <Form.Group className="mb-3" controlId="taskParticipants">
-                <Form.Label className="fw-bold text-center d-block mb-2">
-                  Seleziona studenti partecipanti
-                </Form.Label>
+              <Form.Group className="mb-3">
+                <fieldset>
+                  <legend className="fw-bold text-center d-block mb-2">
+                    Seleziona studenti partecipanti
+                  </legend>
 
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <div>
-                    Studenti selezionati: {selectedStudents.length} /{" "}
-                    {MAX_SELECTION}
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                      Studenti selezionati: {selectedStudents.length} /{" "}
+                      {MAX_SELECTION}
+                    </div>
+                    <Button
+                      size="sm"
+                      className="reset-button"
+                      disabled={submitting || selectedStudents.length === 0}
+                      onClick={() => {
+                        setSelectedStudents([]);
+                        setError("");
+                      }}
+                    >
+                      Reset selezioni
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    className="reset-button"
-                    disabled={submitting || selectedStudents.length === 0}
-                    onClick={() => {
-                      setSelectedStudents([]);
-                      setError("");
-                    }}
-                  >
-                    Reset selezioni
-                  </Button>
-                </div>
 
-                {loadingStudents ? (
-                  <div>
-                    <Spinner animation="border" size="sm" /> Caricamento
-                    studenti...
-                  </div>
-                ) : (
-                  <div className="student-grid">
-                    {students.map((student) => {
-                      const isHighlighted =
-                        highlightedStudents.has(student.id) &&
-                        !selectedStudents.includes(student.id);
-                      const isSelected = selectedStudents.includes(student.id);
+                  {loadingStudents ? (
+                    <div>
+                      <Spinner animation="border" size="sm" /> Caricamento
+                      studenti...
+                    </div>
+                  ) : (
+                    <div className="student-grid">
+                      {students.map((student) => {
+                        const isHighlighted =
+                          highlightedStudents.has(student.id) &&
+                          !selectedStudents.includes(student.id);
+                        const isSelected = selectedStudents.includes(
+                          student.id
+                        );
 
-                      return (
-                        <Button
-                          key={student.id}
-                          className={`btn-student ${
-                            isSelected ? "selected" : ""
-                          } ${isHighlighted ? "highlighted" : ""}`}
-                          onClick={() => toggleStudent(student.id)}
-                          disabled={isHighlighted || submitting}
-                          title={
-                            isHighlighted
-                              ? "Questo studente ha già collaborato con uno selezionato."
-                              : ""
-                          }
-                        >
-                          {student.name}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                )}
+                        return (
+                          <Button
+                            key={student.id}
+                            className={`btn-student ${
+                              isSelected ? "selected" : ""
+                            } ${isHighlighted ? "highlighted" : ""}`}
+                            onClick={() => toggleStudent(student.id)}
+                            disabled={isHighlighted || submitting}
+                            title={
+                              isHighlighted
+                                ? "Questo studente ha già collaborato con uno selezionato."
+                                : ""
+                            }
+                          >
+                            {student.name}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </fieldset>
               </Form.Group>
 
               {error && (
