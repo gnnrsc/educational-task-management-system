@@ -34,3 +34,63 @@ html, body, #root {
   text-align: center;       /* testo centrato */
 }
 
+/* TaskForm*/
+.btn-student {
+  border-radius: 4px !important;
+  border: 1px solid var(--bs-primary) !important;
+  width: 100% !important;
+  text-align: center !important;
+  white-space: normal !important;
+  cursor: pointer !important;
+  background-color: transparent !important;
+  color: var(--bs-primary) !important;
+}
+
+.btn-student.selected {
+  background-color: var(--bs-primary) !important;
+  color: white !important; 
+}
+
+.btn-student.highlighted {
+  background-color: #fff3cd;
+  color: #856404;
+  cursor: not-allowed;
+}
+.btn-student.highlighted:disabled {
+  background-color: #fff3cd !important;
+  color: #856404 !important;
+  border-color: #ffeeba !important;
+}
+
+
+/* Layout griglia */
+.student-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Reset selezione */
+.reset-button {
+  padding: 0.1rem 0.4rem !important; /* meno padding verticale e orizzontale */
+  font-size: 0.8rem !important; /* font leggermente più piccolo */
+  background-color: #dc3545 !important;
+  border: 1px solid #dc3545 !important;
+  color: white !important;
+  cursor: pointer;
+  line-height: 1 !important; /* compatto */
+  min-height: 1.5rem !important; /* altezza più contenuta */
+}
+
+.reset-button:disabled {
+  background-color: transparent !important;
+  border-color: rgba(220, 53, 69, 0.5) !important;
+  color: rgba(220, 53, 69, 0.5) !important;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+
+
+

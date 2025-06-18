@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, Link } from "react-router";
+import TaskForm from "./components/TaskForm";
 import {
   Container,
   Navbar,
@@ -111,10 +112,20 @@ function Login() {
 }
 
 function TeacherDashboard() {
+  const handleTaskSubmit = (data) => {
+    console.log("Compito creato:", data);
+    // Qui puoi aggiungere chiamata API per salvare il compito
+  };
+
   return (
     <div>
       <h2>👨‍🏫 Dashboard Docente</h2>
       <Alert variant="info">Dashboard docente (da implementare)</Alert>
+
+      {/* Inserisco il form TaskForm */}
+      <div style={{ marginTop: "20px" }}>
+        <TaskForm onSubmit={handleTaskSubmit} />
+      </div>
     </div>
   );
 }
