@@ -138,6 +138,7 @@ app.get("/api/students", isLoggedIn, isTeacher, async (req, res) => {
   }
 });
 
+//Creare un nuovo compito (solo per docenti)
 app.post("/api/compiti", isLoggedIn, isTeacher, async (req, res) => {
   const { traccia, studentIds } = req.body;
   const creatoDa = req.user.id;

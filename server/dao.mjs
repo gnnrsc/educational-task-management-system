@@ -80,22 +80,33 @@ export const getAllStudents = () => {
 // Funzione per creare un nuovo compito ed assegnarlo agli studenti
 export const createTask = (traccia, studentIds, creatoDa) => {
   return new Promise((resolve, reject) => {
-    const sql = "INSERT INTO compiti (traccia, creato_da) VALUES (?, ?)";
-    db.run(sql, [traccia, creatoDa], function (err) {
-      if (err) return reject(err);
-      const compitoId = this.lastID;
+    const stato = "aperto";
+    const numeroStudenti = studentIds.length;
+    const creatoIl = dayjs().toISOString(); // oppure new Date().toISOString()
 
-      assegnaStudenti(compitoId, studentIds)
-        .then(() => {
-          // Lancia aggiornaCollaborazioni senza aspettarla
-          aggiornaCollaborazioni(studentIds, creatoDa).catch((err) => {
-            console.error("Errore aggiornamento collaborazioni:", err);
-          });
-          // Risolvi subito, senza aspettare aggiornaCollaborazioni
-          resolve(compitoId);
-        })
-        .catch(reject);
-    });
+    const sql = `
+      INSERT INTO compiti (traccia, creato_da, stato, numero_studenti, creato_il)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    db.run(
+      sql,
+      [traccia, creatoDa, stato, numeroStudenti, creatoIl],
+      function (err) {
+        if (err) return reject(err);
+        const compitoId = this.lastID;
+
+        assegnaStudenti(compitoId, studentIds)
+          .then(() => {
+            // Lancia aggiornaCollaborazioni senza aspettarla
+            aggiornaCollaborazioni(studentIds, creatoDa).catch((err) => {
+              console.error("Errore aggiornamento collaborazioni:", err);
+            });
+            // Risolvi subito, senza aspettare aggiornaCollaborazioni
+            resolve(compitoId);
+          })
+          .catch(reject);
+      }
+    );
   });
 };
 
@@ -179,8 +190,15 @@ export const getStudentPairsCollaborations = (docenteId, minCount = 2) => {
   });
 };
 
-export const checkStudentPairLimit = async (studentIds, docenteId, minLimit = 2) => {
-  const collaborations = await getStudentPairsCollaborations(docenteId, minLimit);
+export const checkStudentPairLimit = async (
+  studentIds,
+  docenteId,
+  minLimit = 2
+) => {
+  const collaborations = await getStudentPairsCollaborations(
+    docenteId,
+    minLimit
+  );
 
   const pairKey = (id1, id2) => (id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`);
 
@@ -199,5 +217,3 @@ export const checkStudentPairLimit = async (studentIds, docenteId, minLimit = 2)
 
   return { allowed: true };
 };
-
-
