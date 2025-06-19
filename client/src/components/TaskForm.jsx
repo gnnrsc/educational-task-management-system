@@ -42,15 +42,15 @@ function TaskForm({ onSubmit }) {
 
   const collaborations = {
     "1-2": 2,
-    "2-3": 1,
+    "2-3": 2,
     "3-4": 2,
-    "5-6": 1,
+    "5-6": 2,
     "7-8": 2,
-    "9-10": 1,
+    "9-10": 2,
     "11-12": 2,
-    "13-14": 1,
+    "13-14": 2,
     "15-16": 2,
-    "17-18": 1,
+    "17-18": 2,
     "19-20": 2,
   };
 
@@ -58,15 +58,15 @@ function TaskForm({ onSubmit }) {
 
   const highlightedStudents = new Set();
   selectedStudents.forEach((selId) => {
-    students.forEach((s) => {
-      if (s.id !== selId) {
-        const key = pairKey(selId, s.id);
-        if (collaborations[key] && collaborations[key] >= 2) {
-          highlightedStudents.add(s.id);
-        }
+  students.forEach((s) => {
+    if (s.id !== selId) {
+      const key = pairKey(selId, s.id);
+      if (collaborations[key]) {  // basta che esista la coppia - Poiché collaborations contiene solo coppie con almeno 2 collaborazioni
+        highlightedStudents.add(s.id);
       }
-    });
+    }
   });
+});
 
   const isGroupValid =
     selectedStudents.length >= MIN_SELECTION &&
