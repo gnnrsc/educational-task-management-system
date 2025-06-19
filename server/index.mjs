@@ -43,9 +43,15 @@ passport.serializeUser(function (user, cb) {
   cb(null, user.id);
 });
 
-passport.deserializeUser(function (user, cb) {
-  return cb(null, user);
+passport.deserializeUser(async function (id, cb) {
+  try {
+    const user = await dao.getUserById(id);
+    cb(null, user);
+  } catch (err) {
+    cb(err);
+  }
 });
+
 
 // Middleware per verificare se l'utente è autenticato
 const isLoggedIn = (req, res, next) => {
@@ -111,7 +117,7 @@ app.delete("/api/sessions/current", isLoggedIn, (req, res) => {
   });
 });
 
-// GET: api/sessions/current - OTTENER SESSIONE ATTUALE
+// GET: api/sessions/current - OTTENERE SESSIONE ATTUALE
 app.get("/api/sessions/current", (req, res) => {
   if (req.isAuthenticated()) {
     res.status(200).json(req.user);

@@ -20,8 +20,7 @@ export const getUser = (email, password) => {
       if (err) return reject(err);
       if (!row) return resolve(false);
 
-      const salt = Buffer.from(row.salt, "hex");
-      crypto.scrypt(password, salt, 32, (err, hashedPassword) => {
+      crypto.scrypt(password, row.salt, 32, (err, hashedPassword) => {
         if (err) return reject(err);
 
         const storedPassword = Buffer.from(row.password, "hex");

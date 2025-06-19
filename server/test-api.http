@@ -1,0 +1,23 @@
+@server = http://localhost:3001
+
+### USERS
+
+### Correct login
+POST {{server}}/api/sessions
+Content-Type: application/json
+
+{"email": "luigi.derussis@polito.it", 
+"password": "prova123"}
+
+### Wrong email/password for login
+POST {{server}}/api/sessions
+Content-Type: application/json
+
+{"email": "luigi.derussis@polito.it", 
+"password": "gsgsgsgr"}
+
+### Logout
+DELETE {{server}}/api/sessions/current
+
+### Check if the user is logged in or not
+GET {{server}}/api/sessions/current
