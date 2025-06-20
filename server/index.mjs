@@ -6,7 +6,6 @@ import passport from "passport";
 import LocalStrategy from "passport-local";
 import { body, validationResult } from "express-validator";
 import * as dao from "./dao.mjs";
-import crypto from "crypto";
 
 const app = express();
 const PORT = 3001;
@@ -63,7 +62,7 @@ const isLoggedIn = (req, res, next) => {
 
 // Middleware per verificare il ruolo (docente)
 export const isTeacher = (req, res, next) => {
-  if (req.isAuthenticated() && req.user.role === "docente") {
+  if (req.isAuthenticated() && req.user.ruolo === "docente") {
     return next();
   }
   return res.status(403).json({
@@ -73,7 +72,7 @@ export const isTeacher = (req, res, next) => {
 
 // Middleware per verificare il ruolo (studente)
 export const isStudent = (req, res, next) => {
-  if (req.isAuthenticated() && req.user.role === "studente") {
+  if (req.isAuthenticated() && req.user.ruolo === "studente") {
     return next();
   }
   return res.status(403).json({
@@ -128,8 +127,10 @@ app.get("/api/sessions/current", (req, res) => {
 
 // ROUTE PROTETTE
 
+//DOCENTE
+
 // Ottenere lista studenti (solo per docenti)
-app.get("/api/students", isLoggedIn, isTeacher, async (req, res) => {
+app.get("/api/classe", isLoggedIn, isTeacher, async (req, res) => {
   try {
     const students = await dao.getAllStudents();
     res.json(students);
@@ -168,6 +169,122 @@ app.post("/api/compiti", isLoggedIn, isTeacher, async (req, res) => {
     res.status(500).json({ error: "Errore nella creazione del compito" });
   }
 });
+
+// Ottenere la risposta di un compito (solo per docenti)
+app.get('/api/compiti/:id/risposta', isLoggedIn, isTeacher, async (req, res) => {
+  try {
+    const { id: compitoId } = req.params;
+    const docenteId = req.user.id;
+
+    const risultato = await dao.getRispostaCompito(compitoId, docenteId);
+
+    if (!risultato) {
+      return res.status(404).json({ error: 'Compito non trovato o non accessibile' });
+    }
+
+    const response = {
+      id: risultato.id,
+      traccia: risultato.traccia,
+      stato: risultato.stato,
+      numero_studenti: risultato.numero_studenti,
+      punteggio: risultato.punteggio
+    };
+
+    if (!risultato.risposta || !risultato.risposta.testo_risposta) {
+      // Compito esiste, ma non ha risposta
+      return res.status(204).json({ message: 'Nessuna risposta disponibile per questo compito' });
+    }
+
+    // Risposta presente
+    response.risposta = {
+      testo: risultato.risposta.testo_risposta,
+      aggiornato_il: risultato.risposta.aggiornato_il,
+      inviato_da: `${risultato.risposta.risposta_nome} ${risultato.risposta.risposta_cognome}`
+    };
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('Errore GET risposta:', error);
+    res.status(500).json({ error: 'Errore server' });
+  }
+});
+
+
+//Effettuare una valutazione di un compito (solo per docenti)
+app.put('/api/compiti/:id/valutazione', isLoggedIn, isTeacher, async (req, res) => {
+    try {
+        const { id: compitoId } = req.params;
+        const { punteggio } = req.body;
+        const docenteId = req.user.id;
+        
+        // Validazione input
+        if (!Number.isInteger(punteggio) || punteggio < 0 || punteggio > 30) {
+            return res.status(400).json({ error: 'Punteggio deve essere intero tra 0-30' });
+        }
+        
+        const compito = await dao.verificaCompitoPerValutazione(compitoId, docenteId);
+        
+        if (!compito) {
+            return res.status(404).json({ error: 'Compito non trovato' });
+        }
+        
+        if (compito.stato !== 'aperto') {
+            return res.status(400).json({ error: 'Compito già chiuso' });
+        }
+        
+        if (!compito.ha_risposta) {
+            return res.status(400).json({ error: 'Nessuna risposta da valutare' });
+        }
+        
+        await dao.valutaEChiudiCompito(compitoId, punteggio);
+        
+        res.json({ message: 'Compito valutato', punteggio });
+        
+    } catch (error) {
+        console.error('Errore PUT valutazione:', error);
+        res.status(500).json({ error: 'Errore server' });
+    }
+});
+
+// Ottenere statistiche della classe (solo per docenti)
+app.get('/api/classe/stato', isLoggedIn, isTeacher, async (req, res) => {
+    try {
+        const { sort = 'alfabetico' } = req.query;
+        const docenteId = req.user.id;
+
+        if (!['media_punteggi', 'alfabetico', 'totale_compiti'].includes(sort)) {
+            return res.status(400).json({ error: 'Ordinamento non valido' });
+        }
+
+        const studenti = await dao.getStatisticheClasse(docenteId);
+
+        // Ordinamento
+        const sortFunctions = {
+            alfabetico: (a, b) => a.cognome.localeCompare(b.cognome) || a.nome.localeCompare(b.nome),
+            totale_compiti: (a, b) => b.totale - a.totale || a.cognome.localeCompare(b.cognome),
+            media_punteggi: (a, b) => (b.media || 0) - (a.media || 0) || a.cognome.localeCompare(b.cognome)
+        };
+
+        studenti.sort(sortFunctions[sort]);
+
+        res.json({
+            ordinamento: sort,
+            studenti: studenti.map(s => ({
+                nome: s.nome,
+                cognome: s.cognome,
+                compiti_aperti: s.aperti,
+                compiti_chiusi: s.chiusi,
+                totale_compiti: s.totale,
+                media_punteggi: s.media
+            }))
+        });
+    } catch (error) {
+        console.error('Errore GET stato classe:', error);
+        res.status(500).json({ error: 'Errore server' });
+    }
+});
+
 
 
 //TEST

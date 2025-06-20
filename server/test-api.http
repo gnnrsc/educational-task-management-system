@@ -1,15 +1,22 @@
 @server = http://localhost:3001
 
-### USERS
+### UTENTI
 
-### Correct login
+### Login corretto - DOCENTE
 POST {{server}}/api/sessions
 Content-Type: application/json
 
 {"email": "luigi.derussis@polito.it", 
 "password": "prova123"}
 
-### Wrong email/password for login
+### Login corretto - STUDENTE
+POST {{server}}/api/sessions
+Content-Type: application/json
+
+{"email": "matteo.rossi@studenti.polito.it", 
+"password": "prova123"}
+
+### Email/password errati per il login
 POST {{server}}/api/sessions
 Content-Type: application/json
 
@@ -19,5 +26,100 @@ Content-Type: application/json
 ### Logout
 DELETE {{server}}/api/sessions/current
 
-### Check if the user is logged in or not
+### Controllo se l'utente è loggato
 GET {{server}}/api/sessions/current
+
+###DOCENTE
+
+### Ottenere la lista degli studenti
+GET {{server}}/api/classe
+
+### Creare un nuovo compito
+POST {{server}}/api/compiti
+Content-Type: application/json
+
+{
+  "traccia": "Compito di prova",
+  "studentIds": [1, 2, 3]
+}
+
+### Creare un nuovo compito - ERRORE troppi studenti selezionati
+POST {{server}}/api/compiti
+Content-Type: application/json
+
+{
+  "traccia": "Compito di prova",
+  "studentIds": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+}
+
+### Creare un nuovo compito - ERRORE supero limite collaborazioni tra studenti
+POST {{server}}/api/compiti
+Content-Type: application/json
+
+{
+  "traccia": "Compito di prova",
+  "studentIds": [3, 4, 5]
+}
+
+### Ottenere la risposta di un compito
+GET {{server}}/api/compiti/2/risposta
+
+### Ottenere la risposta di un compito - ERRORE compito non esistente
+GET {{server}}/api/compiti/1000/risposta
+
+### Ottenere la risposta di un compito - ERRORE risposta non ancora esistente
+GET {{server}}/api/compiti/1/risposta
+
+### Aggiungere una valutazione a un compito - ERRORE risposta non ancora esistente
+### SE ANCORA NON SI E' AGGIUNTA UNA RISPOSTA ALLA DOMANDA 1 PROVANDO LE API STUDENTI
+PUT {{server}}/api/compiti/1/valutazione
+Content-Type: application/json
+
+{
+  "punteggio": 29
+}
+### Aggiungere una valutazione a un compito
+### ESEGUIRLA DOPO AVER AGGIUNTO UNA RISPOSTA ALLA DOMANDA 1 PROVANDO LE API STUDENTI
+PUT {{server}}/api/compiti/1/valutazione
+Content-Type: application/json
+
+{
+  "punteggio": 29
+}
+
+### Aggiungere una valutazione a un compito - ERRORE punteggio non valido
+PUT {{server}}/api/compiti/1/valutazione
+Content-Type: application/json
+
+{
+  "punteggio": 32
+}
+
+### Aggiungere una valutazione a un compito - ERRORE compito non esistente
+PUT {{server}}/api/compiti/11/valutazione
+Content-Type: application/json
+
+{
+  "punteggio": 29
+}
+
+### Aggiungere una valutazione a un compito - ERRORE compito già valutato
+PUT {{server}}/api/compiti/2/valutazione
+Content-Type: application/json
+
+{
+  "punteggio": 29
+}
+
+### Ottenere le statistiche della classe, ordinata per la media dei punteggi
+GET {{server}}/api/classe/stato?sort=media_punteggi
+
+### Ottenere le statistiche della classe, ordinata per alfabetico
+GET {{server}}/api/classe/stato?sort=alfabetico
+
+### Ottenere le statistiche della classe, ordinata per il numero totale dei compiti assegnati
+GET {{server}}/api/classe/stato?sort=totale_compiti
+
+### Ottenere le statistiche della classe - ERRORE parametro di ordinamento non valido
+GET {{server}}/api/classe/stato?sort=errore
+

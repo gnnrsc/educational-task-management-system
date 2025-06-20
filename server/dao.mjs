@@ -1,5 +1,6 @@
 import sqlite3 from "sqlite3";
 import crypto from "crypto";
+import dayjs from 'dayjs';
 
 // Inizializzazione database
 const db = new sqlite3.Database("compiti.sqlite", (err) => {
@@ -64,6 +65,8 @@ export const getUserById = (id) => {
     });
   });
 };
+
+//DOCENTE
 
 // Ottieni tutti gli studenti (ruolo = studente)
 export const getAllStudents = () => {
@@ -190,30 +193,161 @@ export const getStudentPairsCollaborations = (docenteId, minCount = 2) => {
   });
 };
 
-export const checkStudentPairLimit = async (
-  studentIds,
-  docenteId,
-  minLimit = 2
-) => {
-  const collaborations = await getStudentPairsCollaborations(
-    docenteId,
-    minLimit
-  );
+export const checkStudentPairLimit = (studentIds, docenteId, minLimit = 2) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const collaborations = await getStudentPairsCollaborations(
+        docenteId,
+        minLimit
+      );
 
-  const pairKey = (id1, id2) => (id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`);
+      const pairKey = (id1, id2) =>
+        id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`;
 
-  for (let i = 0; i < studentIds.length; i++) {
-    for (let j = i + 1; j < studentIds.length; j++) {
-      const key = pairKey(studentIds[i], studentIds[j]);
-      if (collaborations[key]) {
-        return {
-          allowed: false,
-          pair: [studentIds[i], studentIds[j]],
-          count: collaborations[key],
-        };
+      for (let i = 0; i < studentIds.length; i++) {
+        for (let j = i + 1; j < studentIds.length; j++) {
+          const key = pairKey(studentIds[i], studentIds[j]);
+          if (collaborations[key]) {
+            return resolve({
+              allowed: false,
+              pair: [studentIds[i], studentIds[j]],
+              count: collaborations[key],
+            });
+          }
+        }
       }
-    }
-  }
 
-  return { allowed: true };
+      resolve({ allowed: true });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+// Recupera risposta di un compito per un docente
+export const getRispostaCompito = (compitoId, docenteId) => {
+  return new Promise((resolve, reject) => {
+    db.get(
+      `SELECT id, traccia, stato, numero_studenti, punteggio
+       FROM compiti 
+       WHERE id = ? AND creato_da = ?`,
+      [compitoId, docenteId],
+      (err, compito) => {
+        if (err) return reject(err);
+        if (!compito) return resolve(null); // Compito non trovato
+
+        db.get(
+          `SELECT r.testo_risposta, r.aggiornato_il, r.inviato_da,
+                  u.nome AS risposta_nome, u.cognome AS risposta_cognome
+           FROM risposte_compiti r
+           LEFT JOIN utenti u ON u.id = r.inviato_da
+           WHERE r.compito_id = ?`,
+          [compitoId],
+          (err2, risposta) => {
+            if (err2) return reject(err2);
+
+            // anche se risposta è undefined, restituiamo comunque il compito
+            resolve({
+              ...compito,
+              risposta
+            });
+          }
+        );
+      }
+    );
+  });
+};
+
+
+// Verifica stato compito e presenza risposta per effettuare la valutazione
+export const verificaCompitoPerValutazione = (compitoId, docenteId) => {
+  return new Promise((resolve, reject) => {
+    db.get(
+      `SELECT c.stato, 
+      EXISTS(SELECT 1 FROM risposte_compiti WHERE compito_id = c.id) as ha_risposta
+      FROM compiti c 
+      WHERE c.id = ? AND c.creato_da = ?`,
+      [compitoId, docenteId],
+      (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      }
+    );
+  });
+};
+
+// Valuta e chiude un compito
+export const valutaEChiudiCompito = (compitoId, punteggio) => {
+  return new Promise((resolve, reject) => {
+    const now = dayjs().format("YYYY-MM-DD HH:mm:ss");
+    db.run(
+      `UPDATE compiti 
+       SET punteggio = ?, stato = 'chiuso', chiuso_il = ?
+       WHERE id = ?`,
+      [punteggio, now, compitoId],
+      function (err) {
+        if (err) reject(err);
+        else resolve({ changes: this.changes });
+      }
+    );
+  });
+};
+
+export const getStatisticheClasse = (docenteId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // 1. Prima ottieni tutti gli studenti
+      const studenti = await getAllStudents();
+
+      // 2. Per ogni studente, calcola le sue statistiche
+      const statistiche = [];
+
+      for (const studente of studenti) {
+        const stats = await getStatisticheStudente(studente.id, docenteId);
+        statistiche.push({
+          id: studente.id,
+          nome: studente.nome,
+          cognome: studente.cognome,
+          aperti: stats.aperti,
+          chiusi: stats.chiusi,
+          totale: stats.totale,
+          media: stats.media,
+        });
+      }
+
+      resolve(statistiche);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+//Ottiene statistiche per uno studente specifico
+export const getStatisticheStudente = (studenteId, docenteId) => {
+  return new Promise((resolve, reject) => {
+    db.get(
+      `
+            SELECT 
+                COUNT(CASE WHEN c.stato = 'aperto' THEN 1 END) as aperti,
+                COUNT(CASE WHEN c.stato = 'chiuso' THEN 1 END) as chiusi,
+                COUNT(c.id) as totale,
+                AVG(CASE WHEN c.stato = 'chiuso' AND c.punteggio IS NOT NULL 
+                    THEN CAST(c.punteggio AS REAL) / c.numero_studenti END) as media
+            FROM assegnazioni_compiti ac
+            JOIN compiti c ON ac.compito_id = c.id
+            WHERE ac.studente_id = ? AND c.creato_da = ?
+        `,
+      [studenteId, docenteId],
+      (err, row) => {
+        if (err) reject(err);
+        else
+          resolve({
+            aperti: row.aperti || 0,
+            chiusi: row.chiusi || 0,
+            totale: row.totale || 0,
+            media: row.media ? Math.round(row.media * 100) / 100 : null,
+          });
+      }
+    );
+  });
 };
