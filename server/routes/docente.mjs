@@ -1,55 +1,8 @@
-import express from "express";
-import cors from "cors";
-import morgan from "morgan";
-import session from "express-session";
-import passport from "passport";
-import LocalStrategy from "passport-local";
-import { body, param, query, validationResult } from "express-validator";
-import * as dao from "./dao.mjs";
-
-const app = express();
-const PORT = 3001;
-
-// Setup del Middleware
-app.use(morgan("dev")); // per il logging delle richieste HTTP
-app.use(express.json());
-
-// Configurazione CORS
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    optionsSuccessStatus: 200,
-    credentials: true, //accetta cookie di sessione esterni per autenticazione
-  })
-);
-
-// Configurazione di Passport.js per l'autenticazione
-passport.use(
-  new LocalStrategy({ usernameField: "email" }, async function verify(
-    email,
-    password,
-    cb
-  ) {
-    const user = await dao.getUser(email, password);
-    if (!user) return cb(null, false, "Incorrect email or password.");
-
-    return cb(null, user);
-  })
-);
-
-// Serializzazione e deserializzazione dell'utente per le sessioni
-passport.serializeUser(function (user, cb) {
-  cb(null, user.id);
-});
-
-passport.deserializeUser(async function (id, cb) {
-  try {
-    const user = await dao.getUserById(id);
-    cb(null, user);
-  } catch (err) {
-    cb(err);
-  }
-});
+import { body, param, query } from "express-validator";
+import * as dao from "../dao/docente-dao.mjs";
+import { validationResult } from "express-validator";
+import express from 'express';
+const router = express.Router();
 
 // Middleware per gestire gli errori di validazione
 const handleValidationErrors = (req, res, next) => {
@@ -63,85 +16,8 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// Middleware per verificare se l'utente è autenticato
-const isLoggedIn = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  return res.status(401).json({ error: "Non autorizzato" });
-};
-
-// Middleware per verificare il ruolo (docente)
-export const isTeacher = (req, res, next) => {
-  if (req.isAuthenticated() && req.user.ruolo === "docente") {
-    return next();
-  }
-  return res.status(403).json({
-    error: "Accesso riservato ai docenti",
-  });
-};
-
-// Middleware per verificare il ruolo (studente)
-export const isStudent = (req, res, next) => {
-  if (req.isAuthenticated() && req.user.ruolo === "studente") {
-    return next();
-  }
-  return res.status(403).json({
-    error: "Accesso riservato agli studenti",
-  });
-};
-
-// Configurazione della sessione
-app.use(
-  session({
-    secret: "shhhhh...la risposta al compito è un segreto!",
-    resave: false,
-    saveUninitialized: false,
-  })
-);
-// Inizializzazione di Passport.js per usare le sessioni
-app.use(passport.authenticate("session"));
-
-/* ROUTES */
-
-//SESSION
-
-// POST: api/sessions - LOGIN
-app.post("/api/sessions", function (req, res, next) {
-  passport.authenticate("local", (err, user, info) => {
-    if (err) return next(err);
-    if (!user) {
-      return res.status(401).json(info);
-    }
-    req.login(user, (err) => {
-      if (err) return next(err);
-      return res.json(req.user);
-    });
-  })(req, res, next);
-});
-
-// DELETE: api/sessions/current - LOGOUT
-app.delete("/api/sessions/current", isLoggedIn, (req, res) => {
-  req.logout(() => {
-    res.end();
-  });
-});
-
-// GET: api/sessions/current - OTTENERE SESSIONE ATTUALE
-app.get("/api/sessions/current", (req, res) => {
-  if (req.isAuthenticated()) {
-    res.status(200).json(req.user);
-  } else {
-    res.status(401).json({ error: "Utente non autenticato!" });
-  }
-});
-
-// ROUTE PROTETTE
-
-//DOCENTE
-
-// GET: /api/classe - Ottenere lista studenti (solo per docenti)
-app.get("/api/classe", isLoggedIn, isTeacher, async (req, res) => {
+// GET: /classe - Ottenere lista studenti (solo per docenti)
+router.get("/classe",  async (req, res) => {
   try {
     const students = await dao.getAllStudents();
     res.json(students);
@@ -150,11 +26,9 @@ app.get("/api/classe", isLoggedIn, isTeacher, async (req, res) => {
   }
 });
 
-// POST: /api/compiti - Creare un nuovo compito (solo per docenti)
-app.post(
-  "/api/compiti",
-  isLoggedIn,
-  isTeacher,
+// POST: /compiti - Creare un nuovo compito (solo per docenti)
+router.post(
+  "/compiti",
   [
     body("traccia")
       .isLength({ min: 10 })
@@ -166,8 +40,7 @@ app.post(
       .isInt({ min: 1 })
       .withMessage("Gli ID degli studenti devono essere numeri interi positivi")
       .toInt(),
-  ],
-  handleValidationErrors,
+  ],handleValidationErrors,
   async (req, res) => {
     const { traccia, studentIds } = req.body;
     const creatoDa = req.user.id;
@@ -195,13 +68,10 @@ app.post(
   }
 );
 
-// GET: /api/compiti/:id/risposta - Ottenere la risposta di un compito (solo per docenti)
-app.get(
-  "/api/compiti/:id/risposta",
-  isLoggedIn,
-  isTeacher,
-  [param("id").isInt({ min: 1 }).withMessage("ID compito non valido").toInt()],
-  handleValidationErrors,
+// GET: /compiti/:id/risposta - Ottenere la risposta di un compito (solo per docenti)
+router.get(
+  "/compiti/:id/risposta",
+  [param("id").isInt({ min: 1 }).withMessage("ID compito non valido").toInt()],handleValidationErrors,
   async (req, res) => {
     try {
       const { id: compitoId } = req.params;
@@ -245,19 +115,16 @@ app.get(
   }
 );
 
-// PUT: /api/compiti/:id/valutazione - Effettuare una valutazione di un compito (solo per docenti)
-app.put(
-  "/api/compiti/:id/valutazione",
-  isLoggedIn,
-  isTeacher,
+// PUT: /compiti/:id/valutazione - Effettuare una valutazione di un compito (solo per docenti)
+router.put(
+  "/compiti/:id/valutazione",
   [
     param("id").isInt({ min: 1 }).withMessage("ID compito non valido").toInt(),
     body("punteggio")
       .isInt({ min: 0, max: 30 })
       .withMessage("Punteggio deve essere intero tra 0-30")
       .toInt(),
-  ],
-  handleValidationErrors,
+  ],handleValidationErrors,
   async (req, res) => {
     try {
       const { id: compitoId } = req.params;
@@ -291,11 +158,9 @@ app.put(
   }
 );
 
-// GET: /api/classe/stato - Ottenere statistiche della classe (solo per docenti)
-app.get(
-  "/api/classe/stato",
-  isLoggedIn,
-  isTeacher,
+// GET: /classe/stato - Ottenere statistiche della classe (solo per docenti)
+router.get(
+  "/classe/stato",
   [
     query("sort")
       .optional()
@@ -303,8 +168,7 @@ app.get(
       .withMessage(
         "Ordinamento non valido. Valori accettati: media_punteggi, alfabetico, totale_compiti"
       ),
-  ],
-  handleValidationErrors,
+  ],handleValidationErrors,
   async (req, res) => {
     try {
       const { sort = "alfabetico" } = req.query;
@@ -342,17 +206,98 @@ app.get(
   }
 );
 
-// Gestione errori 404
-app.use((req, res) => {
-  res.status(404).json({ error: "Endpoint non trovato" });
-});
+// GET: /compiti - Visualizza tutti i compiti creati dal docente con filtro opzionale
+router.get(
+  "/compiti",
+  [
+    query("stato")
+      .optional()
+      .isIn(["aperto", "chiuso"])
+      .withMessage("Stato non valido. Valori accettati: aperto, chiuso")
+  ],handleValidationErrors,
+  async (req, res) => {
+    try {
+      const docenteId = req.user.id;
+      const { stato } = req.query;
+      
+      const compiti = await dao.getCompitiDocente(docenteId, stato);
+      
+      res.json({
+        filtro: stato || "tutti",
+        totale: compiti.length,
+        compiti: compiti.map((compito) => ({
+          id: compito.id,
+          traccia: compito.traccia,
+          stato: compito.stato,
+          creato_il: compito.creato_il,
+          chiuso_il: compito.chiuso_il || null,
+          numero_studenti: compito.numero_studenti,
+          gruppo: compito.gruppo,
+          ha_risposta: compito.testo_risposta ? true : false,
+          punteggio: compito.punteggio || null
+        }))
+      });
+    } catch (error) {
+      console.error("Errore GET compiti docente:", error);
+      res.status(500).json({ error: "Errore server" });
+    }
+  }
+);
 
-// Gestione errori generali
-app.use((err, req, res, next) => {
-  console.error("Errore server:", err);
-  res.status(500).json({ error: "Errore interno del server" });
-});
-// attivazione del server
-app.listen(PORT, () => {
-  console.log(`Server listening at http://localhost:${PORT}`);
-});
+
+// GET: /compiti/:id - Visualizza il dettaglio di un compito (solo per docente)
+router.get(
+  "/compiti/:id",
+  [
+    param("id")
+      .isInt({ min: 1 })
+      .withMessage("ID compito non valido")
+  ],handleValidationErrors,
+  async (req, res) => {
+    try {
+      const compitoId = parseInt(req.params.id);
+      const userId = req.user.id;
+
+      const compito = await dao.getCompitoDettagliato(compitoId);
+      
+      if (!compito) {
+        return res.status(404).json({ error: "Compito non trovato" });
+      }
+
+      // Il docente può vedere solo i propri compiti
+      if (compito.creato_da !== userId) {
+        return res.status(403).json({ 
+          error: "Non sei autorizzato a visualizzare questo compito" 
+        });
+      }
+
+      res.json({
+        id: compito.id,
+        traccia: compito.traccia,
+        stato: compito.stato,
+        creato_il: compito.creato_il,
+        chiuso_il: compito.chiuso_il || null,
+        testo_risposta: compito.testo_risposta || null,
+        punteggio: compito.punteggio || null,
+        docente: {
+          id: compito.creato_da,
+          nome: compito.docente_nome,
+          cognome: compito.docente_cognome
+        },
+        gruppo: compito.gruppo.map(studente => ({
+          id: studente.id,
+          nome: studente.nome,
+          cognome: studente.cognome
+        })),
+        numero_studenti: compito.numero_studenti,
+        peso: Math.round((1 / compito.numero_studenti) * 100) / 100
+      });
+
+    } catch (error) {
+      console.error("Errore GET dettaglio compito docente:", error);
+      res.status(500).json({ error: "Errore server" });
+    }
+  }
+);
+
+export default router;

@@ -1,72 +1,5 @@
-import sqlite3 from "sqlite3";
-import crypto from "crypto";
 import dayjs from 'dayjs';
-
-// Inizializzazione database
-const db = new sqlite3.Database("compiti.sqlite", (err) => {
-  if (err) {
-    console.error("Errore apertura database:", err.message);
-    throw err;
-  }
-  console.log("Connesso al database SQLite.");
-});
-
-/*USERS*/
-
-// Funzione di login: verifica email e password
-export const getUser = (email, password) => {
-  return new Promise((resolve, reject) => {
-    const sql = "SELECT * FROM utenti WHERE email = ?";
-    db.get(sql, [email], (err, row) => {
-      if (err) return reject(err);
-      if (!row) return resolve(false);
-
-      crypto.scrypt(password, row.salt, 32, (err, hashedPassword) => {
-        if (err) return reject(err);
-
-        const storedPassword = Buffer.from(row.password, "hex");
-        if (!crypto.timingSafeEqual(storedPassword, hashedPassword)) {
-          return resolve(false);
-        }
-
-        const user = {
-          id: row.id,
-          email: row.email,
-          nome: row.nome,
-          cognome: row.cognome,
-          ruolo: row.ruolo,
-        };
-        resolve(user);
-      });
-    });
-  });
-};
-
-// Funzione per ottenere un utente dato il suo ID
-export const getUserById = (id) => {
-  return new Promise((resolve, reject) => {
-    const sql =
-      "SELECT id, email, nome, cognome, ruolo FROM utenti WHERE id = ?";
-    db.get(sql, [id], (err, row) => {
-      if (err) {
-        reject(err);
-      } else if (!row) {
-        resolve(null);
-      } else {
-        const user = {
-          id: row.id,
-          email: row.email,
-          nome: row.nome,
-          cognome: row.cognome,
-          ruolo: row.ruolo,
-        };
-        resolve(user);
-      }
-    });
-  });
-};
-
-//DOCENTE
+import db from '..//dao/dao.mjs';
 
 // Ottieni tutti gli studenti (ruolo = studente)
 export const getAllStudents = () => {
@@ -349,5 +282,66 @@ export const getStatisticheStudente = (studenteId, docenteId) => {
           });
       }
     );
+  });
+};
+
+// Ottiene tutti i compiti di un docente con filtro opzionale per stato
+export const getCompitiDocente = (docenteId, stato = null) => {
+  return new Promise((resolve, reject) => {
+    let sql = `
+      SELECT c.*, u.nome as docente_nome, u.cognome as docente_cognome
+      FROM compiti c
+      JOIN utenti u ON c.creato_da = u.id
+      WHERE c.creato_da = ?
+    `;
+    
+    const params = [docenteId];
+    
+    if (stato) {
+      sql += ` AND c.stato = ?`;
+      params.push(stato);
+    }
+    
+    sql += ` ORDER BY c.creato_il DESC`;
+    
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
+};
+
+// Ottiene il dettaglio completo di un compito
+export const getCompitoDettagliato = (compitoId) => {
+  return new Promise((resolve, reject) => {
+    // Prima query: dati base del compito
+    const sqlCompito = `
+      SELECT c.*, u.nome as docente_nome, u.cognome as docente_cognome,
+             rc.testo_risposta
+      FROM compiti c
+      JOIN utenti u ON c.creato_da = u.id
+      LEFT JOIN risposte_compiti rc ON c.id = rc.compito_id
+      WHERE c.id = ?
+    `;
+    
+    db.get(sqlCompito, [compitoId], (err, compito) => {
+      if (err) return reject(err);
+      if (!compito) return resolve(null);
+      
+      // Seconda query: studenti del gruppo
+      const sqlStudenti = `
+        SELECT u.id, u.nome, u.cognome
+        FROM assegnazioni_compiti ac
+        JOIN utenti u ON ac.studente_id = u.id
+        WHERE ac.compito_id = ?
+      `;
+      
+      db.all(sqlStudenti, [compitoId], (err, studenti) => {
+        if (err) return reject(err);
+        
+        compito.gruppo = studenti;
+        resolve(compito);
+      });
+    });
   });
 };
