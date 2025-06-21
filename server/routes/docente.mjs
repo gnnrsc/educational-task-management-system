@@ -1,8 +1,11 @@
 import { body, param, query } from "express-validator";
 import * as dao from "../dao/docente-dao.mjs";
+import * as daoCommon from "../dao/dao.mjs";
 import { validationResult } from "express-validator";
-import express from 'express';
+import express from "express";
 const router = express.Router();
+
+//ROUTE DOCENTE
 
 // Middleware per gestire gli errori di validazione
 const handleValidationErrors = (req, res, next) => {
@@ -17,7 +20,7 @@ const handleValidationErrors = (req, res, next) => {
 };
 
 // GET: /classe - Ottenere lista studenti (solo per docenti)
-router.get("/classe",  async (req, res) => {
+router.get("/classe", async (req, res) => {
   try {
     const students = await dao.getAllStudents();
     res.json(students);
@@ -40,7 +43,8 @@ router.post(
       .isInt({ min: 1 })
       .withMessage("Gli ID degli studenti devono essere numeri interi positivi")
       .toInt(),
-  ],handleValidationErrors,
+  ],
+  handleValidationErrors,
   async (req, res) => {
     const { traccia, studentIds } = req.body;
     const creatoDa = req.user.id;
@@ -71,7 +75,8 @@ router.post(
 // GET: /compiti/:id/risposta - Ottenere la risposta di un compito (solo per docenti)
 router.get(
   "/compiti/:id/risposta",
-  [param("id").isInt({ min: 1 }).withMessage("ID compito non valido").toInt()],handleValidationErrors,
+  [param("id").isInt({ min: 1 }).withMessage("ID compito non valido").toInt()],
+  handleValidationErrors,
   async (req, res) => {
     try {
       const { id: compitoId } = req.params;
@@ -124,7 +129,8 @@ router.put(
       .isInt({ min: 0, max: 30 })
       .withMessage("Punteggio deve essere intero tra 0-30")
       .toInt(),
-  ],handleValidationErrors,
+  ],
+  handleValidationErrors,
   async (req, res) => {
     try {
       const { id: compitoId } = req.params;
@@ -168,7 +174,8 @@ router.get(
       .withMessage(
         "Ordinamento non valido. Valori accettati: media_punteggi, alfabetico, totale_compiti"
       ),
-  ],handleValidationErrors,
+  ],
+  handleValidationErrors,
   async (req, res) => {
     try {
       const { sort = "alfabetico" } = req.query;
@@ -213,15 +220,16 @@ router.get(
     query("stato")
       .optional()
       .isIn(["aperto", "chiuso"])
-      .withMessage("Stato non valido. Valori accettati: aperto, chiuso")
-  ],handleValidationErrors,
+      .withMessage("Stato non valido. Valori accettati: aperto, chiuso"),
+  ],
+  handleValidationErrors,
   async (req, res) => {
     try {
       const docenteId = req.user.id;
       const { stato } = req.query;
-      
+
       const compiti = await dao.getCompitiDocente(docenteId, stato);
-      
+
       res.json({
         filtro: stato || "tutti",
         totale: compiti.length,
@@ -234,8 +242,8 @@ router.get(
           numero_studenti: compito.numero_studenti,
           gruppo: compito.gruppo,
           ha_risposta: compito.testo_risposta ? true : false,
-          punteggio: compito.punteggio || null
-        }))
+          punteggio: compito.punteggio || null,
+        })),
       });
     } catch (error) {
       console.error("Errore GET compiti docente:", error);
@@ -244,30 +252,26 @@ router.get(
   }
 );
 
-
 // GET: /compiti/:id - Visualizza il dettaglio di un compito (solo per docente)
 router.get(
   "/compiti/:id",
-  [
-    param("id")
-      .isInt({ min: 1 })
-      .withMessage("ID compito non valido")
-  ],handleValidationErrors,
+  [param("id").isInt({ min: 1 }).withMessage("ID compito non valido")],
+  handleValidationErrors,
   async (req, res) => {
     try {
       const compitoId = parseInt(req.params.id);
       const userId = req.user.id;
 
-      const compito = await dao.getCompitoDettagliato(compitoId);
-      
+      const compito = await daoCommon.getCompitoConGruppo(compitoId);
+
       if (!compito) {
         return res.status(404).json({ error: "Compito non trovato" });
       }
 
       // Il docente può vedere solo i propri compiti
       if (compito.creato_da !== userId) {
-        return res.status(403).json({ 
-          error: "Non sei autorizzato a visualizzare questo compito" 
+        return res.status(403).json({
+          error: "Non sei autorizzato a visualizzare questo compito",
         });
       }
 
@@ -277,22 +281,15 @@ router.get(
         stato: compito.stato,
         creato_il: compito.creato_il,
         chiuso_il: compito.chiuso_il || null,
-        testo_risposta: compito.testo_risposta || null,
+        testo_risposta: compito.risposta?.testo_risposta || null,
         punteggio: compito.punteggio || null,
-        docente: {
-          id: compito.creato_da,
-          nome: compito.docente_nome,
-          cognome: compito.docente_cognome
-        },
-        gruppo: compito.gruppo.map(studente => ({
+        gruppo: compito.gruppo.map((studente) => ({
           id: studente.id,
           nome: studente.nome,
-          cognome: studente.cognome
+          cognome: studente.cognome,
         })),
         numero_studenti: compito.numero_studenti,
-        peso: Math.round((1 / compito.numero_studenti) * 100) / 100
       });
-
     } catch (error) {
       console.error("Errore GET dettaglio compito docente:", error);
       res.status(500).json({ error: "Errore server" });

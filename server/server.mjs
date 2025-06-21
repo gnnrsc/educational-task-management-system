@@ -5,8 +5,8 @@ import session from "express-session";
 import passport from "passport";
 import LocalStrategy from "passport-local";
 import * as dao from "./dao/dao.mjs";
-import docenteRoutes from './routes/docente.mjs';
-import studenteRoutes from './routes/studente.mjs';
+import docenteRoutes from "./routes/docente.mjs";
+import studenteRoutes from "./routes/studente.mjs";
 
 const app = express();
 const PORT = 3001;
@@ -125,12 +125,11 @@ app.get("/api/sessions/current", (req, res) => {
   }
 });
 
-// ROUTE DOCENTE
+// ROUTES DOCENTE
 app.use("/api/docente", isLoggedIn, isTeacher, docenteRoutes);
 
-// ROUTE STUDENTE
+// ROUTES STUDENTE
 app.use("/api/studente", isLoggedIn, isStudent, studenteRoutes);
-
 
 // Gestione errori 404
 app.use((req, res) => {

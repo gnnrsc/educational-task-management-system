@@ -1,6 +1,6 @@
 @server = http://localhost:3001
 
-### UTENTI -------------------------------
+### UTENTI --------------------------------------------------------------------------------------------
 
 ### Login corretto - DOCENTE
 POST {{server}}/api/sessions
@@ -13,7 +13,7 @@ Content-Type: application/json
 POST {{server}}/api/sessions
 Content-Type: application/json
 
-{"email": "matteo.rossi@studenti.polito.it", 
+{"email": "alice.rossi@studenti.polito.it", 
 "password": "prova123"}
 
 ### Email/password errati per il login
@@ -29,7 +29,7 @@ DELETE {{server}}/api/sessions/current
 ### Controllo se l'utente è loggato
 GET {{server}}/api/sessions/current
 
-###DOCENTE -------------------------------
+###DOCENTE --------------------------------------------------------------------------------------------
 
 ### Ottenere la lista degli studenti
 GET {{server}}/api/docente/classe
@@ -40,7 +40,7 @@ Content-Type: application/json
 
 {
   "traccia": "Compito di prova",
-  "studentIds": [1, 2, 3]
+  "studentIds": [1, 2]
 }
 
 ### Creare un nuovo compito - ERRORE troppi studenti selezionati
@@ -143,4 +143,78 @@ GET {{server}}/api/docente/compiti/11
 
 ### Ottenere il dettaglio di un compito di un ALTRO docente - ERRORE
 GET {{server}}/api/docente/compiti/3
+
+###STUDENTE -------------------------------------------------------------------------------------------
+
+### GET: Visualizza tutti i compiti dello studente (senza filtro)
+GET {{server}}/api/studente/compiti
+
+### GET: Visualizza tutti i compiti dello studente filtrati per stato "aperto"
+GET {{server}}/api/studente/compiti?stato=aperto
+
+### GET: Visualizza tutti i compiti dello studente filtrati per stato "chiuso"  
+GET {{server}}/api/studente/compiti?stato=chiuso
+
+###
+
+### GET: Test con stato non valido - ERRORE stato non valido
+GET {{server}}/api/studente/compiti?stato=invalido
+
+### PUT: Inserisce risposta a un compito aperto (ID compito = 1)
+PUT {{server}}/api/studente/compiti/1/risposta
+Content-Type: application/json
+
+{
+  "testo_risposta": "Questa è la mia risposta al primo compito. Ho analizzato il problema e propongo questa soluzione dettagliata."
+}
+
+### PUT: Aggiorna risposta esistente (ID compito = 1)
+PUT {{server}}/api/studente/compiti/1/risposta
+Content-Type: application/json
+
+{
+  "testo_risposta": "Questa è la mia risposta aggiornata al primo compito. Ho rivisto la soluzione e apportato miglioramenti."
+}
+
+### PUT: Tentativo di risposta a compito - ERRORE compito non esistente
+PUT {{server}}/api/studente/compiti/11/risposta
+Content-Type: application/json
+
+{
+  "testo_risposta": "Risposta test"
+}
+
+### PUT: Tentativo di risposta a compito - ERRORE non autorizzato
+//DA ESEGUIRE DOPO CHE DOCENTE HA AGGIUNTO UN TERZO COMPITO PER ALTRI STUDENTI
+PUT {{server}}/api/studente/compiti/3/risposta
+Content-Type: application/json
+
+{
+  "testo_risposta": "Risposta test"
+}
+
+### PUT: Tentativo di risposta a compito - ERRORE testo risposta vuoto
+PUT {{server}}/api/studente/compiti/1/risposta
+Content-Type: application/json
+
+{
+  "testo_risposta": ""
+}
+
+### PUT: Tentativo di risposta a compito - ERRORE compito già chiuso
+PUT {{server}}/api/studente/compiti/2/risposta
+Content-Type: application/json
+
+{
+  "testo_risposta": "Risposta al secondo compito assegnato."
+}
+
+### GET: Visualizza la media ponderata dello studente
+GET {{server}}/api/studente/media
+
+### GET: Visualizza dettagli compito specifico (ID = 1)
+GET {{server}}/api/studente/compiti/1
+
+### GET: Tentativo di visualizzare compito - ERRORE non autorizzato (da valutare controllo compito inesistente)
+GET {{server}}/api/studente/compiti/3
 

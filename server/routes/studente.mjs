@@ -1,7 +1,204 @@
 import { body, param, query } from "express-validator";
 import * as dao from "../dao/studente-dao.mjs";
-import express from 'express';
+import * as daoCommon from "../dao/dao.mjs";
+import { validationResult } from "express-validator";
+import express from "express";
 const router = express.Router();
 
+//ROUTE STUDENTE
+
+// Middleware per gestire gli errori di validazione
+const handleValidationErrors = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      error: "Dati non validi",
+      details: errors.array(),
+    });
+  }
+  next();
+};
+
+// GET: /compiti - Visualizza tutti i compiti dello studente con filtro opzionale
+router.get(
+  "/compiti",
+  [
+    query("stato")
+      .optional()
+      .isIn(["aperto", "chiuso"])
+      .withMessage("Stato non valido. Valori accettati: aperto, chiuso"),
+  ],
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      const studenteId = req.user.id;
+      const { stato } = req.query;
+
+      const compiti = await dao.getCompitiStudente(studenteId, stato);
+
+      res.json({
+        filtro: stato || "tutti",
+        totale: compiti.length,
+        compiti: compiti.map((compito) => ({
+          id: compito.id,
+          traccia: compito.traccia,
+          stato: compito.stato,
+          creato_il: compito.creato_il,
+          chiuso_il: compito.chiuso_il || null,
+          docente: {
+            nome: compito.docente_nome,
+            cognome: compito.docente_cognome,
+          },
+          gruppo: compito.gruppo,
+          testo_risposta: compito.testo_risposta || null,
+          punteggio: compito.punteggio || null,
+          numero_studenti: compito.numero_studenti,
+        })),
+      });
+    } catch (error) {
+      console.error("Errore GET compiti studente:", error);
+      res.status(500).json({ error: "Errore server" });
+    }
+  }
+);
+
+// PUT: /compiti/:id/risposta - Inserisce o aggiorna la risposta a un compito
+router.put(
+  "/compiti/:id/risposta",
+  [
+    param("id").isInt({ min: 1 }).withMessage("ID compito non valido"),
+    body("testo_risposta")
+      .isString()
+      .isLength({ min: 1 })
+      .withMessage("La risposta deve essere una stringa non vuota"),
+  ],
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      const compitoId = parseInt(req.params.id);
+      const { testo_risposta } = req.body;
+      const studenteId = req.user.id;
+
+      // Verifica che il compito esista e sia aperto
+      const compito = await dao.getCompitoById(compitoId);
+      if (!compito) {
+        return res.status(404).json({ error: "Compito non trovato" });
+      }
+
+      if (compito.stato !== "aperto") {
+        return res
+          .status(400)
+          .json({
+            error: "Il compito è già chiuso e non può essere modificato",
+          });
+      }
+
+      // Verifica che lo studente sia parte del gruppo
+      const isPartOfGroup = await dao.isStudentInGroup(compitoId, studenteId);
+      if (!isPartOfGroup) {
+        return res
+          .status(403)
+          .json({ error: "Non sei autorizzato a rispondere a questo compito" });
+      }
+
+      // Inserisce o aggiorna la risposta
+      await dao.updateRispostaCompito(compitoId, testo_risposta, studenteId);
+
+      res.json({
+        message: "Risposta salvata con successo",
+        compito_id: compitoId,
+        testo_risposta: testo_risposta,
+      });
+    } catch (error) {
+      console.error("Errore PUT risposta compito:", error);
+      res.status(500).json({ error: "Errore server" });
+    }
+  }
+);
+
+// GET: /media - Visualizza la media ponderata dello studente
+router.get("/media", async (req, res) => {
+  try {
+    const studenteId = req.user.id;
+    const mediaPonderata = await dao.getMediaPonderataStudente(studenteId);
+
+    res.json({
+      studente: {
+        id: req.user.id,
+        nome: req.user.nome,
+        cognome: req.user.cognome,
+      },
+      media_ponderata: mediaPonderata
+        ? Math.round(mediaPonderata * 100) / 100
+        : null,
+      totale_compiti_valutati: await dao.getNumeroCompitiChiusiStudente(
+        studenteId
+      ),
+    });
+  } catch (error) {
+    console.error("Errore GET media studente:", error);
+    res.status(500).json({ error: "Errore server" });
+  }
+});
+
+// GET: /compiti/:id - Visualizza i dettagli di un compito specifico
+router.get(
+  "/compiti/:id",
+  [param("id").isInt({ min: 1 }).withMessage("ID compito non valido")],
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      const compitoId = parseInt(req.params.id);
+      const studenteId = req.user.id;
+
+      // Verifica che lo studente sia parte del gruppo (controllo autorizzazione)
+      const isPartOfGroup = await dao.isStudentInGroup(compitoId, studenteId);
+      if (!isPartOfGroup) {
+        return res
+          .status(403)
+          .json({ error: "Non sei autorizzato a visualizzare questo compito" });
+      }
+
+      // Ottieni tutti i dettagli del compito con una sola chiamata
+      const compito = await daoCommon.getCompitoConGruppo(compitoId);
+      if (!compito) {
+        return res.status(404).json({ error: "Compito non trovato" });
+      }
+
+      res.json({
+        id: compito.id,
+        traccia: compito.traccia,
+        stato: compito.stato,
+        creato_il: compito.creato_il,
+        chiuso_il: compito.chiuso_il || null,
+        docente: {
+          nome: compito.docente_nome,
+          cognome: compito.docente_cognome,
+        },
+        gruppo: compito.gruppo.map((membro) => ({
+          id: membro.id,
+          nome: membro.nome,
+          cognome: membro.cognome,
+        })),
+        numero_studenti: compito.numero_studenti,
+        risposta: compito.risposta
+          ? {
+              testo: compito.risposta.testo_risposta,
+              inviato_da: {
+                id: compito.risposta.inviato_da,
+                nome: compito.risposta.inviato_da_nome,
+                cognome: compito.risposta.inviato_da_cognome,
+              },
+              aggiornato_il: compito.risposta.aggiornato_il,
+            }
+          : null,
+        punteggio: compito.punteggio || null,
+      });
+    } catch (error) {
+      console.error("Errore GET compito dettaglio:", error);
+      res.status(500).json({ error: "Errore server" });
+    }
+  }
+);
 
 export default router;

@@ -1,11 +1,13 @@
-import dayjs from 'dayjs';
-import db from '..//dao/dao.mjs';
+import dayjs from "dayjs";
+import db from "..//dao/dao.mjs";
+
+// DOCENTE DAO
 
 // Ottieni tutti gli studenti (ruolo = studente)
 export const getAllStudents = () => {
   return new Promise((resolve, reject) => {
     const sql =
-      'SELECT id, email, nome, cognome FROM utenti WHERE ruolo = "studente" ORDER BY id';
+      'SELECT id, nome, cognome FROM utenti WHERE ruolo = "studente" ORDER BY id';
     db.all(sql, [], (err, rows) => {
       if (err) reject(err);
       else resolve(rows);
@@ -182,7 +184,7 @@ export const getRispostaCompito = (compitoId, docenteId) => {
             // anche se risposta è undefined, restituiamo comunque il compito
             resolve({
               ...compito,
-              risposta
+              risposta,
             });
           }
         );
@@ -190,7 +192,6 @@ export const getRispostaCompito = (compitoId, docenteId) => {
     );
   });
 };
-
 
 // Verifica stato compito e presenza risposta per effettuare la valutazione
 export const verificaCompitoPerValutazione = (compitoId, docenteId) => {
@@ -294,54 +295,19 @@ export const getCompitiDocente = (docenteId, stato = null) => {
       JOIN utenti u ON c.creato_da = u.id
       WHERE c.creato_da = ?
     `;
-    
+
     const params = [docenteId];
-    
+
     if (stato) {
       sql += ` AND c.stato = ?`;
       params.push(stato);
     }
-    
+
     sql += ` ORDER BY c.creato_il DESC`;
-    
+
     db.all(sql, params, (err, rows) => {
       if (err) reject(err);
       else resolve(rows);
-    });
-  });
-};
-
-// Ottiene il dettaglio completo di un compito
-export const getCompitoDettagliato = (compitoId) => {
-  return new Promise((resolve, reject) => {
-    // Prima query: dati base del compito
-    const sqlCompito = `
-      SELECT c.*, u.nome as docente_nome, u.cognome as docente_cognome,
-             rc.testo_risposta
-      FROM compiti c
-      JOIN utenti u ON c.creato_da = u.id
-      LEFT JOIN risposte_compiti rc ON c.id = rc.compito_id
-      WHERE c.id = ?
-    `;
-    
-    db.get(sqlCompito, [compitoId], (err, compito) => {
-      if (err) return reject(err);
-      if (!compito) return resolve(null);
-      
-      // Seconda query: studenti del gruppo
-      const sqlStudenti = `
-        SELECT u.id, u.nome, u.cognome
-        FROM assegnazioni_compiti ac
-        JOIN utenti u ON ac.studente_id = u.id
-        WHERE ac.compito_id = ?
-      `;
-      
-      db.all(sqlStudenti, [compitoId], (err, studenti) => {
-        if (err) return reject(err);
-        
-        compito.gruppo = studenti;
-        resolve(compito);
-      });
     });
   });
 };
