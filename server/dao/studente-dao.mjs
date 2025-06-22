@@ -103,8 +103,8 @@ export const getCompitiStudente = (studenteId, stato = null) => {
   });
 };
 
-// Ottiene la media ponderata di uno studente
-export const getMediaPonderataStudente = (studenteId) => {
+// Ottiene la media (ponderata o no) di uno studente
+export const getMediaStudente = (studenteId) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT AVG(CAST(c.punteggio AS REAL) / c.numero_studenti) as media

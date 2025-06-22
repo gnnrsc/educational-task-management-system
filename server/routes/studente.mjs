@@ -116,11 +116,11 @@ router.put(
   }
 );
 
-// GET: /media - Visualizza la media ponderata dello studente
+// GET: /media - Visualizza la media dello studente
 router.get("/media", async (req, res) => {
   try {
     const studenteId = req.user.id;
-    const mediaPonderata = await dao.getMediaPonderataStudente(studenteId);
+    const media = await dao.getMediaStudente(studenteId);
 
     res.json({
       studente: {
@@ -128,12 +128,8 @@ router.get("/media", async (req, res) => {
         nome: req.user.nome,
         cognome: req.user.cognome,
       },
-      media_ponderata: mediaPonderata
-        ? Math.round(mediaPonderata * 100) / 100
-        : null,
-      totale_compiti_valutati: await dao.getNumeroCompitiChiusiStudente(
-        studenteId
-      ),
+      totale_compiti: await dao.getNumeroCompitiChiusiStudente(studenteId),
+      media: media ? Math.round(media * 100) / 100 : null,
     });
   } catch (error) {
     console.error("Errore GET media studente:", error);

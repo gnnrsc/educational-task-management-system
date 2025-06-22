@@ -170,9 +170,9 @@ router.get(
   [
     query("sort")
       .optional()
-      .isIn(["media_punteggi", "alfabetico", "totale_compiti"])
+      .isIn(["media", "alfabetico", "totale"])
       .withMessage(
-        "Ordinamento non valido. Valori accettati: media_punteggi, alfabetico, totale_compiti"
+        "Ordinamento non valido. Valori accettati: media, alfabetico, totale"
       ),
   ],
   handleValidationErrors,
@@ -187,9 +187,9 @@ router.get(
       const sortFunctions = {
         alfabetico: (a, b) =>
           a.cognome.localeCompare(b.cognome) || a.nome.localeCompare(b.nome),
-        totale_compiti: (a, b) =>
+        totale: (a, b) =>
           b.totale - a.totale || a.cognome.localeCompare(b.cognome),
-        media_punteggi: (a, b) =>
+        media: (a, b) =>
           (b.media || 0) - (a.media || 0) || a.cognome.localeCompare(b.cognome),
       };
 
@@ -198,12 +198,15 @@ router.get(
       res.json({
         ordinamento: sort,
         studenti: studenti.map((s) => ({
-          nome: s.nome,
-          cognome: s.cognome,
+          studente: {
+            id: s.id,
+            nome: s.nome,
+            cognome: s.cognome,
+          },
+          totale_compiti: s.totale,
           compiti_aperti: s.aperti,
           compiti_chiusi: s.chiusi,
-          totale_compiti: s.totale,
-          media_punteggi: s.media,
+          media: s.media,
         })),
       });
     } catch (error) {
@@ -275,20 +278,33 @@ router.get(
         });
       }
 
+      // Costruisci oggetto risposta nel formato desiderato
+      const risposta = compito.risposta
+        ? {
+            testo: compito.risposta.testo_risposta,
+            aggiornato_il: compito.risposta.aggiornato_il,
+            inviato_da: {
+              id: compito.risposta.inviato_da,
+              nome: compito.risposta.inviato_da_nome,
+              cognome: compito.risposta.inviato_da_cognome,
+            },
+          }
+        : undefined;
+
       res.json({
         id: compito.id,
         traccia: compito.traccia,
         stato: compito.stato,
         creato_il: compito.creato_il,
         chiuso_il: compito.chiuso_il || null,
-        testo_risposta: compito.risposta?.testo_risposta || null,
-        punteggio: compito.punteggio || null,
+        punteggio: compito.punteggio ?? null,
+        numero_studenti: compito.numero_studenti,
         gruppo: compito.gruppo.map((studente) => ({
           id: studente.id,
           nome: studente.nome,
           cognome: studente.cognome,
         })),
-        numero_studenti: compito.numero_studenti,
+        risposta,
       });
     } catch (error) {
       console.error("Errore GET dettaglio compito docente:", error);
@@ -296,5 +312,6 @@ router.get(
     }
   }
 );
+
 
 export default router;

@@ -67,7 +67,7 @@ export const getUserById = (id) => {
   });
 };
 
-// Funzione comune tra studenti e docenti per ottenere il compiti
+// Funzioni comuni tra studenti e docenti per ottenere il compito
 
 // Ottiene il dettaglio completo di un compito con i membri del gruppo
 export const getCompitoConGruppo = async (compitoId) => {
