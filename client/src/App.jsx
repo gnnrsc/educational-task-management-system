@@ -1,6 +1,5 @@
-import React from "react";
 import { Container, Button } from "react-bootstrap";
-import MyNavbar from "./components/MyNavbar"; // percorso corretto
+import MyNavbar from "./components/MyNavbar";
 
 function HomePage() {
   return (
