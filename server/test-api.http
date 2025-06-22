@@ -112,7 +112,7 @@ Content-Type: application/json
 }
 
 ### Ottenere le statistiche della classe, ordinata per la media dei punteggi
-GET {{server}}/api/docente/classe/stato?sort=media_punteggi
+GET {{server}}/api/docente/classe/stato?sort=media
 
 ### Ottenere le statistiche della classe, ordinata per alfabetico
 GET {{server}}/api/docente/classe/stato?sort=alfabetico
