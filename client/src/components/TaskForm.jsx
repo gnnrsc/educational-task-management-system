@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, Form, Button, Alert, Spinner, Container } from "react-bootstrap";
+import API from "../API";
 
 function TaskForm({ onSubmit }) {
   const [question, setQuestion] = useState("");
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [students, setStudents] = useState([]);
+  const [collaborations, setCollaborations] = useState([]);
   const [error, setError] = useState("");
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -13,60 +15,39 @@ function TaskForm({ onSubmit }) {
   const MAX_SELECTION = 6;
 
   useEffect(() => {
-    setTimeout(() => {
-      setStudents([
-        { id: 1, name: "Mario Rossi" },
-        { id: 2, name: "Luca Bianchi" },
-        { id: 3, name: "Anna Verdi" },
-        { id: 4, name: "Sara Neri" },
-        { id: 5, name: "Giovanni Russo" },
-        { id: 6, name: "Elena Ferrari" },
-        { id: 7, name: "Marco Conti" },
-        { id: 8, name: "Laura Galli" },
-        { id: 9, name: "Davide Moretti" },
-        { id: 10, name: "Francesca Sala" },
-        { id: 11, name: "Stefano Colombo" },
-        { id: 12, name: "Valentina Ricci" },
-        { id: 13, name: "Alessandro Rizzo" },
-        { id: 14, name: "Martina Greco" },
-        { id: 15, name: "Nicola Villa" },
-        { id: 16, name: "Chiara Costa" },
-        { id: 17, name: "Fabio Marino" },
-        { id: 18, name: "Simona Leone" },
-        { id: 19, name: "Giorgio Serra" },
-        { id: 20, name: "Elisa Pugliese" },
-      ]);
-      setLoadingStudents(false);
-    }, 1000);
+    const getAllStudents = async () => {
+      const response = await API.getStudenti();
+      const studentiMappati = response.map((utente) => ({
+        id: utente.id,
+        name: `${utente.nome} ${utente.cognome}`,
+      }));
+      setStudents(studentiMappati);
+    };
+    const getCollaborations = async () => {
+      const response = await API.getCollaborazioniClasse();
+      const collaborationsMappate = response.collaborazioni;
+      setCollaborations(collaborationsMappate);
+    };
+    getAllStudents();
+    getCollaborations();
+    
+    setLoadingStudents(false);
   }, []);
-
-  const collaborations = {
-    "1-2": 2,
-    "2-3": 2,
-    "3-4": 2,
-    "5-6": 2,
-    "7-8": 2,
-    "9-10": 2,
-    "11-12": 2,
-    "13-14": 2,
-    "15-16": 2,
-    "17-18": 2,
-    "19-20": 2,
-  };
-
+  
   const pairKey = (id1, id2) => (id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`);
 
   const highlightedStudents = new Set();
   selectedStudents.forEach((selId) => {
-  students.forEach((s) => {
-    if (s.id !== selId) {
-      const key = pairKey(selId, s.id);
-      if (collaborations[key]) {  // basta che esista la coppia - Poiché collaborations contiene solo coppie con almeno 2 collaborazioni
-        highlightedStudents.add(s.id);
+    students.forEach((s) => {
+      if (s.id !== selId) {
+        const key = pairKey(selId, s.id);
+        if (collaborations[key]) {
+          // basta che esista la coppia - Poiché collaborations contiene solo coppie con almeno 2 collaborazioni
+          highlightedStudents.add(s.id);
+        }
       }
-    }
+    });
   });
-});
 
   const isGroupValid =
     selectedStudents.length >= MIN_SELECTION &&

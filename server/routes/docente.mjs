@@ -72,6 +72,37 @@ router.post(
   }
 );
 
+// GET: /classe/collaborazioni - Ottenere coppie di studenti con collaborazioni >= minCount (default: 2)
+router.get(
+  "/classe/collaborazioni",
+  [
+    query("minCount")
+      .optional()
+      .isInt({ min: 1 })
+      .withMessage("minCount deve essere un intero >= 1")
+      .toInt(),
+  ],
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      const docenteId = req.user.id;
+      const minCount = req.query.minCount || 2;
+
+      const pairs = await dao.getStudentPairsCollaborations(docenteId, minCount);
+
+      res.json({
+        docenteId,
+        minCount,
+        collaborazioni: pairs,
+      });
+    } catch (error) {
+      console.error("Errore GET collaborazioni studenti:", error);
+      res.status(500).json({ error: "Errore nel recupero delle collaborazioni" });
+    }
+  }
+);
+
+
 // GET: /compiti/:id/risposta - Ottenere la risposta di un compito (solo per docenti)
 router.get(
   "/compiti/:id/risposta",
