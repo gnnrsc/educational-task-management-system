@@ -34,6 +34,9 @@ GET {{server}}/api/sessions/current
 ### Ottenere la lista degli studenti
 GET {{server}}/api/docente/classe
 
+### Ottenere le collaborazioni con `minCount` predefinito (2)
+GET {{server}}/api/docente/classe/collaborazioni
+
 ### Creare un nuovo compito
 POST {{server}}/api/docente/compiti
 Content-Type: application/json

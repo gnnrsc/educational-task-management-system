@@ -17,7 +17,9 @@ async function logIn(credentials) {
     return user;
   } else {
     const err = await response.json();
-    throw err.message;
+    const error = new Error(err.message || "Errore di autenticazione");
+    error.status = response.status; 
+    throw error;
   }
 }
 
