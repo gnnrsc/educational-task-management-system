@@ -46,7 +46,7 @@ function MyNavbar() {
             {user?.ruolo === "docente" ? (
               <>
                 <NavLink
-                  to="/docente/studenti"
+                  to="/docente/classe"
                   className={({ isActive }) =>
                     "nav-link fw-semibold px-0 " +
                     (isActive
@@ -54,18 +54,7 @@ function MyNavbar() {
                       : "text-dark")
                   }
                 >
-                  Studenti
-                </NavLink>
-                <NavLink
-                  to="/docente/statistiche"
-                  className={({ isActive }) =>
-                    "nav-link fw-semibold px-0 " +
-                    (isActive
-                      ? "text-primary border-bottom border-2 border-primary"
-                      : "text-dark")
-                  }
-                >
-                  Statistiche
+                  Stato della classe
                 </NavLink>
               </>
             ) : (
