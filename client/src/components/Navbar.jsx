@@ -78,7 +78,7 @@ function MyNavbar() {
             <>
               <span className="navbar-text text-muted me-3 d-flex align-items-center">
                 <i className="bi bi-person-circle me-1"></i>
-                {user?.nome} {user?.cognome ? user.cognome.charAt(0) + "." : ""}
+                {user?.nome} {user?.cognome}
                 <span className="badge bg-success ms-2 text-uppercase">
                   {user?.ruolo}
                 </span>
