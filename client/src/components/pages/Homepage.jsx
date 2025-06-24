@@ -1,24 +1,26 @@
 import { useEffect } from "react";
 import { Container, Button } from "react-bootstrap";
 import { useNavigate } from "react-router";
+import { useAuth } from "../../AuthContext.jsx"; 
 
-function HomePage({ loggedIn, ruolo }) {
+function HomePage() {
+  const { loggedIn, user } = useAuth();
   const navigate = useNavigate();
 
 // Se loggato, redirect automatico a /compiti
   useEffect(() => {  //gestito come useEffect per evitare loop di rendering
     if (loggedIn) {
-      if (ruolo === "docente") { // con replace per evitare che l'utente possa tornare indietro nella cronologia del browser e tornare alla homepage
+      if (user?.ruolo === "docente") { // con replace per evitare che l'utente possa tornare indietro nella cronologia del browser e tornare alla homepage
         navigate("/docente/compiti", { replace: true });
       } else {
         navigate("/studente/compiti", { replace: true });
       }
     }
-  }, [loggedIn, ruolo, navigate]);
+  }, [loggedIn, user, navigate]);
 
   const handleGetStarted = () => {
     if (loggedIn) {
-      if (ruolo === "docente") {
+      if (user?.ruolo === "docente") {
         navigate("/docente/compiti");
       } else {
         navigate("/studente/compiti");

@@ -1,8 +1,10 @@
 import { Form, Button, Alert } from "react-bootstrap";
 import { useState } from "react";
 import LoadingSpinner from "../utils/LoadingSpinner";
+import { useAuth } from "../../AuthContext"; 
 
-function LoginForm({ handleLogin }) {
+function LoginForm() {
+  const { logIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -13,7 +15,7 @@ function LoginForm({ handleLogin }) {
 
     if (email && password.length >= 6) {
       setLoading(true);
-      const serverError = await handleLogin({ email, password });
+      const serverError = await logIn({ email, password });
       setLoading(false);
 
       if (serverError) {

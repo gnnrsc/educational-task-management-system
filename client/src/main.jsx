@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
+import { AuthProvider } from './AuthContext.jsx';
 import App from './App.jsx'
 import './index.css'
 
@@ -10,8 +11,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>,
-)
+    <AuthProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </AuthProvider>
+  </React.StrictMode>
+);

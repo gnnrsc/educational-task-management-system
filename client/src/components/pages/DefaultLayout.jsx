@@ -1,10 +1,10 @@
 import {  Outlet } from "react-router";
-import MyNavbar from "../MyNavbar";
+import MyNavbar from "../Navbar";
 
-function DefaultLayout({ loggedIn, handleLogout, ruolo }) {
+function DefaultLayout() {
   return (
     <>
-      <MyNavbar loggedIn={loggedIn} handleLogout={handleLogout} ruolo={ruolo} />
+      <MyNavbar />
       <main className="container mt-4">
         <Outlet />
       </main>

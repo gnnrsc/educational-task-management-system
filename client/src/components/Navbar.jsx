@@ -2,8 +2,10 @@ import { Navbar, Container, Nav, Button } from "react-bootstrap";
 import { NavLink } from "react-router"; 
 
 import logo from "../assets/LogoV2.png";
+import { useAuth } from "../AuthContext.jsx";
 
-function MyNavbar({ loggedIn, user, handleLogout }) {
+function MyNavbar() {
+  const { loggedIn, user, logOut } = useAuth();
   const rolePrefix = user?.ruolo === "docente" ? "/docente" : "/studente";
 
   return (
@@ -18,7 +20,6 @@ function MyNavbar({ loggedIn, user, handleLogout }) {
           <span style={{ fontSize: "1.8rem", fontWeight: "bold" }}>Compiti</span>
         </Navbar.Brand>
 
-        {/* Separatore verticale */}
         <div
           style={{
             width: "1px",
@@ -96,7 +97,7 @@ function MyNavbar({ loggedIn, user, handleLogout }) {
               <Button
                 variant="outline-danger"
                 size="sm"
-                onClick={handleLogout}
+                onClick={logOut}
                 className="ms-1 px-2 py-1 fw-normal"
               >
                 Logout
@@ -117,6 +118,5 @@ function MyNavbar({ loggedIn, user, handleLogout }) {
     </Navbar>
   );
 }
-
 
 export default MyNavbar;
