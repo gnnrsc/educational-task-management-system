@@ -4,6 +4,8 @@ import { NavLink } from "react-router";
 import logo from "../assets/LogoV2.png";
 
 function MyNavbar({ loggedIn, user, handleLogout }) {
+  const rolePrefix = user?.ruolo === "docente" ? "/docente" : "/studente";
+
   return (
     <Navbar bg="light" expand="lg" className="shadow">
       <Container>
@@ -13,9 +15,7 @@ function MyNavbar({ loggedIn, user, handleLogout }) {
             alt="Logo"
             style={{ height: "50px", marginRight: "1rem" }}
           />
-          <span style={{ fontSize: "1.8rem", fontWeight: "bold" }}>
-            Compiti
-          </span>
+          <span style={{ fontSize: "1.8rem", fontWeight: "bold" }}>Compiti</span>
         </Navbar.Brand>
 
         {/* Separatore verticale */}
@@ -31,7 +31,7 @@ function MyNavbar({ loggedIn, user, handleLogout }) {
         {loggedIn && (
           <Nav className="me-auto d-flex align-items-center gap-4">
             <NavLink
-              to="/compiti"
+              to={`${rolePrefix}/compiti`}
               className={({ isActive }) =>
                 "nav-link fw-semibold px-0 " +
                 (isActive
@@ -45,7 +45,7 @@ function MyNavbar({ loggedIn, user, handleLogout }) {
             {user?.ruolo === "docente" ? (
               <>
                 <NavLink
-                  to="/studenti"
+                  to="/docente/studenti"
                   className={({ isActive }) =>
                     "nav-link fw-semibold px-0 " +
                     (isActive
@@ -56,7 +56,7 @@ function MyNavbar({ loggedIn, user, handleLogout }) {
                   Studenti
                 </NavLink>
                 <NavLink
-                  to="/statistiche"
+                  to="/docente/statistiche"
                   className={({ isActive }) =>
                     "nav-link fw-semibold px-0 " +
                     (isActive
@@ -69,7 +69,7 @@ function MyNavbar({ loggedIn, user, handleLogout }) {
               </>
             ) : (
               <NavLink
-                to="/valutazioni"
+                to="/studente/valutazioni"
                 className={({ isActive }) =>
                   "nav-link fw-semibold px-0 " +
                   (isActive
@@ -117,5 +117,6 @@ function MyNavbar({ loggedIn, user, handleLogout }) {
     </Navbar>
   );
 }
+
 
 export default MyNavbar;

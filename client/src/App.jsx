@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router";
 
+// import * as pages from "./components/pages";
 import HomePage from "./components/pages/Homepage";
 import LoginForm from "./components/pages/Login";
 import DefaultLayout from "./components/pages/DefaultLayout";
+// import * as utils from "./components/utils";
 import LoadingSpinner from "./components/utils/LoadingSpinner";
+import ProtectedRoute from "./components/utils/ProtectedRoute";
 import API from "./API";
 
 function App() {
@@ -20,10 +23,7 @@ function App() {
         setLoggedIn(true);
       })
       .catch((err) => {
-        console.error(
-          "Utente non loggato o errore nel recupero delle informazioni:",
-          err
-        );
+        //console.error("Utente non loggato o errore nel recupero delle informazioni:", err);
         setLoggedIn(false);
       })
       .finally(() => {
@@ -56,13 +56,6 @@ function App() {
   }
 };
 
-
-  // Componente per proteggere le rotte
-  // Se l'utente non è loggato, reindirizza alla pagina di login
-  const ProtectedRoute = ({ children }) => {
-    return loggedIn ? children : <Navigate to="/login" replace />;
-  };
-
   if (loading) { // Mostra un loader mentre si verifica se l'utente è loggato
     return <LoadingSpinner />;
   }
@@ -70,9 +63,16 @@ function App() {
   return (
     <Routes>
       <Route element={<DefaultLayout loggedIn={loggedIn} handleLogout={handleLogout} user={user} />}>
-        <Route path="/" element={<HomePage loggedIn={loggedIn} />} />
-        <Route path="/login" element={ loggedIn ? ( <Navigate to="/compiti" replace /> ) : ( <LoginForm handleLogin={handleLogin} /> ) } />
-        <Route path="/compiti" element={ <ProtectedRoute loggedIn={loggedIn}> <div>Compiti Page (da implementare)</div> </ProtectedRoute> } />
+        <Route path="/" element={<HomePage loggedIn={loggedIn} ruolo={user?.ruolo} />} />
+        <Route path="/login" element={ loggedIn ? (
+          user?.ruolo === 'docente' ? (
+            <Navigate to="/docente/compiti" replace />
+          ) : (
+            <Navigate to="/studente/compiti" replace />
+          )
+        ) : ( <LoginForm handleLogin={handleLogin} /> ) } />
+        <Route path="docente/compiti" element={ <ProtectedRoute loggedIn={loggedIn} ruoloUtente={user?.ruolo} ruoliConcessi={['docente']}><div>Compiti Page docente (da implementare)</div></ProtectedRoute> } />
+        <Route path="studente/compiti" element={ <ProtectedRoute loggedIn={loggedIn} ruoloUtente={user?.ruolo} ruoliConcessi={['studente']}><div>Compiti Page studente (da implementare)</div></ProtectedRoute> } />
         <Route path="*" element={ <div className="text-center mt-5"> <h1>404 - Pagina non trovata</h1> <p>La pagina che stai cercando non esiste.</p> </div> } />
       </Route>
     </Routes>

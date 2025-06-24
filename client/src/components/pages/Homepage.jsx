@@ -1,27 +1,34 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 import { Container, Button } from "react-bootstrap";
 import { useNavigate } from "react-router";
 
-function HomePage({ loggedIn }) {
+function HomePage({ loggedIn, ruolo }) {
   const navigate = useNavigate();
 
-  // Se loggato, redirect automatico a /compiti
+// Se loggato, redirect automatico a /compiti
   useEffect(() => {  //gestito come useEffect per evitare loop di rendering
     if (loggedIn) {
-      // con replace per evitare che l'utente possa tornare indietro nella cronologia del browser e tornare alla homepage
-      navigate('/compiti', { replace: true });
+      if (ruolo === "docente") { // con replace per evitare che l'utente possa tornare indietro nella cronologia del browser e tornare alla homepage
+        navigate("/docente/compiti", { replace: true });
+      } else {
+        navigate("/studente/compiti", { replace: true });
+      }
     }
-  }, [loggedIn, navigate]);
+  }, [loggedIn, ruolo, navigate]);
 
   const handleGetStarted = () => {
     if (loggedIn) {
-      navigate('/compiti');
+      if (ruolo === "docente") {
+        navigate("/docente/compiti");
+      } else {
+        navigate("/studente/compiti");
+      }
     } else {
-      navigate('/login');
+      navigate("/login");
     }
   };
 
-  // Se è loggato, il redirect avviene nel useEffect, quindi non renderizziamo nulla qui
+// Se è loggato, il redirect avviene nel useEffect, quindi non renderizziamo nulla qui
   if (loggedIn) {
     return null; // utile per evitare rendering multipli
   }
@@ -35,14 +42,11 @@ function HomePage({ loggedIn }) {
       <h1 className="mb-5">
         <strong>Compiti di gruppo senza il solito incubo!</strong>
       </h1>
-      <p
-        className="mb-4 fs-5"
-        style={{ maxWidth: "650px", margin: "0 auto" }}
-      >
-        Studenti più sereni, docenti più organizzati. Assegna, valuta,
-        migliora. Tutto con pochi clic 🖱️✨
+      <p className="mb-4 fs-5" style={{ maxWidth: "650px", margin: "0 auto" }}>
+        Studenti più sereni, docenti più organizzati. Assegna, valuta, migliora.
+        Tutto con pochi clic 🖱️✨
       </p>
-      
+
       <Button variant="primary" size="lg" onClick={handleGetStarted}>
         Inizia ora
       </Button>
