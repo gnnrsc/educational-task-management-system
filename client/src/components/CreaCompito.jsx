@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
-import { Card, Form, Button, Alert, Spinner, Container } from "react-bootstrap";
+import { Form, Button, Alert, Spinner } from "react-bootstrap";
 import API from "../API";
 
-function TaskForm({ onSubmit }) {
-  const [question, setQuestion] = useState("");
+function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
+  const [currentStep, setCurrentStep] = useState(initialData ? 2 : 1);
+  const [question, setQuestion] = useState(initialData ? initialData.traccia : "");
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [students, setStudents] = useState([]);
   const [collaborations, setCollaborations] = useState([]);
   const [error, setError] = useState("");
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [slideDirection, setSlideDirection] = useState("");
 
   const MIN_SELECTION = 2;
   const MAX_SELECTION = 6;
@@ -33,7 +35,7 @@ function TaskForm({ onSubmit }) {
     
     setLoadingStudents(false);
   }, []);
-  
+
   const pairKey = (id1, id2) => (id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`);
 
   const highlightedStudents = new Set();
@@ -53,14 +55,31 @@ function TaskForm({ onSubmit }) {
     selectedStudents.length >= MIN_SELECTION &&
     selectedStudents.length <= MAX_SELECTION;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleNext = () => {
     setError("");
-
     if (!question.trim()) {
       setError("La domanda non può essere vuota.");
       return;
     }
+    setSlideDirection("slide-left");
+    setTimeout(() => {
+      setCurrentStep(2);
+      setSlideDirection("");
+    }, 150);
+  };
+
+  const handleBack = () => {
+    setError("");
+    setSlideDirection("slide-right");
+    setTimeout(() => {
+      setCurrentStep(1);
+      setSlideDirection("");
+    }, 150);
+  };
+
+  const handleSubmit = async () => {
+    setError("");
+
     if (!isGroupValid) {
       setError(
         `Il gruppo deve avere almeno ${MIN_SELECTION} studenti e al massimo ${MAX_SELECTION}.`
@@ -69,12 +88,18 @@ function TaskForm({ onSubmit }) {
     }
 
     setSubmitting(true);
-    setTimeout(() => {
-      onSubmit({ question, participants: selectedStudents });
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      onCompitoCreato({ question, participants: selectedStudents });
       setQuestion("");
       setSelectedStudents([]);
+    } catch (error) {
+      console.error("Errore nella creazione del compito:", error);
+      setError("Errore nella creazione del compito. Riprova.");
+    } finally {
       setSubmitting(false);
-    }, 1000);
+    }
   };
 
   const toggleStudent = (id) => {
@@ -95,129 +120,255 @@ function TaskForm({ onSubmit }) {
     });
   };
 
+  const getStepTitle = () => {
+    if (currentStep === 1) return "📝 Domanda del Compito";
+    return "👥 Seleziona Studenti";
+  };
+
+  const getProgress = () => {
+    return `${currentStep}/2`;
+  };
+
   return (
-    <Container className="d-flex justify-content-center align-items-start mt-5">
-      <div style={{ maxWidth: "1100px", width: "100%" }}>
-        <Card className="shadow">
-          <Card.Header>
-            <h5>📝 Crea nuovo compito</h5>
-          </Card.Header>
-          <Card.Body>
-            <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-3" controlId="taskQuestion">
-                <Form.Label>Domanda del compito</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  placeholder="Inserisci il testo del compito..."
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  disabled={submitting}
-                />
-              </Form.Group>
-              <div style={{ minHeight: "1.5rem" }} className="mb-2">
-                {highlightedStudents.size > 0 && (
-                  <div
-                    className="text-warning mb-2"
-                    style={{ fontSize: "0.775rem" }}
-                  >
-                    <div>
-                      <strong>Attenzione:</strong> gli studenti evidenziati
+    <div className="p-4">
+      {/* Header con titolo e progress */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h6 className="mb-0 fw-bold">{getStepTitle()}</h6>
+        <small className="text-muted">Step {getProgress()}</small>
+      </div>
+
+      {/* Progress indicator */}
+      <div className="progress-indicator">
+        <div className={`progress-dot ${currentStep >= 1 ? 'active' : ''}`}></div>
+        <div className={`progress-line ${currentStep >= 2 ? 'active' : ''}`}></div>
+        <div className={`progress-dot ${currentStep >= 2 ? 'active' : ''}`}></div>
+      </div>
+
+      {/* Container per gli step con animazione */}
+      <div className="modal-slide-container">
+        
+        {/* STEP 1: Domanda del compito */}
+        <div className={`modal-step ${slideDirection} ${currentStep !== 1 ? 'step-hidden' : ''}`}>
+          <Form>
+            <Form.Group className="mb-4" controlId="taskQuestion">
+              <Form.Label className="fw-bold mb-3">📝 Inserisci la traccia del compito</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={8}
+                placeholder="Scrivi qui il testo del compito che vuoi assegnare agli studenti...
+                
+Ad esempio:
+- Analizza il tema dell'amicizia nel romanzo studiato
+- Risolvi il seguente problema di matematica
+- Descrivi le cause della Prima Guerra Mondiale"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                disabled={submitting}
+                style={{ 
+                  fontSize: '0.95rem',
+                  lineHeight: '1.5'
+                }}
+              />
+            </Form.Group>
+
+            {/* Info box */}
+            <div className="bg-light rounded p-3 mb-4">
+              <small className="text-muted">
+                <strong>💡 Suggerimento:</strong> Scrivi una domanda chiara e specifica. 
+                Gli studenti lavoreranno insieme per rispondere, quindi assicurati che 
+                il compito sia adatto al lavoro di gruppo.
+              </small>
+            </div>
+
+            {/* Character counter */}
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <small className="text-muted">
+                Caratteri: {question.length}
+              </small>
+              {question.length > 500 && (
+                <small className="text-warning">
+                  ⚠️ Testo molto lungo
+                </small>
+              )}
+            </div>
+
+            {error && (
+              <Alert variant="danger" className="py-2 mb-3">
+                <small>{error}</small>
+              </Alert>
+            )}
+          </Form>
+        </div>
+
+        {/* STEP 2: Selezione studenti */}
+        <div className={`modal-step ${slideDirection} ${currentStep !== 2 ? 'step-hidden' : ''}`}>
+          
+          {/* Riepilogo domanda - più compatto */}
+          <div className="bg-light rounded p-2 mb-3">
+            <small className="text-muted d-block mb-1"><strong>📝 Traccia:</strong></small>
+            <small style={{ fontSize: '0.8rem' }}>
+              {question.length > 80 ? `${question.substring(0, 80)}...` : question}
+            </small>
+          </div>
+
+          {/* Placeholder sempre presente per avviso studenti evidenziati */}
+          <div className="warning-alert-placeholder">
+            {highlightedStudents.size > 0 ? (
+              <div className="alert alert-warning py-1 mb-0 w-100">
+                <small style={{ fontSize: '0.75rem' }}>
+                  <strong>⚠️</strong> Gli studenti evidenziati in rosso
                       hanno già partecipato ad almeno 2 compiti precedenti con
                       uno degli studenti selezionati e non possono essere
                       aggiunti al gruppo.
-                    </div>
-                  </div>
-                )}
+                </small>
               </div>
+            ) : (
+              <div></div>
+            )}
+          </div>
 
-              <Form.Group className="mb-3">
-                <fieldset>
-                  <legend className="fw-bold text-center d-block mb-2">
-                    Seleziona studenti partecipanti
-                  </legend>
+          {/* Contatore e reset - più compatto */}
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <small className="text-muted">
+                Selezionati: <strong className={isGroupValid ? 'text-success' : 'text-warning'}>
+                  {selectedStudents.length}
+                </strong>/{MAX_SELECTION}
+                <span className={`ms-2 ${isGroupValid ? 'text-success' : 'text-warning'}`}>
+                  {isGroupValid ? "✅" : `⚠️ Min ${MIN_SELECTION}`}
+                </span>
+              </small>
+            </div>
+            <Button
+              size="sm"
+              variant="outline-secondary"
+              disabled={submitting || selectedStudents.length === 0}
+              onClick={() => {
+                setSelectedStudents([]);
+                setError("");
+              }}
+              style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+            >
+              🔄 Reset
+            </Button>
+          </div>
 
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                      Studenti selezionati: {selectedStudents.length} /{" "}
-                      {MAX_SELECTION}
-                    </div>
-                    <Button
-                      size="sm"
-                      className="reset-button"
-                      disabled={submitting || selectedStudents.length === 0}
-                      onClick={() => {
-                        setSelectedStudents([]);
-                        setError("");
-                      }}
-                    >
-                      Reset selezioni
-                    </Button>
-                  </div>
+          {/* Griglia studenti - più compatta */}
+          {loadingStudents ? (
+            <div className="text-center py-3">
+              <Spinner animation="border" size="sm" className="me-2" />
+              <span style={{ fontSize: '0.85rem' }}>Caricamento...</span>
+            </div>
+          ) : (
+            <div className="student-grid">
+              {students.map((student) => {
+                const isHighlighted =
+                  highlightedStudents.has(student.id) &&
+                  !selectedStudents.includes(student.id);
+                const isSelected = selectedStudents.includes(student.id);
 
-                  {loadingStudents ? (
-                    <div>
-                      <Spinner animation="border" size="sm" /> Caricamento
-                      studenti...
-                    </div>
-                  ) : (
-                    <div className="student-grid">
-                      {students.map((student) => {
-                        const isHighlighted =
-                          highlightedStudents.has(student.id) &&
-                          !selectedStudents.includes(student.id);
-                        const isSelected = selectedStudents.includes(
-                          student.id
-                        );
+                return (
+                  <Button
+                    key={student.id}
+                    size="sm"
+                    variant={isSelected ? "primary" : isHighlighted ? "danger" : "outline-secondary"}
+                    className={`text-start ${isHighlighted ? 'disabled' : ''}`}
+                    onClick={() => toggleStudent(student.id)}
+                    disabled={isHighlighted || submitting}
+                    title={
+                      isHighlighted
+                        ? "Ha già collaborato troppo con uno selezionato"
+                        : isSelected
+                        ? "Clicca per rimuovere"
+                        : "Clicca per aggiungere"
+                    }
+                    style={{ 
+                      fontSize: '0.8rem',
+                      padding: '0.4rem 0.6rem',
+                      opacity: isHighlighted ? 0.6 : 1
+                    }}
+                  >
+                    {isSelected ? "✓ " : ""}{student.name}
+                  </Button>
+                );
+              })}
+            </div>
+          )}
 
-                        return (
-                          <Button
-                            key={student.id}
-                            className={`btn-student ${
-                              isSelected ? "selected" : ""
-                            } ${isHighlighted ? "highlighted" : ""}`}
-                            onClick={() => toggleStudent(student.id)}
-                            disabled={isHighlighted || submitting}
-                            title={
-                              isHighlighted
-                                ? "Questo studente ha già collaborato con uno selezionato."
-                                : ""
-                            }
-                          >
-                            {student.name}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </fieldset>
-              </Form.Group>
+          {/* Studenti selezionati summary - più compatto */}
+          {selectedStudents.length > 0 && (
+            <div className="mt-2 p-1 bg-primary bg-opacity-10 rounded">
+              <small className="text-muted d-block" style={{ fontSize: '0.75rem' }}>
+                <strong>👥</strong> {selectedStudents.map(id => 
+                  students.find(s => s.id === id)?.name
+                ).join(", ")}
+              </small>
+            </div>
+          )}
 
-              {error && (
-                <Alert
-                  variant="danger"
-                  style={{
-                    padding: "0.25rem 0.75rem",
-                    fontSize: "0.85rem",
-                    marginBottom: "1rem",
-                  }}
-                >
-                  {error}
-                </Alert>
-              )}
-              <Button
-                variant="primary"
-                type="submit"
-                disabled={submitting || !isGroupValid}
-              >
-                {submitting ? "Salvataggio..." : "Crea Compito"}
-              </Button>
-            </Form>
-          </Card.Body>
-        </Card>
+          {error && (
+            <Alert variant="danger" className="py-2 mt-2">
+              <small>{error}</small>
+            </Alert>
+          )}
+        </div>
       </div>
-    </Container>
+
+      {/* Footer con pulsanti */}
+      <div className="d-flex justify-content-between mt-4">
+        <div>
+          {currentStep === 2 && (
+            <Button
+              variant="outline-secondary"
+              onClick={handleBack}
+              disabled={submitting}
+              style={{ fontSize: '0.9rem' }}
+            >
+              ← Indietro
+            </Button>
+          )}
+        </div>
+        
+        <div className="d-flex gap-2">
+          <Button
+            variant="secondary"
+            onClick={onCancel}
+            disabled={submitting}
+            style={{ fontSize: '0.9rem' }}
+          >
+            ❌ Annulla
+          </Button>
+          
+          {currentStep === 1 ? (
+            <Button
+              variant="primary"
+              onClick={handleNext}
+              disabled={!question.trim()}
+              style={{ fontSize: '0.9rem' }}
+            >
+              Avanti → 
+            </Button>
+          ) : (
+            <Button
+              variant="success"
+              onClick={handleSubmit}
+              disabled={submitting || !isGroupValid}
+              style={{ fontSize: '0.9rem' }}
+            >
+              {submitting ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  Creazione...
+                </>
+              ) : (
+                <>📝 Crea Compito</>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
-export default TaskForm;
+export default CreaCompito;
