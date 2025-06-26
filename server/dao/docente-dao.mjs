@@ -290,9 +290,19 @@ export const getStatisticheStudente = (studenteId, docenteId) => {
 export const getCompitiDocente = (docenteId, stato = null) => {
   return new Promise((resolve, reject) => {
     let sql = `
-      SELECT c.*, u.nome as docente_nome, u.cognome as docente_cognome
+      SELECT 
+        c.*,
+        u.nome as docente_nome, 
+        u.cognome as docente_cognome,
+        s.id as studente_id,
+        s.nome as studente_nome,
+        s.cognome as studente_cognome,
+        CASE WHEN rc.id IS NOT NULL THEN 1 ELSE 0 END as ha_risposta
       FROM compiti c
       JOIN utenti u ON c.creato_da = u.id
+      LEFT JOIN assegnazioni_compiti ac ON c.id = ac.compito_id
+      LEFT JOIN utenti s ON ac.studente_id = s.id
+      LEFT JOIN risposte_compiti rc ON c.id = rc.compito_id
       WHERE c.creato_da = ?
     `;
 
@@ -303,11 +313,54 @@ export const getCompitiDocente = (docenteId, stato = null) => {
       params.push(stato);
     }
 
-    sql += ` ORDER BY c.creato_il DESC`;
+    sql += ` ORDER BY c.creato_il DESC, c.id, s.cognome, s.nome`;
 
     db.all(sql, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows);
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      // Raggruppa i risultati per compito
+      const compitiMap = new Map();
+
+      rows.forEach(row => {
+        const compitoId = row.id;
+        
+        if (!compitiMap.has(compitoId)) {
+          // Crea il nuovo compito
+          compitiMap.set(compitoId, {
+            id: row.id,
+            traccia: row.traccia,
+            stato: row.stato,
+            numero_studenti: row.numero_studenti,
+            punteggio: row.punteggio,
+            creato_il: row.creato_il,
+            chiuso_il: row.chiuso_il,
+            ha_risposta: row.ha_risposta === 1, // Converte a boolean
+            docente: {
+              id: docenteId,
+              nome: row.docente_nome,
+              cognome: row.docente_cognome
+            },
+            gruppo: []
+          });
+        }
+
+        // Aggiungi lo studente al gruppo se presente
+        if (row.studente_id) {
+          const compito = compitiMap.get(compitoId);
+          compito.gruppo.push({
+            id: row.studente_id,
+            nome: row.studente_nome,
+            cognome: row.studente_cognome
+          });
+        }
+      });
+
+      // Converti la Map in array
+      const compiti = Array.from(compitiMap.values());
+      resolve(compiti);
     });
   });
 };

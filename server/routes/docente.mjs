@@ -275,7 +275,7 @@ router.get(
           chiuso_il: compito.chiuso_il || null,
           numero_studenti: compito.numero_studenti,
           gruppo: compito.gruppo,
-          ha_risposta: compito.testo_risposta ? true : false,
+          ha_risposta: compito.ha_risposta ,
           punteggio: compito.punteggio || null,
         })),
       });
