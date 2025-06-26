@@ -187,7 +187,7 @@ router.put(
 
       await dao.valutaEChiudiCompito(compitoId, punteggio);
 
-      res.json({ message: "Compito valutato", punteggio });
+      res.json(punteggio);
     } catch (error) {
       console.error("Errore PUT valutazione:", error);
       res.status(500).json({ error: "Errore server" });
@@ -275,7 +275,7 @@ router.get(
           chiuso_il: compito.chiuso_il || null,
           numero_studenti: compito.numero_studenti,
           gruppo: compito.gruppo,
-          ha_risposta: compito.ha_risposta ,
+          risposta: compito.risposta || null,
           punteggio: compito.punteggio || null,
         })),
       });

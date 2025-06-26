@@ -297,12 +297,17 @@ export const getCompitiDocente = (docenteId, stato = null) => {
         s.id as studente_id,
         s.nome as studente_nome,
         s.cognome as studente_cognome,
-        CASE WHEN rc.id IS NOT NULL THEN 1 ELSE 0 END as ha_risposta
+        rc.testo_risposta,
+        rc.aggiornato_il as risposta_aggiornato_il,
+        rc.inviato_da as risposta_inviato_da,
+        ur.nome as risposta_nome,
+        ur.cognome as risposta_cognome
       FROM compiti c
       JOIN utenti u ON c.creato_da = u.id
       LEFT JOIN assegnazioni_compiti ac ON c.id = ac.compito_id
       LEFT JOIN utenti s ON ac.studente_id = s.id
       LEFT JOIN risposte_compiti rc ON c.id = rc.compito_id
+      LEFT JOIN utenti ur ON rc.inviato_da = ur.id
       WHERE c.creato_da = ?
     `;
 
@@ -337,7 +342,15 @@ export const getCompitiDocente = (docenteId, stato = null) => {
             punteggio: row.punteggio,
             creato_il: row.creato_il,
             chiuso_il: row.chiuso_il,
-            ha_risposta: row.ha_risposta === 1, // Converte a boolean
+            risposta: row.testo_risposta ? {
+              testo: row.testo_risposta,
+              aggiornato_il: row.risposta_aggiornato_il,
+              inviato_da: row.risposta_inviato_da ? {
+                id: row.risposta_inviato_da,
+                nome: row.risposta_nome,
+                cognome: row.risposta_cognome
+              } : null
+            } : null,
             docente: {
               id: docenteId,
               nome: row.docente_nome,
