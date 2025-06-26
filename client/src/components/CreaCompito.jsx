@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import API from "../API";
+import { Utente } from "../models/Utente.mjs";
+import { Compito } from "../models/Compito.mjs";
 import StepDomanda from "./CreaCompitoComponents/StepDomanda";
 import StepSelezioneStudenti from "./CreaCompitoComponents/StepSelezioneStudenti";
 import FooterNavigazione from "./CreaCompitoComponents/FooterNavigazione";
@@ -26,10 +28,7 @@ function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
           API.getCollaborazioniClasse()
         ]);
 
-        const studentiMappati = rispostaStudenti.map((utente) => ({
-          id: utente.id,
-          nome: `${utente.nome} ${utente.cognome}`,
-        }));
+        const studentiMappati = rispostaStudenti.map((utente) => new Utente(utente));
 
         setStudenti(studentiMappati);
         setCollaborazioni(rispostaCollaborazioni.collaborazioni);
@@ -83,16 +82,20 @@ function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
     setInvioInCorso(true);
     
     try {
-      const risultato = await API.createCompito(domanda.trim(), studentiSelezionati);
-      
+      const studentIds = studentiSelezionati.map(studente => studente.id);
+      const risultato = await API.createCompito(domanda.trim(), studentIds);
+
       if (risultato && risultato.id) {
-        onCompitoCreato({ 
+        const compitoCreato = new Compito({
           id: risultato.id,
-          participants: studentiSelezionati,
           traccia: domanda.trim(),
-          studentIds: studentiSelezionati
+          stato: "aperto",
+          creato_il: risultato.creato_il,
+          numero_studenti: studentIds.length,
+          gruppo: studentiSelezionati,
         });
-        
+                                  
+        onCompitoCreato(compitoCreato);
         setDomanda("");
         setStudentiSelezionati([]);
         setStepCorrente(1);
@@ -108,14 +111,15 @@ function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
     }
   };
 
-  const gestisciToggleStudente = (id) => {
+  const gestisciToggleStudente = (studenteId) => {
     setErrore("");
     //gestione della selezione degli studenti con lo stato
     setStudentiSelezionati((precedenti) => {
-      const giaSelezionato = precedenti.includes(id);
+      const giaSelezionato = precedenti.find(s => s.id === studenteId);
+      
       if (giaSelezionato) {
         //se lo studente è già selezionato, lo rimuoviamo da quelli selezionati
-        return precedenti.filter((idStudente) => idStudente !== id);
+        return precedenti.filter((studente) => studente.id !== studenteId);
       } else {
         if (precedenti.length >= SELEZIONE_MASSIMA) {
           setErrore(
@@ -123,8 +127,13 @@ function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
           );
           return precedenti;
         }
-        //aggiungo lo studente all'elenco dei selezionati
-        return [...precedenti, id];
+        
+        //trovo lo l'oggetto Utente e lo aggiungo all'elenco dei selezionati
+        const studenteDaAggiungere = studenti.find(s => s.id === studenteId);
+        if (studenteDaAggiungere) {
+          return [...precedenti, studenteDaAggiungere];
+        }
+        return precedenti;
       }
     });
   };

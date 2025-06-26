@@ -20,7 +20,7 @@ export const createTask = (traccia, studentIds, creatoDa) => {
   return new Promise((resolve, reject) => {
     const stato = "aperto";
     const numeroStudenti = studentIds.length;
-    const creatoIl = dayjs().toISOString(); // oppure new Date().toISOString()
+    const creatoIl = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
     const sql = `
       INSERT INTO compiti (traccia, creato_da, stato, numero_studenti, creato_il)
@@ -40,7 +40,7 @@ export const createTask = (traccia, studentIds, creatoDa) => {
               console.error("Errore aggiornamento collaborazioni:", err);
             });
             // Risolvi subito, senza aspettare aggiornaCollaborazioni
-            resolve(compitoId);
+            resolve({ id: compitoId, creato_il: creatoIl });
           })
           .catch(reject);
       }

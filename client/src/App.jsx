@@ -1,10 +1,10 @@
 import { Routes, Route, Navigate } from "react-router";
-
-// import * as pages from "./components/pages";
 import HomePage from "./components/pages/Homepage";
 import LoginForm from "./components/pages/Login";
 import DefaultLayout from "./components/pages/DefaultLayout";
-// import * as utils from "./components/utils";
+import DocenteDashboard from "./components/pages/DocenteDashboard.jsx";
+import DettaglioCompito from "./components/pages/DettaglioCompito.jsx";
+
 import LoadingSpinner from "./components/utils/LoadingSpinner";
 import ProtectedRoute from "./components/utils/ProtectedRoute";
 
@@ -29,7 +29,8 @@ function App() {
             <Navigate to="/studente/compiti" replace />
           )
         ) : ( <LoginForm /> ) } />
-        <Route path="docente/compiti" element={ <ProtectedRoute ruoliConcessi={['docente']}><div>Compiti Page docente (da implementare)</div></ProtectedRoute> } />
+        <Route path="docente/compiti" element={ <ProtectedRoute ruoliConcessi={['docente']}><DocenteDashboard /></ProtectedRoute> } />
+        <Route path="/docente/compiti/:id" element={<ProtectedRoute ruoliConcessi={['docente']}><DettaglioCompito /></ProtectedRoute>} />
         <Route path="studente/compiti" element={ <ProtectedRoute ruoliConcessi={['studente']}><div>Compiti Page studente (da implementare)</div></ProtectedRoute> } />
 
         <Route path="*" element={ <div className="text-center mt-5"> <h1>404 - Pagina non trovata</h1> <p>La pagina che stai cercando non esiste.</p> </div> } />

@@ -12,9 +12,12 @@ function StepSelezioneStudenti({
 
   const chiaveCoppia = (id1, id2) => (id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`);
 
+  //ottengo gli ID degli studenti selezionati
+  const studentiSelezionatiIds = studentiSelezionati.map(s => s.id);
+
   //in base ai studenti selezionati, evidenzia quelli che hanno collaborato 2 volte con uno di essi
   const studentiEvidenziati = new Set();
-  studentiSelezionati.forEach((idSelezionato) => {
+  studentiSelezionatiIds.forEach((idSelezionato) => {
     studenti.forEach((studente) => {
       if (studente.id !== idSelezionato) {
         const chiave = chiaveCoppia(idSelezionato, studente.id);
@@ -62,7 +65,7 @@ function StepSelezioneStudenti({
 
       <GrigliaStudenti
         studenti={studenti}
-        studentiSelezionati={studentiSelezionati}
+        studentiSelezionatiIds={studentiSelezionatiIds}
         studentiEvidenziati={studentiEvidenziati}
         caricamentoStudenti={caricamentoStudenti}
         invioInCorso={invioInCorso}
@@ -71,7 +74,6 @@ function StepSelezioneStudenti({
 
       <RiepilogoStudentiSelezionati
         studentiSelezionati={studentiSelezionati}
-        studenti={studenti}
       />
 
       {errore && (
@@ -113,7 +115,7 @@ function ContatoreSelezionati({
 }
 
 function GrigliaStudenti({
-  studenti, studentiSelezionati, studentiEvidenziati,
+  studenti, studentiSelezionatiIds, studentiEvidenziati,
   caricamentoStudenti, invioInCorso, onToggleStudente
 }) {
   if (caricamentoStudenti) {
@@ -128,8 +130,8 @@ function GrigliaStudenti({
     <div className="student-grid">
       {studenti.map((studente) => {
         const evidenziato = studentiEvidenziati.has(studente.id) && 
-                           !studentiSelezionati.includes(studente.id);
-        const selezionato = studentiSelezionati.includes(studente.id);
+                           !studentiSelezionatiIds.includes(studente.id);
+        const selezionato = studentiSelezionatiIds.includes(studente.id);
 
         return (
           <PulsanteStudente
@@ -159,6 +161,9 @@ function PulsanteStudente({ studente, selezionato, evidenziato, invioInCorso, on
     return "outline-secondary";
   };
 
+  //visualizza il nome completo dello studente
+  const nomeCompleto = `${studente.nome} ${studente.cognome}`;
+
   return (
     <Button
       size="sm"
@@ -174,16 +179,16 @@ function PulsanteStudente({ studente, selezionato, evidenziato, invioInCorso, on
         //pointerEvents: "auto",
       }}
     >
-      {selezionato ? "✓ " : ""}{studente.nome}
+      {selezionato ? "✓ " : ""}{nomeCompleto}
     </Button>
   );
 }
 
-function RiepilogoStudentiSelezionati({ studentiSelezionati, studenti }) {
+function RiepilogoStudentiSelezionati({ studentiSelezionati }) {
   if (studentiSelezionati.length === 0) return null;
 
-  const nomiSelezionati = studentiSelezionati.map(id => 
-    studenti.find(s => s.id === id)?.nome
+  const nomiSelezionati = studentiSelezionati.map(studente => 
+    `${studente.nome} ${studente.cognome}`
   ).join(", ");
 
   return (

@@ -63,8 +63,8 @@ router.post(
         });
       }
 
-      const compitoId = await dao.createTask(traccia, studentIds, creatoDa);
-      res.status(201).json({ id: compitoId });
+      const risultato = await dao.createTask(traccia, studentIds, creatoDa);
+      res.status(201).json(risultato);
     } catch (error) {
       console.error("Errore creazione compito:", error);
       res.status(500).json({ error: "Errore nella creazione del compito" });
