@@ -34,7 +34,7 @@ router.post(
   "/compiti",
   [
     body("traccia")
-      .isLength({ min: 10 })
+      .isLength({ min: 2})
       .withMessage("La traccia è obbligatoria"),
     body("studentIds")
       .isArray({ min: 2, max: 6 })

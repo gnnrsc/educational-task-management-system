@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Form, Button, Alert, Spinner } from "react-bootstrap";
+import { Form, Button, Alert } from "react-bootstrap";
+import LoadingSpinner from "./utils/LoadingSpinner";
 import API from "../API";
 
 function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
@@ -90,13 +91,41 @@ function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
     setSubmitting(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      onCompitoCreato({ question, participants: selectedStudents });
-      setQuestion("");
-      setSelectedStudents([]);
+      // Chiamata API reale - ASPETTA la risposta del server
+      const result = await API.createCompito(question.trim(), selectedStudents);
+      
+      // SOLO quando il server risponde con successo, chiama il callback
+      if (result && result.id) {
+        // Successo confermato dal server
+        onCompitoCreato({ 
+          id: result.id,
+          participants: selectedStudents,
+          traccia: question.trim(),
+          studentIds: selectedStudents
+        });
+        
+        // Reset form solo dopo successo confermato
+        setQuestion("");
+        setSelectedStudents([]);
+        setCurrentStep(1);
+      } else {
+        // Il server ha risposto ma senza ID valido
+        throw new Error("Risposta del server non valida");
+      }
+      
     } catch (error) {
       console.error("Errore nella creazione del compito:", error);
-      setError("Errore nella creazione del compito. Riprova.");
+      
+      // Gestione errori più specifica
+      if (error.message) {
+        setError(`Errore: ${error.message}`);
+      } else if (error.error) {
+        setError(`Errore: ${error.error}`);
+      } else {
+        setError("Errore nella creazione del compito. Riprova.");
+      }
+      
+      // Il modal rimane aperto in caso di errore
     } finally {
       setSubmitting(false);
     }
@@ -256,8 +285,7 @@ Ad esempio:
           {/* Griglia studenti - più compatta */}
           {loadingStudents ? (
             <div className="text-center py-3">
-              <Spinner animation="border" size="sm" className="me-2" />
-              <span style={{ fontSize: '0.85rem' }}>Caricamento...</span>
+              <LoadingSpinner variant="inline" />
             </div>
           ) : (
             <div className="student-grid">
@@ -343,7 +371,7 @@ Ad esempio:
             <Button
               variant="primary"
               onClick={handleNext}
-              disabled={!question.trim()}
+              disabled={!question.trim() || submitting}
               style={{ fontSize: '0.9rem' }}
             >
               Avanti → 
@@ -356,10 +384,7 @@ Ad esempio:
               style={{ fontSize: '0.9rem' }}
             >
               {submitting ? (
-                <>
-                  <Spinner animation="border" size="sm" className="me-2" />
-                  Creazione...
-                </>
+                <LoadingSpinner variant="inline" />
               ) : (
                 <>📝 Crea Compito</>
               )}
