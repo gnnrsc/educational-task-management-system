@@ -15,7 +15,7 @@ function Utente(data) {
 }
 
 function StatisticheStudente(data) {
-  this.studente = new Utente(data.studente.id, data.studente.nome, data.studente.cognome);
+  this.studente = new Utente(data.studente);
   this.totale_compiti = data.totale_compiti ?? 0;
   this.compiti_aperti = data.compiti_aperti ?? null;  // potrebbe non esserci nella media
   this.compiti_chiusi = data.compiti_chiusi ?? null;  // idem
