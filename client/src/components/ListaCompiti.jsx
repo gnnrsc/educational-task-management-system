@@ -34,8 +34,10 @@ function ListaCompiti({
   return (
     <div className="container py-3">
       <div className="d-flex flex-wrap gap-3 mb-4 align-items-center">
-        <div>
-          <label className="fw-semibold me-2">Filtra per stato:</label>
+        <fieldset className="d-flex align-items-center border-0 p-0 m-0">
+          <legend className="fw-semibold me-2 small mb-0">
+            Filtra per stato:
+          </legend>
           {["aperto", "chiuso", "tutti"].map((f) => (
             <button
               key={f}
@@ -49,8 +51,8 @@ function ListaCompiti({
               {f[0].toUpperCase() + f.slice(1)}
             </button>
           ))}
-        </div>
-        
+        </fieldset>
+
         {/* mostra il conteggio dei compiti filtrati */}
         <div className="ms-auto">
           <small className="text-muted">
@@ -85,115 +87,115 @@ function ListaCompiti({
               <tr>
                 <td colSpan="5" className="text-center py-4 text-muted">
                   <div className="d-flex flex-column align-items-center">
-                    <span style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📝</span>
+                    <span style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
+                      📝
+                    </span>
                     <strong>Nessun compito trovato</strong>
                     <small>
-                      {filtroStato === "tutti" 
-                        ? "Non ci sono compiti da visualizzare" 
+                      {filtroStato === "tutti"
+                        ? "Non ci sono compiti da visualizzare"
                         : `Non ci sono compiti con stato "${filtroStato}"`}
                     </small>
                   </div>
                 </td>
               </tr>
             ) : (
-              compitiFiltrati.map(
-                (c) => (
-                  <tr key={c.id}>
-                    <td style={{ width: "40%" }}>
-                      <strong>
-                        {c.traccia.length > 60
-                          ? c.traccia.slice(0, 60) + "..."
-                          : c.traccia}
-                      </strong>
-                    </td>
-                    <td>
-                      <div className="d-flex flex-wrap gap-1">
-                        {c.gruppo.map((utente, j) => (
-                          <span
-                            key={`${c.id}-${utente.id || j}`}
-                            className="badge bg-light text-secondary border"
-                          >
-                            {utente.cognome} {utente.nome[0]}.
-                          </span>
-                        ))}
-                      </div>
-                      <small className="text-muted">
-                        {c.numero_studenti} studenti
-                      </small>
-                    </td>
-                    <td>{c.creato_il}</td>
-                    <td>
-                      <span
-                        className={`badge px-3 py-1 rounded-pill ${
-                          c.stato === "aperto"
-                            ? "bg-success-subtle text-success"
-                            : "bg-danger-subtle text-danger"
-                        }`}
-                      >
-                        {c.stato === "aperto" ? "🟢 Aperto" : "🔴 Chiuso"}
-                      </span>
-                    </td>
-                    <td
-                      style={{
-                        position: "relative",
-                        textAlign: "right",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      <div className="d-inline-flex align-items-center gap-2 justify-content-end">
-                        {c.risposta && c.stato !== "chiuso" && (
-                          <button
-                            className="btn btn-outline-success btn-sm"
-                            title="Valuta"
-                            onClick={() => onOpenValutazione(c)}
-                          >
-                            📊 Valuta
-                          </button>
-                        )}
-
-                        <button
-                          className="btn btn-outline-primary btn-sm"
-                          title="Visualizza"
-                          onClick={() => onOpenDettaglio(c.id)}
-                        >
-                          👁️ Visualizza
-                        </button>
-
+              compitiFiltrati.map((c) => (
+                <tr key={c.id}>
+                  <td style={{ width: "40%" }}>
+                    <strong>
+                      {c.traccia.length > 60
+                        ? c.traccia.slice(0, 60) + "..."
+                        : c.traccia}
+                    </strong>
+                  </td>
+                  <td>
+                    <div className="d-flex flex-wrap gap-1">
+                      {c.gruppo.map((utente, j) => (
                         <span
-                          role="button"
-                          className="menu-kebab-trigger"
-                          title="Altro"
-                          style={{
-                            cursor: "pointer",
-                            fontSize: "20px",
-                            padding: "0 6px",
-                          }}
-                          onClick={() =>
-                            setMenuApertoId(menuApertoId === c.id ? null : c.id)
-                          }
+                          key={`${c.id}-${utente.id || j}`}
+                          className="badge bg-light text-secondary border"
                         >
-                          ⋮
+                          {utente.cognome} {utente.nome[0]}.
                         </span>
+                      ))}
+                    </div>
+                    <small className="text-muted">
+                      {c.numero_studenti} studenti
+                    </small>
+                  </td>
+                  <td>{c.creato_il}</td>
+                  <td>
+                    <span
+                      className={`badge px-3 py-1 rounded-pill ${
+                        c.stato === "aperto"
+                          ? "bg-success-subtle text-success"
+                          : "bg-danger-subtle text-danger"
+                      }`}
+                    >
+                      {c.stato === "aperto" ? "🟢 Aperto" : "🔴 Chiuso"}
+                    </span>
+                  </td>
+                  <td
+                    style={{
+                      position: "relative",
+                      textAlign: "right",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <div className="d-inline-flex align-items-center gap-2 justify-content-end">
+                      {c.risposta && c.stato !== "chiuso" && (
+                        <button
+                          className="btn btn-outline-success btn-sm"
+                          title="Valuta"
+                          onClick={() => onOpenValutazione(c)}
+                        >
+                          📊 Valuta
+                        </button>
+                      )}
 
-                        {menuApertoId === c.id && (
-                          <div className="menu-kebab-wrapper">
-                            <div
-                              className="menu-kebab"
-                              onClick={() => {
-                                onAssegnaAltroGruppo(c);
-                                setMenuApertoId(null);
-                              }}
-                            >
-                              ᯓ➤ Assegna ad un altro gruppo
-                              <div className="menu-kebab-arrow" />
-                            </div>
+                      <button
+                        className="btn btn-outline-primary btn-sm"
+                        title="Visualizza"
+                        onClick={() => onOpenDettaglio(c.id)}
+                      >
+                        👁️ Visualizza
+                      </button>
+
+                      <span
+                        role="button"
+                        className="menu-kebab-trigger"
+                        title="Altro"
+                        style={{
+                          cursor: "pointer",
+                          fontSize: "20px",
+                          padding: "0 6px",
+                        }}
+                        onClick={() =>
+                          setMenuApertoId(menuApertoId === c.id ? null : c.id)
+                        }
+                      >
+                        ⋮
+                      </span>
+
+                      {menuApertoId === c.id && (
+                        <div className="menu-kebab-wrapper">
+                          <div
+                            className="menu-kebab"
+                            onClick={() => {
+                              onAssegnaAltroGruppo(c);
+                              setMenuApertoId(null);
+                            }}
+                          >
+                            ᯓ➤ Assegna ad un altro gruppo
+                            <div className="menu-kebab-arrow" />
                           </div>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              )
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
