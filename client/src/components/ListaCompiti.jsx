@@ -1,9 +1,15 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../AuthContext";
 
 function ListaCompiti({
-  compiti, onOpenDettaglio, 
-  onOpenValutazione, onAssegnaAltroGruppo,
+  compiti, 
+  onOpenDettaglio, 
+  onOpenValutazione, // per docente
+  onAssegnaAltroGruppo, // per docente
+  onOpenRisposta // per studenti
 }) {
+
+  const { user } = useAuth();
 
   const [filtroStato, setFiltroStato] = useState("tutti");
   
@@ -21,15 +27,94 @@ function ListaCompiti({
         setMenuApertoId(null);
       }
     };
-    //ascolta tutti i click che avvengono ovunque nella pagina e chiama la funzione handleClickOutside
     document.addEventListener("click", handleClickOutside);
-    //cleanup per rimuovere il listener al momento della dismount del componente
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   const handleFiltroChange = (nuovoFiltro) => {
     setFiltroStato(nuovoFiltro);
   };
+
+  // Renderizzazione azioni di default per studente
+  const renderAzioniStudente = (c) => (
+    <div className="d-inline-flex align-items-center gap-2">
+      {c.stato === "aperto" && (
+        <button
+          className={`btn btn-sm ${
+            c.risposta 
+              ? "btn-outline-warning"
+              : "btn-outline-success"
+          }`}
+          title={c.risposta ? "Modifica risposta" : "Inserisci risposta"}
+          onClick={() => onOpenRisposta(c)}
+        >
+          {c.risposta ? "✏️ Modifica" : "📝 Rispondi"}
+        </button>
+      )}
+
+      <button
+        className="btn btn-outline-primary btn-sm"
+        title="Visualizza dettagli"
+        onClick={() => onOpenDettaglio(c.id)}
+      >
+        👁️ Visualizza
+      </button>
+    </div>
+  );
+
+  // Renderizzazione azioni di default per docente
+  const renderAzioniDocente = (c) => (
+    <div className="d-inline-flex align-items-center gap-2 justify-content-end">
+      {c.risposta && c.stato !== "chiuso" && (
+        <button
+          className="btn btn-outline-success btn-sm"
+          title="Valuta"
+          onClick={() => onOpenValutazione(c)}
+        >
+          📊 Valuta
+        </button>
+      )}
+
+      <button
+        className="btn btn-outline-primary btn-sm"
+        title="Visualizza"
+        onClick={() => onOpenDettaglio(c.id)}
+      >
+        👁️ Visualizza
+      </button>
+
+      <span
+        role="button"
+        className="menu-kebab-trigger"
+        title="Altro"
+        style={{
+          cursor: "pointer",
+          fontSize: "20px",
+          padding: "0 6px",
+        }}
+        onClick={() =>
+          setMenuApertoId(menuApertoId === c.id ? null : c.id)
+        }
+      >
+        ⋮
+      </span>
+
+      {menuApertoId === c.id && (
+        <div className="menu-kebab-wrapper">
+          <div
+            className="menu-kebab"
+            onClick={() => {
+              onAssegnaAltroGruppo(c);
+              setMenuApertoId(null);
+            }}
+          >
+            ᯓ➤ Assegna ad un altro gruppo
+            <div className="menu-kebab-arrow" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="container py-3">
@@ -53,7 +138,6 @@ function ListaCompiti({
           ))}
         </fieldset>
 
-        {/* mostra il conteggio dei compiti filtrati */}
         <div className="ms-auto">
           <small className="text-muted">
             {compitiFiltrati.length} di {compiti.length} compiti
@@ -143,56 +227,9 @@ function ListaCompiti({
                       whiteSpace: "nowrap",
                     }}
                   >
-                    <div className="d-inline-flex align-items-center gap-2 justify-content-end">
-                      {c.risposta && c.stato !== "chiuso" && (
-                        <button
-                          className="btn btn-outline-success btn-sm"
-                          title="Valuta"
-                          onClick={() => onOpenValutazione(c)}
-                        >
-                          📊 Valuta
-                        </button>
-                      )}
-
-                      <button
-                        className="btn btn-outline-primary btn-sm"
-                        title="Visualizza"
-                        onClick={() => onOpenDettaglio(c.id)}
-                      >
-                        👁️ Visualizza
-                      </button>
-
-                      <span
-                        role="button"
-                        className="menu-kebab-trigger"
-                        title="Altro"
-                        style={{
-                          cursor: "pointer",
-                          fontSize: "20px",
-                          padding: "0 6px",
-                        }}
-                        onClick={() =>
-                          setMenuApertoId(menuApertoId === c.id ? null : c.id)
-                        }
-                      >
-                        ⋮
-                      </span>
-
-                      {menuApertoId === c.id && (
-                        <div className="menu-kebab-wrapper">
-                          <div
-                            className="menu-kebab"
-                            onClick={() => {
-                              onAssegnaAltroGruppo(c);
-                              setMenuApertoId(null);
-                            }}
-                          >
-                            ᯓ➤ Assegna ad un altro gruppo
-                            <div className="menu-kebab-arrow" />
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    {user?.ruolo === "studente"
+                      ? renderAzioniStudente(c)
+                      : renderAzioniDocente(c)}
                   </td>
                 </tr>
               ))
