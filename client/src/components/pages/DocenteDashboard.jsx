@@ -13,24 +13,15 @@ function DocenteDashboard() {
   const [compiti, setCompiti] = useState([]);
   const [loading, setLoading] = useState(true);
   const [compitoDaValutare, setCompitoDaValutare] = useState(null);
-  const [filtroStato, setFiltroStato] = useState("tutti"); 
   
   useEffect(() => {
     loadCompiti();
   }, []);
 
-  // ricarica i compiti quando cambia il filtro
-  useEffect(() => {
-    if (!loading) { // evita il doppio caricamento iniziale
-      loadCompiti();
-    }
-  }, [filtroStato]);
-
   const loadCompiti = async () => {
     setLoading(true);
     try {
-      const statoParam = filtroStato === "tutti" ? null : filtroStato;
-      const response = await API.getCompitiDocente(statoParam);
+      const response = await API.getCompitiDocente();
       
       // la risposta contiene { filtro, totale, compiti }
       setCompiti(response.compiti);
@@ -100,11 +91,6 @@ function DocenteDashboard() {
     setShowCreaCompito(true);
   };
 
-  // funzione per gestire il cambio di filtro
-  const handleFiltroChange = (nuovoFiltro) => {
-    setFiltroStato(nuovoFiltro);
-  };
-
   if (loading) return <LoadingSpinner />;
   
   return (
@@ -129,8 +115,6 @@ function DocenteDashboard() {
 
       <ListaCompiti 
         compiti={compiti}
-        filtroStato={filtroStato}
-        onFiltroChange={handleFiltroChange}
         onOpenDettaglio={handleOpenDettaglio}
         onOpenValutazione={handleOpenValutazione} 
         onAssegnaAltroGruppo={handleAssegnaAltroGruppo}

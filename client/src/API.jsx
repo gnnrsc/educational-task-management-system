@@ -250,16 +250,14 @@ async function getStatisticheClasse(sort = "alfabetico") {
   }
 }
 
-// GET: /api/docente/compiti - Visualizza tutti i compiti creati dal docente con filtro opzionale
-async function getCompitiDocente(stato = null) {
-  const queryParam = stato ? `?stato=${stato}` : "";
-  const response = await fetch(URL + `/docente/compiti${queryParam}`, {
+// GET: /api/docente/compiti - Visualizza tutti i compiti creati dal docente
+async function getCompitiDocente() {
+  const response = await fetch(URL + `/docente/compiti`, {
     credentials: "include",
   });
   const data = await response.json();
   if (response.ok) {
     return {
-      filtro: data.filtro,
       totale: data.totale,
       compiti: data.compiti.map(
         (compito) =>

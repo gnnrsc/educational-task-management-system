@@ -1,12 +1,19 @@
 import { useState, useEffect } from "react";
 
 function ListaCompiti({
-  compiti, filtroStato, onFiltroChange,
-  onOpenDettaglio, onOpenValutazione, onAssegnaAltroGruppo,
+  compiti, onOpenDettaglio, 
+  onOpenValutazione, onAssegnaAltroGruppo,
 }) {
 
-  //stato per gestire il menu a tendina per copiare il compito
+  const [filtroStato, setFiltroStato] = useState("tutti");
+  
+  // Stato per gestire il menu a tendina per copiare il compito
   const [menuApertoId, setMenuApertoId] = useState(null);
+
+  // filtra i compiti in base al filtro selezionato
+  const compitiFiltrati = filtroStato === "tutti" 
+    ? compiti 
+    : compiti.filter(compito => compito.stato === filtroStato);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -20,6 +27,10 @@ function ListaCompiti({
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  const handleFiltroChange = (nuovoFiltro) => {
+    setFiltroStato(nuovoFiltro);
+  };
+
   return (
     <div className="container py-3">
       <div className="d-flex flex-wrap gap-3 mb-4 align-items-center">
@@ -28,17 +39,23 @@ function ListaCompiti({
           {["aperto", "chiuso", "tutti"].map((f) => (
             <button
               key={f}
-              onClick={() => onFiltroChange(f)}
+              onClick={() => handleFiltroChange(f)}
               className={`btn btn-sm me-1 ${
                 filtroStato === f
                   ? "btn-outline-primary active"
                   : "btn-outline-secondary"
               }`}
             >
-              {/* A               + perto*/}
               {f[0].toUpperCase() + f.slice(1)}
             </button>
           ))}
+        </div>
+        
+        {/* mostra il conteggio dei compiti filtrati */}
+        <div className="ms-auto">
+          <small className="text-muted">
+            {compitiFiltrati.length} di {compiti.length} compiti
+          </small>
         </div>
       </div>
 
@@ -64,7 +81,7 @@ function ListaCompiti({
             </tr>
           </thead>
           <tbody>
-            {compiti.length === 0 ? (
+            {compitiFiltrati.length === 0 ? (
               <tr>
                 <td colSpan="5" className="text-center py-4 text-muted">
                   <div className="d-flex flex-column align-items-center">
@@ -79,7 +96,7 @@ function ListaCompiti({
                 </td>
               </tr>
             ) : (
-              compiti.map(
+              compitiFiltrati.map(
                 (c) => (
                   <tr key={c.id}>
                     <td style={{ width: "40%" }}>

@@ -286,22 +286,16 @@ export const getStatisticheStudente = (studenteId, docenteId) => {
   });
 };
 
-// Ottiene tutti i compiti di un docente con filtro opzionale per stato
-export const getCompitiDocente = (docenteId, stato = null) => {
+// Ottiene tutti i compiti di un docente
+export const getCompitiDocente = (docenteId) => {
   return new Promise((resolve, reject) => {
     let sql = `
       SELECT 
         c.*,
-        u.nome as docente_nome, 
-        u.cognome as docente_cognome,
-        s.id as studente_id,
-        s.nome as studente_nome,
-        s.cognome as studente_cognome,
-        rc.testo_risposta,
-        rc.aggiornato_il as risposta_aggiornato_il,
-        rc.inviato_da as risposta_inviato_da,
-        ur.nome as risposta_nome,
-        ur.cognome as risposta_cognome
+        u.nome as docente_nome, u.cognome as docente_cognome,
+        s.id as studente_id, s.nome as studente_nome, s.cognome as studente_cognome,
+        rc.testo_risposta, rc.aggiornato_il as risposta_aggiornato_il, rc.inviato_da as risposta_inviato_da,
+        ur.nome as risposta_nome, ur.cognome as risposta_cognome
       FROM compiti c
       JOIN utenti u ON c.creato_da = u.id
       LEFT JOIN assegnazioni_compiti ac ON c.id = ac.compito_id
@@ -311,16 +305,7 @@ export const getCompitiDocente = (docenteId, stato = null) => {
       WHERE c.creato_da = ?
     `;
 
-    const params = [docenteId];
-
-    if (stato) {
-      sql += ` AND c.stato = ?`;
-      params.push(stato);
-    }
-
-    sql += ` ORDER BY c.creato_il DESC, c.id, s.cognome, s.nome`;
-
-    db.all(sql, params, (err, rows) => {
+    db.all(sql, [docenteId], (err, rows) => {
       if (err) {
         reject(err);
         return;
