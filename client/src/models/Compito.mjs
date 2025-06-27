@@ -22,7 +22,7 @@ function Compito(data) {
   this.numero_studenti = data.numero_studenti;
   this.punteggio = data.punteggio ?? null;
   //creato_da
-  this.docente = data.docente ? new Utente(data.docente.id, data.docente.nome, data.docente.cognome) : undefined;
+  this.docente = data.docente ? new Utente(data.docente) : undefined;
 
   this.gruppo = data.gruppo ? data.gruppo.map(p => new Utente(p)) : [];
   //this.ha_risposta = data.ha_risposta ?? undefined;

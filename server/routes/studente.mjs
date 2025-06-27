@@ -45,12 +45,9 @@ router.get(
           stato: compito.stato,
           creato_il: compito.creato_il,
           chiuso_il: compito.chiuso_il || null,
-          docente: {
-            nome: compito.docente_nome,
-            cognome: compito.docente_cognome,
-          },
+          docente: compito.docente,
           gruppo: compito.gruppo,
-          testo_risposta: compito.testo_risposta || null,
+          risposta: compito.risposta,
           punteggio: compito.punteggio || null,
           numero_studenti: compito.numero_studenti,
         })),
@@ -102,10 +99,10 @@ router.put(
       }
 
       // Inserisce o aggiorna la risposta
-      await dao.updateRispostaCompito(compitoId, testo_risposta, studenteId);
+      const result = await dao.updateRispostaCompito(compitoId, testo_risposta, studenteId);
 
       res.json({
-        message: "Risposta salvata con successo",
+        aggiornato_il: result.aggiornato_il,
         compito_id: compitoId,
         testo_risposta: testo_risposta,
       });
