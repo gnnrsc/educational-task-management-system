@@ -63,7 +63,7 @@ function ListaCompiti({
         className="table-responsive"
         style={{
           maxHeight: "410px",
-          overflowY: "auto",
+          overflowY: "scroll",
           borderRadius: "0.5rem",
         }}
       >
