@@ -303,6 +303,7 @@ export const getCompitiDocente = (docenteId) => {
       LEFT JOIN risposte_compiti rc ON c.id = rc.compito_id
       LEFT JOIN utenti ur ON rc.inviato_da = ur.id
       WHERE c.creato_da = ?
+      ORDER BY c.creato_il DESC
     `;
 
     db.all(sql, [docenteId], (err, rows) => {
