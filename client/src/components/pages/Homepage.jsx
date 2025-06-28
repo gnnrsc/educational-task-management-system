@@ -16,7 +16,7 @@ function HomePage() {
         navigate("/studente/compiti", { replace: true });
       }
     }
-  }, [loggedIn, user, navigate]);
+  }, [loggedIn, user?.ruolo]);
 
   const handleGetStarted = () => {
     if (loggedIn) {

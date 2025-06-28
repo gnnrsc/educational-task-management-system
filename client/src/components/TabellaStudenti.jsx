@@ -8,9 +8,6 @@ function TabellaStudenti({ ordinamento }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    caricaStatoClasse();
-  }, [ordinamento]);
-
   const caricaStatoClasse = async () => {
     setLoading(true);
     setError(null);
@@ -18,12 +15,14 @@ function TabellaStudenti({ ordinamento }) {
       const response = await API.ottieniStatisticheClasse(ordinamento);
       setStudenti(response.studenti);
     } catch (error) {
-      //console.error("Errore nel caricamento stato classe:", error);
       setError(error.message || "Errore nel caricamento dei dati");
       setStudenti([]);
     }
     setLoading(false);
   };
+
+  caricaStatoClasse();
+}, [ordinamento]);
 
   const ottieniColoreMedia = (media) => {
     if (media === null || media === undefined) return "text-muted";

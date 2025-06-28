@@ -15,22 +15,20 @@ function DocenteDashboard() {
   const [compitoDaValutare, setCompitoDaValutare] = useState(null);
   
   useEffect(() => {
-    caricaCompiti();
-  }, []);
+    const caricaCompiti = async () => {
+      setLoading(true);
+      try {
+        const response = await API.ottieniCompitiDocente();
+        setCompiti(response.compiti);
+      } catch (error) {
+        console.error("Errore nel caricamento compiti:", error);
+        setCompiti([]);
+      }
+      setLoading(false);
+    };
 
-  const caricaCompiti = async () => {
-    setLoading(true);
-    try {
-      const response = await API.ottieniCompitiDocente();
-      
-      // la risposta contiene { filtro, totale, compiti }
-      setCompiti(response.compiti);
-    } catch (error) {
-      console.error("Errore nel caricamento compiti:", error);
-      setCompiti([]);
-    }
-    setLoading(false);
-  };
+    caricaCompiti();
+  }, []); 
 
   // FUNZIONI PER LA VALUTAZIONE-------------------
   const handleApriValutazione = (compito) => {

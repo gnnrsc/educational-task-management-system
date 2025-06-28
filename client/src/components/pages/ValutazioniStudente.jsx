@@ -10,30 +10,31 @@ function ValutazioniStudente() {
   const [ordinamento, setOrdinamento] = useState('recente');
 
   useEffect(() => {
+    const loadDatiStudente = async () => {
+      setLoading(true);
+      try {
+        const [responseMedia, responseCompiti] = await Promise.all([
+          API.ottieniMediaStudente(),
+          API.ottieniCompitiStudente('chiuso')
+        ]);
+
+        setMediaData(responseMedia);
+        
+        const compitiConPunteggio = responseCompiti.compiti.filter(c => 
+          c.punteggio !== null && c.punteggio !== undefined
+        );
+        setCompiti(compitiConPunteggio);
+      } catch (error) {
+        //console.error("Errore nel caricamento dati:", error);
+        setCompiti([]);
+        setMediaData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadDatiStudente();
   }, []);
-
-  const loadDatiStudente = async () => {
-    setLoading(true);
-    try {
-      // Carica la media dello studente
-      const responseMedia = await API.ottieniMediaStudente();
-      setMediaData(responseMedia);
-
-      // Carica tutti i compiti chiusi dello studente
-      const responseCompiti = await API.ottieniCompitiStudente('chiuso');
-      // Filtra solo quelli che hanno un punteggio
-      const compitiConPunteggio = responseCompiti.compiti.filter(c => 
-        c.punteggio !== null && c.punteggio !== undefined
-      );
-      setCompiti(compitiConPunteggio);
-    } catch (error) {
-      console.error("Errore nel caricamento dati:", error);
-      setCompiti([]);
-      setMediaData(null);
-    }
-    setLoading(false);
-  };
 
   const handleOrdinamentoCambia = (nuovoOrdinamento) => {
     setOrdinamento(nuovoOrdinamento);

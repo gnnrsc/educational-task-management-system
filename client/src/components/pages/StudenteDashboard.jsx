@@ -16,23 +16,21 @@ function StudenteDashboard() {
   const [filtroStato, setFiltroStato] = useState("tutti");
 
   useEffect(() => {
-    caricaCompiti();
-  }, [filtroStato]);
+    const caricaCompiti = async () => {
+      setLoading(true);
+      try {
+        const stato = filtroStato === "tutti" ? null : filtroStato;
+        const response = await API.ottieniCompitiStudente(stato);
+        setCompiti(response.compiti);
+      } catch (error) {
+        console.error("Errore nel caricamento compiti:", error);
+        setCompiti([]);
+      }
+      setLoading(false);
+    };
 
-  const caricaCompiti = async () => {
-    setLoading(true);
-    try {
-      const stato = filtroStato === "tutti" ? null : filtroStato;
-      const response = await API.ottieniCompitiStudente(stato);
-
-      // la risposta contiene { filtro, totale, compiti }
-      setCompiti(response.compiti);
-    } catch (error) {
-      console.error("Errore nel caricamento compiti:", error);
-      setCompiti([]);
-    }
-    setLoading(false);
-  };
+  caricaCompiti();
+}, [filtroStato]);
 
   // FUNZIONI PER LA RISPOSTA -------------------
   const handleApriRisposta = (compito) => {
