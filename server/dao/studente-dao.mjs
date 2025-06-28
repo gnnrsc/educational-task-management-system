@@ -22,7 +22,7 @@ export const getRispostaCompito = (compitoId) => {
 };
 
 // Inserisce o aggiorna la risposta di un compito
-export const updateRispostaCompito = (compitoId, testoRisposta, studenteId) => {
+export const aggiornaRispostaCompito = (compitoId, testoRisposta, studenteId) => {
   return new Promise((resolve, reject) => {
     const now = dayjs().format("YYYY-MM-DD HH:mm:ss");
 
@@ -69,7 +69,7 @@ export const updateRispostaCompito = (compitoId, testoRisposta, studenteId) => {
 };
 
 // Ottiene tutti i compiti assegnati a uno studente con filtro opzionale
-export const getCompitiStudente = (studenteId, stato = null) => {
+export const ottieniCompitiStudente = (studenteId, stato = null) => {
   return new Promise((resolve, reject) => {
     let sql = `
       SELECT 
@@ -160,7 +160,7 @@ export const getCompitiStudente = (studenteId, stato = null) => {
 };
 
  // Ottiene la media ponderata di uno studente
-export const getMediaStudente = (studenteId) => {
+export const ottieniMediaStudente = (studenteId) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT
@@ -187,7 +187,7 @@ export const getMediaStudente = (studenteId) => {
 };
 
 // Ottiene il numero di compiti chiusi/valutati di uno studente
-export const getNumeroCompitiChiusiStudente = (studenteId) => {
+export const ottieniNumeroCompitiChiusiStudente = (studenteId) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT COUNT(*) as count
@@ -204,7 +204,7 @@ export const getNumeroCompitiChiusiStudente = (studenteId) => {
 };
 
 // Recupera un compito per ID (base, senza controlli di autorizzazione)
-export const getCompitoById = (compitoId) => {
+export const ottieniCompitoPerId = (compitoId) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT c.*, u.nome as docente_nome, u.cognome as docente_cognome
@@ -221,7 +221,7 @@ export const getCompitoById = (compitoId) => {
 };
 
 // Verifica se uno studente fa parte del gruppo di un compito
-export const isStudentInGroup = (compitoId, studenteId) => {
+export const checkStudenteGruppo = (compitoId, studenteId) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT 1 FROM assegnazioni_compiti 

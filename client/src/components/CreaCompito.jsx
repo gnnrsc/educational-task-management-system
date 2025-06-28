@@ -6,9 +6,9 @@ import StepDomanda from "./CreaCompitoComponents/StepDomanda";
 import StepSelezioneStudenti from "./CreaCompitoComponents/StepSelezioneStudenti";
 import FooterNavigazione from "./CreaCompitoComponents/FooterNavigazione";
 
-function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
-  const [stepCorrente, setStepCorrente] = useState(initialData ? 2 : 1);
-  const [domanda, setDomanda] = useState(initialData ? initialData.traccia : "");
+function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null }) {
+  const [stepCorrente, setStepCorrente] = useState(datiIniziali ? 2 : 1);
+  const [domanda, setDomanda] = useState(datiIniziali ? datiIniziali.traccia : "");
   const [studentiSelezionati, setStudentiSelezionati] = useState([]);
   const [studenti, setStudenti] = useState([]);
   const [collaborazioni, setCollaborazioni] = useState([]);
@@ -24,8 +24,8 @@ function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
     const caricaDati = async () => {
       try {
         const [rispostaStudenti, rispostaCollaborazioni] = await Promise.all([
-          API.getStudenti(),
-          API.getCollaborazioniClasse()
+          API.ottieniStudenti(),
+          API.ottieniCollaborazioniClasse()
         ]);
 
         const studentiMappati = rispostaStudenti.map((utente) => new Utente(utente));
@@ -82,8 +82,8 @@ function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
     setInvioInCorso(true);
     
     try {
-      const studentIds = studentiSelezionati.map(studente => studente.id);
-      const risultato = await API.createCompito(domanda.trim(), studentIds);
+      const studentiIds = studentiSelezionati.map(studente => studente.id);
+      const risultato = await API.creaCompito(domanda.trim(), studentiIds);
 
       if (risultato && risultato.id) {
         const compitoCreato = new Compito({
@@ -91,7 +91,7 @@ function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
           traccia: domanda.trim(),
           stato: "aperto",
           creato_il: risultato.creato_il,
-          numero_studenti: studentIds.length,
+          numero_studenti: studentiIds.length,
           gruppo: studentiSelezionati,
         });
                                   
@@ -143,12 +143,12 @@ function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
     setErrore("");
   };
 
-  const getTitoloStep = () => {
+  const ottieniTitoloStep = () => {
     if (stepCorrente === 1) return "📝 Domanda del Compito";
     return "👥 Seleziona Studenti";
   };
 
-  const getProgresso = () => {
+  const ottieniProgresso = () => {
     return `${stepCorrente}/2`;
   };
 
@@ -156,8 +156,8 @@ function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
     <div className="p-4">
       { /* Intestazione step */}
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h6 className="mb-0 fw-bold">{getTitoloStep()}</h6>
-        <small className="text-muted">Step {getProgresso()}</small>
+        <h6 className="mb-0 fw-bold">{ottieniTitoloStep()}</h6>
+        <small className="text-muted">Step {ottieniProgresso()}</small>
       </div>
 
       {/* Indicatore di progresso */}
@@ -205,7 +205,7 @@ function CreaCompito({ onCompitoCreato, onCancel, initialData = null }) {
         onIndietro={gestisciIndietro}
         onAvanti={gestisciAvanti}
         onInvio={gestisciInvio}
-        onAnnulla={onCancel}
+        onAnnulla={onCancella}
       />
     </div>
   );

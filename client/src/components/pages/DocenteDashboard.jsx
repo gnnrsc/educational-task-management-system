@@ -8,20 +8,20 @@ import API from "../../API";
 
 function DocenteDashboard() {
   const navigate = useNavigate();
-  const [showCreaCompito, setShowCreaCompito] = useState(false);
-  const [compitoInitialData, setCompitoInitialData] = useState(null);
+  const [mostraCreaCompito, setMostraCreaCompito] = useState(false);
+  const [compitoDatiIniziali, setCompitoDatiIniziali] = useState(null);
   const [compiti, setCompiti] = useState([]);
   const [loading, setLoading] = useState(true);
   const [compitoDaValutare, setCompitoDaValutare] = useState(null);
   
   useEffect(() => {
-    loadCompiti();
+    caricaCompiti();
   }, []);
 
-  const loadCompiti = async () => {
+  const caricaCompiti = async () => {
     setLoading(true);
     try {
-      const response = await API.getCompitiDocente();
+      const response = await API.ottieniCompitiDocente();
       
       // la risposta contiene { filtro, totale, compiti }
       setCompiti(response.compiti);
@@ -33,11 +33,11 @@ function DocenteDashboard() {
   };
 
   // FUNZIONI PER LA VALUTAZIONE-------------------
-  const handleOpenValutazione = (compito) => {
+  const handleApriValutazione = (compito) => {
     setCompitoDaValutare(compito);
   };
 
-  const handleSaveValutazione = async (punteggio) => {
+  const handleSalvaValutazione = async (punteggio) => {
     try {      
       // aggiorna lo stato locale del compito chiudendolo, dopo che ottiene il punteggio dal server
       setCompiti((prev) =>
@@ -56,14 +56,14 @@ function DocenteDashboard() {
     }
   };
 
-  const handleCancelValutazione = () => {
+  const handleCancellaValutazione = () => {
     setCompitoDaValutare(null);
   };
 
   // ----------------------------------------------
 
   //cambia pagina al dettaglio del compito
-  const handleOpenDettaglio = (compitoId) => {
+  const handleApriDettaglio = (compitoId) => {
     navigate(`/docente/compiti/${compitoId}`);
   };
 
@@ -76,8 +76,8 @@ function DocenteDashboard() {
       setCompiti(prev => [compitoPerLista, ...prev]);
       
       // chiudo il modal solo DOPO aver aggiornato con successo
-      setShowCreaCompito(false);
-      setCompitoInitialData(null);
+      setMostraCreaCompito(false);
+      setCompitoDatiIniziali(null);
 
     } catch (error) {
       //console.error("Errore nell'aggiornamento della lista:", error);
@@ -87,8 +87,8 @@ function DocenteDashboard() {
 
   // funzione per gestire l'assegnazione dello stesso compito ad un altro gruppo
   const handleAssegnaAltroGruppo = (compito) => {
-    setCompitoInitialData(compito);
-    setShowCreaCompito(true);
+    setCompitoDatiIniziali(compito);
+    setMostraCreaCompito(true);
   };
 
   if (loading) return <LoadingSpinner />;
@@ -107,7 +107,7 @@ function DocenteDashboard() {
       <div className="d-flex justify-content-center mb-4">
         <button
           className="btn btn-primary btn-lg"
-          onClick={() => setShowCreaCompito(true)}
+          onClick={() => setMostraCreaCompito(true)}
         >
           ➕ Crea Nuovo Compito
         </button>
@@ -115,13 +115,13 @@ function DocenteDashboard() {
 
       <ListaCompiti 
         compiti={compiti}
-        onOpenDettaglio={handleOpenDettaglio}
-        onOpenValutazione={handleOpenValutazione} 
+        onApriDettaglio={handleApriDettaglio}
+        onApriValutazione={handleApriValutazione} 
         onAssegnaAltroGruppo={handleAssegnaAltroGruppo}
       />
 
       {/* modale per creare nuovo compito */}
-      {showCreaCompito && (
+      {mostraCreaCompito && (
         <div
           className="modal show d-block"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
@@ -130,25 +130,25 @@ function DocenteDashboard() {
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  {compitoInitialData ? "📋 Assegna Compito ad un altro Gruppo" : "➕ Crea Nuovo Compito"}
+                  {compitoDatiIniziali ? "📋 Assegna Compito ad un altro Gruppo" : "➕ Crea Nuovo Compito"}
                 </h5>
                 <button
                   type="button"
                   className="btn-close"
                   onClick={() => { 
-                    setShowCreaCompito(false); 
-                    setCompitoInitialData(null); 
+                    setMostraCreaCompito(false); 
+                    setCompitoDatiIniziali(null); 
                   }}
                 ></button>
               </div>
               <div className="modal-body p-0">
                 <CreaCompito
                   onCompitoCreato={handleCompitoCreato}
-                  onCancel={() => { 
-                    setShowCreaCompito(false); 
-                    setCompitoInitialData(null); 
+                  onCancella={() => { 
+                    setMostraCreaCompito(false); 
+                    setCompitoDatiIniziali(null); 
                   }}
-                  initialData={compitoInitialData}
+                  datiIniziali={compitoDatiIniziali}
                 />
               </div>
             </div>
@@ -160,8 +160,8 @@ function DocenteDashboard() {
       {compitoDaValutare && (
         <ValutazioneCompito
           compito={compitoDaValutare}
-          onSave={handleSaveValutazione}
-          onCancel={handleCancelValutazione}
+          onSalva={handleSalvaValutazione}
+          onCancella={handleCancellaValutazione}
         />
       )}
     </div>

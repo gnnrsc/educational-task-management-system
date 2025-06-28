@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import LoadingSpinner from "./utils/LoadingSpinner";
 
-function RispostaCompito({ compito, onSave, onCancel }) {
+function RispostaCompito({ compito, onSalva, onCancella }) {
   const [testoRisposta, setTestoRisposta] = useState("");
   const [errors, setErrors] = useState({});
-  const [isSaving, setIsSaving] = useState(false);
+  const [staSalvando, setStaSalvando] = useState(false);
   const [caratteri, setCaratteri] = useState(0);
 
   const MAX_CARATTERI = 2000;
@@ -17,7 +17,7 @@ function RispostaCompito({ compito, onSave, onCancel }) {
     }
   }, [compito]);
 
-  const validateForm = () => {
+  const validaForm = () => {
     const newErrors = {};
 
     // validazione testo risposta
@@ -36,15 +36,15 @@ function RispostaCompito({ compito, onSave, onCancel }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!validaForm()) {
       return;
     }
 
-    setIsSaving(true);
+    setStaSalvando(true);
     
     try {
-      await onSave(testoRisposta.trim());
-      // il modale viene chiuso dalla funzione parent onSave
+      await onSalva(testoRisposta.trim());
+      // il modale viene chiuso dalla funzione parent onSalva
     } catch (error) {
       console.error("Errore nel salvataggio:", error);
       
@@ -61,11 +61,11 @@ function RispostaCompito({ compito, onSave, onCancel }) {
       
       setErrors({ general: errorMessage });
     } finally {
-      setIsSaving(false);
+      setStaSalvando(false);
     }
   };
 
-  const handleTestoChange = (e) => {
+  const handleTestoCambia = (e) => {
     const value = e.target.value;
     setTestoRisposta(value);
     setCaratteri(value.length);
@@ -76,7 +76,7 @@ function RispostaCompito({ compito, onSave, onCancel }) {
     }
   };
 
-  const getCaratteriColor = () => {
+  const ottieniColoreCaratteri = () => {
     const percentuale = (caratteri / MAX_CARATTERI) * 100;
     if (percentuale >= 90) return "text-danger";
     if (percentuale >= 75) return "text-warning";
@@ -99,8 +99,8 @@ function RispostaCompito({ compito, onSave, onCancel }) {
             <button
               type="button"
               className="btn-close"
-              onClick={onCancel}
-              disabled={isSaving}
+              onClick={onCancella}
+              disabled={staSalvando}
             ></button>
           </div>
 
@@ -179,7 +179,7 @@ function RispostaCompito({ compito, onSave, onCancel }) {
                   >
                     💬 Risposta del gruppo *
                   </label>
-                  <small className={`${getCaratteriColor()}`}>
+                  <small className={`${ottieniColoreCaratteri()}`}>
                     {caratteri}/{MAX_CARATTERI} caratteri
                   </small>
                 </div>
@@ -189,11 +189,11 @@ function RispostaCompito({ compito, onSave, onCancel }) {
                   }`}
                   id="testoRisposta"
                   value={testoRisposta}
-                  onChange={handleTestoChange}
+                  onChange={handleTestoCambia}
                   rows="6"
                   placeholder="Inserisci qui la risposta del gruppo al compito..."
                   maxLength={MAX_CARATTERI}
-                  disabled={isSaving}
+                  disabled={staSalvando}
                 />
                 {errors.testoRisposta && (
                   <div
@@ -223,8 +223,8 @@ function RispostaCompito({ compito, onSave, onCancel }) {
             <button
               type="button"
               className="btn btn-secondary btn-sm"
-              onClick={onCancel}
-              disabled={isSaving}
+              onClick={onCancella}
+              disabled={staSalvando}
             >
               ❌ Annulla
             </button>
@@ -233,9 +233,9 @@ function RispostaCompito({ compito, onSave, onCancel }) {
               type="button"
               className="btn btn-primary btn-sm"
               onClick={handleSubmit}
-              disabled={isSaving || !testoRisposta.trim()}
+              disabled={staSalvando || !testoRisposta.trim()}
             >
-              {isSaving ? (
+              {staSalvando ? (
                 <LoadingSpinner variant="inline" />
               ) : (
                 <>{isModifica ? "💾 Aggiorna Risposta" : "📤 Invia Risposta"}</>

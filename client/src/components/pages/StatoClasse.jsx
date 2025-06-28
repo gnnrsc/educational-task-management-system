@@ -4,7 +4,7 @@ import TabellaStudenti from '../TabellaStudenti';
 function StatoClasse() {
   const [ordinamento, setOrdinamento] = useState('alfabetico');
 
-  const handleOrdinamentoChange = (nuovoOrdinamento) => {
+  const handleOrdinamentoCambia = (nuovoOrdinamento) => {
     setOrdinamento(nuovoOrdinamento);
   };
 
@@ -30,7 +30,7 @@ function StatoClasse() {
           ].map((opzione) => (
             <button
               key={opzione.value}
-              onClick={() => handleOrdinamentoChange(opzione.value)}
+              onClick={() => handleOrdinamentoCambia(opzione.value)}
               className={`btn btn-sm me-1 ${
                 ordinamento === opzione.value
                   ? "btn-outline-primary active"

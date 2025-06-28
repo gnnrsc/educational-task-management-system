@@ -8,14 +8,14 @@ function TabellaStudenti({ ordinamento }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadStatoClasse();
+    caricaStatoClasse();
   }, [ordinamento]);
 
-  const loadStatoClasse = async () => {
+  const caricaStatoClasse = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await API.getStatisticheClasse(ordinamento);
+      const response = await API.ottieniStatisticheClasse(ordinamento);
       setStudenti(response.studenti);
     } catch (error) {
       //console.error("Errore nel caricamento stato classe:", error);
@@ -25,14 +25,14 @@ function TabellaStudenti({ ordinamento }) {
     setLoading(false);
   };
 
-  const getMediaColor = (media) => {
+  const ottieniColoreMedia = (media) => {
     if (media === null || media === undefined) return "text-muted";
     if (media >= 24) return "text-success";
     if (media >= 18) return "text-warning";
     return "text-danger";
   };
 
-  const getMediaLabel = (media) => {
+  const ottieniMediaLabel = (media) => {
     if (media === null || media === undefined) return "N/A";
     if (media >= 27) return "Eccezionale";
     if (media >= 24) return "Eccellente";
@@ -149,7 +149,7 @@ function TabellaStudenti({ ordinamento }) {
                       <td className="text-center">
                         <div>
                           <strong
-                            className={`${getMediaColor(item.media)}`}
+                            className={`${ottieniColoreMedia(item.media)}`}
                             style={{ fontSize: "1.1rem" }}
                           >
                             {item.media !== null && item.media !== undefined
@@ -170,7 +170,7 @@ function TabellaStudenti({ ordinamento }) {
                             }`}
                             style={{ fontSize: "0.8rem" }}
                           >
-                            {getMediaLabel(item.media)}
+                            {ottieniMediaLabel(item.media)}
                           </span>
                         ) : (
                           <span

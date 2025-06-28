@@ -30,7 +30,7 @@ async function logOut() {
   });
 }
 
-async function getUserInfo() {
+async function ottieniInformazioniUtente() {
   const response = await fetch(URL + "/sessions/current", {
     credentials: "include",
   });
@@ -45,7 +45,7 @@ async function getUserInfo() {
 // STUDENTE
 
 // GET: /api/studente/compiti - Visualizza tutti i compiti dello studente con filtro opzionale
-async function getCompitiStudente(stato = null) {
+async function ottieniCompitiStudente(stato = null) {
   const queryParam = stato ? `?stato=${stato}` : "";
   const response = await fetch(URL + `/studente/compiti${queryParam}`, {
     credentials: "include",
@@ -63,7 +63,7 @@ async function getCompitiStudente(stato = null) {
 }
 
 // PUT: /api/studente/compiti/:id/risposta - Inserisce o aggiorna la risposta a un compito
-async function updateRispostaCompito(compitoId, testoRisposta) {
+async function aggiornaRispostaCompito(compitoId, testoRisposta) {
   const response = await fetch(
     URL + `/studente/compiti/${compitoId}/risposta`,
     {
@@ -77,14 +77,14 @@ async function updateRispostaCompito(compitoId, testoRisposta) {
   );
   const data = await response.json();
   if (response.ok) {
-    return data; // Ritorna il messaggio di successo così com'è
+    return data; 
   } else {
     throw data;
   }
 }
 
 // GET: /api/studente/media - Visualizza la media dello studente
-async function getMediaStudente() {
+async function ottieniMediaStudente() {
   const response = await fetch(URL + "/studente/media", {
     credentials: "include",
   });
@@ -101,7 +101,7 @@ async function getMediaStudente() {
 }
 
 // GET: /api/studente/compiti/:id - Visualizza i dettagli di un compito specifico
-async function getCompitoDettaglioStudente(compitoId) {
+async function ottieniCompitoDettaglioStudente(compitoId) {
   const response = await fetch(URL + `/studente/compiti/${compitoId}`, {
     credentials: "include",
   });
@@ -116,7 +116,7 @@ async function getCompitoDettaglioStudente(compitoId) {
 //  DOCENTE
 
 // GET: /api/docente/classe - Ottenere lista studenti (solo per docenti)
-async function getStudenti() {
+async function ottieniStudenti() {
   const response = await fetch(URL + "/docente/classe", {
     credentials: "include",
   });
@@ -129,7 +129,7 @@ async function getStudenti() {
 }
 
 // GET: /api/docente/classe/collaborazioni - Ottenere le collaborazioni tra coppie di studenti
-async function getCollaborazioniClasse(minCount = 2) {
+async function ottieniCollaborazioniClasse(minCount = 2) {
   const queryParam = minCount ? `?minCount=${minCount}` : "";
   const response = await fetch(
     URL + `/docente/classe/collaborazioni${queryParam}`,
@@ -152,14 +152,14 @@ async function getCollaborazioniClasse(minCount = 2) {
 }
 
 // POST: /api/docente/compiti - Creare un nuovo compito (solo per docenti)
-async function createCompito(traccia, studentIds) {
+async function creaCompito(traccia, studentiIds) {
   const response = await fetch(URL + "/docente/compiti", {
     method: "POST",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ traccia, studentIds }),
+    body: JSON.stringify({ traccia, studentiIds }),
   });
   const data = await response.json();
   if (response.ok) {
@@ -234,7 +234,7 @@ async function valutaCompito(compitoId, punteggio) {
 }
 
 // GET: /api/docente/classe/stato - Ottenere statistiche della classe (solo per docenti)
-async function getStatisticheClasse(sort = "alfabetico") {
+async function ottieniStatisticheClasse(sort = "alfabetico") {
   const queryParam = sort ? `?sort=${sort}` : "";
   const response = await fetch(URL + `/docente/classe/stato${queryParam}`, {
     credentials: "include",
@@ -251,7 +251,7 @@ async function getStatisticheClasse(sort = "alfabetico") {
 }
 
 // GET: /api/docente/compiti - Visualizza tutti i compiti creati dal docente
-async function getCompitiDocente() {
+async function ottieniCompitiDocente() {
   const response = await fetch(URL + `/docente/compiti`, {
     credentials: "include",
   });
@@ -263,7 +263,6 @@ async function getCompitiDocente() {
         (compito) =>
           new Compito({
             ...compito,
-            ha_risposta: compito.ha_risposta,
           })
       ),
     };
@@ -273,7 +272,7 @@ async function getCompitiDocente() {
 }
 
 // GET: /api/docente/compiti/:id - Visualizza il dettaglio di un compito (solo per docente)
-async function getCompitoDettaglioDocente(compitoId) {
+async function ottieniCompitoDettaglioDocente(compitoId) {
   const response = await fetch(URL + `/docente/compiti/${compitoId}`, {
     credentials: "include",
   });
@@ -288,19 +287,19 @@ async function getCompitoDettaglioDocente(compitoId) {
 const API = {
   logIn,
   logOut,
-  getUserInfo,
-  getCompitiStudente,
-  updateRispostaCompito,
-  getMediaStudente,
-  getCompitoDettaglioStudente,
-  getStudenti,
-  getCollaborazioniClasse,
-  createCompito,
+  ottieniInformazioniUtente,
+  ottieniCompitiStudente,
+  aggiornaRispostaCompito,
+  ottieniMediaStudente,
+  ottieniCompitoDettaglioStudente,
+  ottieniStudenti,
+  ottieniCollaborazioniClasse,
+  creaCompito,
   getRispostaCompito,
   valutaCompito,
-  getStatisticheClasse,
-  getCompitiDocente,
-  getCompitoDettaglioDocente,
+  ottieniStatisticheClasse,
+  ottieniCompitiDocente,
+  ottieniCompitoDettaglioDocente,
 };
 
 export default API;

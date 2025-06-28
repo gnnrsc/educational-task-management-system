@@ -25,7 +25,6 @@ function Compito(data) {
   this.docente = data.docente ? new Utente(data.docente) : undefined;
 
   this.gruppo = data.gruppo ? data.gruppo.map(p => new Utente(p)) : [];
-  //this.ha_risposta = data.ha_risposta ?? undefined;
   this.risposta = data.risposta ? new Risposta(data.risposta.testo, data.risposta.aggiornato_il, data.risposta.inviato_da) : undefined;
 
   this.serialize = () => ({
@@ -37,7 +36,6 @@ function Compito(data) {
     numero_studenti: this.numero_studenti,
     gruppo: this.gruppo.map(p => p.serialize()),
     ...(this.docente && { docente: this.docente.serialize() }),
-    ...(this.ha_risposta !== undefined && { ha_risposta: this.ha_risposta }),
     punteggio: this.punteggio,
     ...(this.risposta && { risposta: this.risposta.serialize() }),
   });

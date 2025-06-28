@@ -3,10 +3,10 @@ import { useAuth } from "../AuthContext";
 
 function ListaCompiti({
   compiti, 
-  onOpenDettaglio, 
-  onOpenValutazione, // per docente
+  onApriDettaglio, 
+  onApriValutazione, // per docente
   onAssegnaAltroGruppo, // per docente
-  onOpenRisposta // per studenti
+  onApriRisposta // per studenti
 }) {
 
   const { user } = useAuth();
@@ -22,16 +22,16 @@ function ListaCompiti({
     : compiti.filter(compito => compito.stato === filtroStato);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handleClickFuori = (e) => {
       if (!e.target.closest(".menu-kebab-trigger")) {
         setMenuApertoId(null);
       }
     };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    document.addEventListener("click", handleClickFuori);
+    return () => document.removeEventListener("click", handleClickFuori);
   }, []);
 
-  const handleFiltroChange = (nuovoFiltro) => {
+  const handleCambioFiltro = (nuovoFiltro) => {
     setFiltroStato(nuovoFiltro);
   };
 
@@ -46,7 +46,7 @@ function ListaCompiti({
               : "btn-outline-success"
           }`}
           title={c.risposta ? "Modifica risposta" : "Inserisci risposta"}
-          onClick={() => onOpenRisposta(c)}
+          onClick={() => onApriRisposta(c)}
         >
           {c.risposta ? "✏️ Modifica" : "📝 Rispondi"}
         </button>
@@ -55,7 +55,7 @@ function ListaCompiti({
       <button
         className="btn btn-outline-primary btn-sm"
         title="Visualizza dettagli"
-        onClick={() => onOpenDettaglio(c.id)}
+        onClick={() => onApriDettaglio(c.id)}
       >
         👁️ Visualizza
       </button>
@@ -69,7 +69,7 @@ function ListaCompiti({
         <button
           className="btn btn-outline-success btn-sm"
           title="Valuta"
-          onClick={() => onOpenValutazione(c)}
+          onClick={() => onApriValutazione(c)}
         >
           📊 Valuta
         </button>
@@ -78,7 +78,7 @@ function ListaCompiti({
       <button
         className="btn btn-outline-primary btn-sm"
         title="Visualizza"
-        onClick={() => onOpenDettaglio(c.id)}
+        onClick={() => onApriDettaglio(c.id)}
       >
         👁️ Visualizza
       </button>
@@ -126,7 +126,7 @@ function ListaCompiti({
           {["aperto", "chiuso", "tutti"].map((f) => (
             <button
               key={f}
-              onClick={() => handleFiltroChange(f)}
+              onClick={() => handleCambioFiltro(f)}
               className={`btn btn-sm me-1 ${
                 filtroStato === f
                   ? "btn-outline-primary active"

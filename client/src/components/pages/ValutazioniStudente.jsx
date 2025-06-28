@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../../AuthContext";
 import API from "../../API";
 import LoadingSpinner from "../utils/LoadingSpinner";
 
 function ValutazioniStudente() {
-  const { user } = useAuth();
   const [compiti, setCompiti] = useState([]);
+  //stato per i dati della media dello studente
   const [mediaData, setMediaData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [ordinamento, setOrdinamento] = useState('recente');
@@ -18,11 +17,11 @@ function ValutazioniStudente() {
     setLoading(true);
     try {
       // Carica la media dello studente
-      const responseMedia = await API.getMediaStudente();
+      const responseMedia = await API.ottieniMediaStudente();
       setMediaData(responseMedia);
 
       // Carica tutti i compiti chiusi dello studente
-      const responseCompiti = await API.getCompitiStudente('chiuso');
+      const responseCompiti = await API.ottieniCompitiStudente('chiuso');
       // Filtra solo quelli che hanno un punteggio
       const compitiConPunteggio = responseCompiti.compiti.filter(c => 
         c.punteggio !== null && c.punteggio !== undefined
@@ -36,7 +35,7 @@ function ValutazioniStudente() {
     setLoading(false);
   };
 
-  const handleOrdinamentoChange = (nuovoOrdinamento) => {
+  const handleOrdinamentoCambia = (nuovoOrdinamento) => {
     setOrdinamento(nuovoOrdinamento);
   };
 
@@ -146,7 +145,7 @@ function ValutazioniStudente() {
           ].map((opzione) => (
             <button
               key={opzione.value}
-              onClick={() => handleOrdinamentoChange(opzione.value)}
+              onClick={() => handleOrdinamentoCambia(opzione.value)}
               className={`btn btn-sm me-1 ${
                 ordinamento === opzione.value
                   ? "btn-outline-primary active"

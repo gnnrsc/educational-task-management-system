@@ -1,6 +1,6 @@
 import { body, param, query } from "express-validator";
 import * as dao from "../dao/studente-dao.mjs";
-import * as daoCommon from "../dao/dao.mjs";
+import * as daoComune from "../dao/dao.mjs";
 import { validationResult } from "express-validator";
 import express from "express";
 const router = express.Router();
@@ -34,7 +34,7 @@ router.get(
       const studenteId = req.user.id;
       const { stato } = req.query;
 
-      const compiti = await dao.getCompitiStudente(studenteId, stato);
+      const compiti = await dao.ottieniCompitiStudente(studenteId, stato);
 
       res.json({
         filtro: stato || "tutti",
@@ -77,7 +77,7 @@ router.put(
       const studenteId = req.user.id;
 
       // Verifica che il compito esista e sia aperto
-      const compito = await dao.getCompitoById(compitoId);
+      const compito = await dao.ottieniCompitoPerId(compitoId);
       if (!compito) {
         return res.status(404).json({ error: "Compito non trovato" });
       }
@@ -91,7 +91,7 @@ router.put(
       }
 
       // Verifica che lo studente sia parte del gruppo
-      const isPartOfGroup = await dao.isStudentInGroup(compitoId, studenteId);
+      const isPartOfGroup = await dao.checkStudenteGruppo(compitoId, studenteId);
       if (!isPartOfGroup) {
         return res
           .status(403)
@@ -99,7 +99,7 @@ router.put(
       }
 
       // Inserisce o aggiorna la risposta
-      const result = await dao.updateRispostaCompito(compitoId, testo_risposta, studenteId);
+      const result = await dao.aggiornaRispostaCompito(compitoId, testo_risposta, studenteId);
 
       res.json({
         aggiornato_il: result.aggiornato_il,
@@ -117,7 +117,7 @@ router.put(
 router.get("/media", async (req, res) => {
   try {
     const studenteId = req.user.id;
-    const media = await dao.getMediaStudente(studenteId);
+    const media = await dao.ottieniMediaStudente(studenteId);
 
     res.json({
       studente: {
@@ -125,7 +125,7 @@ router.get("/media", async (req, res) => {
         nome: req.user.nome,
         cognome: req.user.cognome,
       },
-      totale_compiti: await dao.getNumeroCompitiChiusiStudente(studenteId),
+      totale_compiti: await dao.ottieniNumeroCompitiChiusiStudente(studenteId),
       media: media ? Math.round(media * 100) / 100 : null,
     });
   } catch (error) {
@@ -145,7 +145,7 @@ router.get(
       const studenteId = req.user.id;
 
       // Verifica che lo studente sia parte del gruppo (controllo autorizzazione)
-      const isPartOfGroup = await dao.isStudentInGroup(compitoId, studenteId);
+      const isPartOfGroup = await dao.checkStudenteGruppo(compitoId, studenteId);
       if (!isPartOfGroup) {
         return res
           .status(403)
@@ -153,39 +153,23 @@ router.get(
       }
 
       // Ottieni tutti i dettagli del compito con una sola chiamata
-      const compito = await daoCommon.getCompitoConGruppo(compitoId);
+      const compito = await daoComune.ottieniCompitoConGruppo(compitoId);
       if (!compito) {
         return res.status(404).json({ error: "Compito non trovato" });
       }
 
+      // Il DAO già restituisce i dati strutturati correttamente, li passiamo direttamente
       res.json({
         id: compito.id,
         traccia: compito.traccia,
         stato: compito.stato,
         creato_il: compito.creato_il,
-        chiuso_il: compito.chiuso_il || null,
-        docente: {
-          nome: compito.docente_nome,
-          cognome: compito.docente_cognome,
-        },
-        gruppo: compito.gruppo.map((membro) => ({
-          id: membro.id,
-          nome: membro.nome,
-          cognome: membro.cognome,
-        })),
+        chiuso_il: compito.chiuso_il,
+        docente: compito.docente, // Già strutturato dal DAO
+        gruppo: compito.gruppo, // Già strutturato dal DAO
         numero_studenti: compito.numero_studenti,
-        risposta: compito.risposta
-          ? {
-              testo: compito.risposta.testo_risposta,
-              inviato_da: {
-                id: compito.risposta.inviato_da,
-                nome: compito.risposta.inviato_da_nome,
-                cognome: compito.risposta.inviato_da_cognome,
-              },
-              aggiornato_il: compito.risposta.aggiornato_il,
-            }
-          : null,
-        punteggio: compito.punteggio || null,
+        risposta: compito.risposta || null, // Già strutturato dal DAO
+        punteggio: compito.punteggio,
       });
     } catch (error) {
       console.error("Errore GET compito dettaglio:", error);

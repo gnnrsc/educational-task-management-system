@@ -4,7 +4,7 @@ import db from "..//dao/dao.mjs";
 // DOCENTE DAO
 
 // Ottieni tutti gli studenti (ruolo = studente)
-export const getAllStudents = () => {
+export const ottieniListaStudenti = () => {
   return new Promise((resolve, reject) => {
     const sql =
       'SELECT id, nome, cognome FROM utenti WHERE ruolo = "studente" ORDER BY id';
@@ -16,10 +16,10 @@ export const getAllStudents = () => {
 };
 
 // Funzione per creare un nuovo compito ed assegnarlo agli studenti
-export const createTask = (traccia, studentIds, creatoDa) => {
+export const creaCompito = (traccia, studentiIds, creatoDa) => {
   return new Promise((resolve, reject) => {
     const stato = "aperto";
-    const numeroStudenti = studentIds.length;
+    const numeroStudenti = studentiIds.length;
     const creatoIl = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
     const sql = `
@@ -33,10 +33,10 @@ export const createTask = (traccia, studentIds, creatoDa) => {
         if (err) return reject(err);
         const compitoId = this.lastID;
 
-        assegnaStudenti(compitoId, studentIds)
+        assegnaStudenti(compitoId, studentiIds)
           .then(() => {
             // Lancia aggiornaCollaborazioni senza aspettarla
-            aggiornaCollaborazioni(studentIds, creatoDa).catch((err) => {
+            aggiornaCollaborazioni(studentiIds, creatoDa).catch((err) => {
               console.error("Errore aggiornamento collaborazioni:", err);
             });
             // Risolvi subito, senza aspettare aggiornaCollaborazioni
@@ -48,11 +48,11 @@ export const createTask = (traccia, studentIds, creatoDa) => {
   });
 };
 
-//Funzione per assegnare studenti a un compito
-export const assegnaStudenti = (compitoId, studentIds) => {
+//Funzione per assegnare studenti a un compito - usata in creaCompito
+export const assegnaStudenti = (compitoId, studentiIds) => {
   const sql =
     "INSERT INTO assegnazioni_compiti (compito_id, studente_id) VALUES (?, ?)";
-  const promesse = studentIds.map((id) => {
+  const promesse = studentiIds.map((id) => {
     return new Promise((res, rej) => {
       db.run(sql, [compitoId, id], (err) => {
         if (err) rej(err);
@@ -64,14 +64,14 @@ export const assegnaStudenti = (compitoId, studentIds) => {
 };
 
 //Funzione per aggiornare il conteggio di collaborazioni tra studenti per quel docente
-export const aggiornaCollaborazioni = (studentIds, docenteId) => {
+export const aggiornaCollaborazioni = (studentiIds, docenteId) => {
   const tasks = [];
 
   //per ogni combinazione di coppia di studenti del gruppo, aggiungi o aggiorna il conteggio
-  for (let i = 0; i < studentIds.length; i++) {
-    for (let j = i + 1; j < studentIds.length; j++) {
-      const s1 = Math.min(studentIds[i], studentIds[j]);
-      const s2 = Math.max(studentIds[i], studentIds[j]);
+  for (let i = 0; i < studentiIds.length; i++) {
+    for (let j = i + 1; j < studentiIds.length; j++) {
+      const s1 = Math.min(studentiIds[i], studentiIds[j]);
+      const s2 = Math.max(studentiIds[i], studentiIds[j]);
 
       tasks.push(
         new Promise((res, rej) => {
@@ -106,7 +106,7 @@ export const aggiornaCollaborazioni = (studentIds, docenteId) => {
 // Restituisce un oggetto con le coppie come chiavi e il numero di collaborazioni come valori
 // Esempio: { "1-2": 3, "1-3": 2, "2-3": 1 }
 // Nota: le coppie sono sempre ordinate (min, max) per evitare duplicati come "1-2" e "2-1"
-export const getStudentPairsCollaborations = (docenteId, minCount = 2) => {
+export const ottieniCollaborazioniStudenti = (docenteId, minCount = 2) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT studente1_id, studente2_id, numero_collaborazioni
@@ -128,24 +128,25 @@ export const getStudentPairsCollaborations = (docenteId, minCount = 2) => {
   });
 };
 
-export const checkStudentPairLimit = (studentIds, docenteId, minLimit = 2) => {
+// Controlla se le coppie di studenti superano il limite minimo di collaborazioni
+export const checkLimiteCoppiaStudenti = (studentiIds, docenteId, minLimit = 2) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const collaborations = await getStudentPairsCollaborations(
+      const collaborations = await ottieniCollaborazioniStudenti(
         docenteId,
         minLimit
       );
 
-      const pairKey = (id1, id2) =>
+      const coppiaKey = (id1, id2) =>
         id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`;
 
-      for (let i = 0; i < studentIds.length; i++) {
-        for (let j = i + 1; j < studentIds.length; j++) {
-          const key = pairKey(studentIds[i], studentIds[j]);
+      for (let i = 0; i < studentiIds.length; i++) {
+        for (let j = i + 1; j < studentiIds.length; j++) {
+          const key = coppiaKey(studentiIds[i], studentiIds[j]);
           if (collaborations[key]) {
             return resolve({
               allowed: false,
-              pair: [studentIds[i], studentIds[j]],
+              coppia: [studentiIds[i], studentiIds[j]],
               count: collaborations[key],
             });
           }
@@ -227,17 +228,17 @@ export const valutaEChiudiCompito = (compitoId, punteggio) => {
   });
 };
 
-export const getStatisticheClasse = (docenteId) => {
+export const ottieniStatisticheClasse = (docenteId) => {
   return new Promise(async (resolve, reject) => {
     try {
       // 1. Prima ottieni tutti gli studenti
-      const studenti = await getAllStudents();
+      const studenti = await ottieniListaStudenti();
 
       // 2. Per ogni studente, calcola le sue statistiche
       const statistiche = [];
 
       for (const studente of studenti) {
-        const stats = await getStatisticheStudente(studente.id, docenteId);
+        const stats = await ottieniStatisticheStudente(studente.id, docenteId);
         statistiche.push({
           id: studente.id,
           nome: studente.nome,
@@ -257,7 +258,7 @@ export const getStatisticheClasse = (docenteId) => {
 };
 
 //Ottiene statistiche per uno studente specifico
-export const getStatisticheStudente = (studenteId, docenteId) => {
+export const ottieniStatisticheStudente = (studenteId, docenteId) => {
   return new Promise((resolve, reject) => {
     db.get(
       `SELECT 
@@ -293,11 +294,11 @@ export const getStatisticheStudente = (studenteId, docenteId) => {
 };
 
 // Ottiene tutti i compiti di un docente
-export const getCompitiDocente = (docenteId) => {
+export const ottieniCompitiDocente = (docenteId) => {
   return new Promise((resolve, reject) => {
     let sql = `
       SELECT 
-        c.*,
+        c.id, c.traccia, c.stato, c.numero_studenti, c.punteggio, c.creato_il, c.chiuso_il,
         u.nome as docente_nome, u.cognome as docente_cognome,
         s.id as studente_id, s.nome as studente_nome, s.cognome as studente_cognome,
         rc.testo_risposta, rc.aggiornato_il as risposta_aggiornato_il, rc.inviato_da as risposta_inviato_da,
@@ -318,14 +319,13 @@ export const getCompitiDocente = (docenteId) => {
         return;
       }
 
-      // Raggruppa i risultati per compito
+      // Raggruppamento efficiente con Map
       const compitiMap = new Map();
 
       rows.forEach(row => {
         const compitoId = row.id;
         
         if (!compitiMap.has(compitoId)) {
-          // Crea il nuovo compito
           compitiMap.set(compitoId, {
             id: row.id,
             traccia: row.traccia,
@@ -334,6 +334,12 @@ export const getCompitiDocente = (docenteId) => {
             punteggio: row.punteggio,
             creato_il: row.creato_il,
             chiuso_il: row.chiuso_il,
+            docente: {
+              id: docenteId,
+              nome: row.docente_nome,
+              cognome: row.docente_cognome
+            },
+            gruppo: [],
             risposta: row.testo_risposta ? {
               testo: row.testo_risposta,
               aggiornato_il: row.risposta_aggiornato_il,
@@ -342,30 +348,26 @@ export const getCompitiDocente = (docenteId) => {
                 nome: row.risposta_nome,
                 cognome: row.risposta_cognome
               } : null
-            } : null,
-            docente: {
-              id: docenteId,
-              nome: row.docente_nome,
-              cognome: row.docente_cognome
-            },
-            gruppo: []
+            } : null
           });
         }
 
-        // Aggiungi lo studente al gruppo se presente
+        // Aggiungi studente se presente e non già aggiunto
         if (row.studente_id) {
           const compito = compitiMap.get(compitoId);
-          compito.gruppo.push({
-            id: row.studente_id,
-            nome: row.studente_nome,
-            cognome: row.studente_cognome
-          });
+          const studenteEsistente = compito.gruppo.find(s => s.id === row.studente_id);
+          
+          if (!studenteEsistente) {
+            compito.gruppo.push({
+              id: row.studente_id,
+              nome: row.studente_nome,
+              cognome: row.studente_cognome
+            });
+          }
         }
       });
 
-      // Converti la Map in array
-      const compiti = Array.from(compitiMap.values());
-      resolve(compiti);
+      resolve(Array.from(compitiMap.values()));
     });
   });
 };

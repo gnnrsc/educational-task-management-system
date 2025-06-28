@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import LoadingSpinner from "./utils/LoadingSpinner";
 import API from "../API";
 
-function ValutazioneCompito({ compito, onSave, onCancel }) {
+function ValutazioneCompito({ compito, onSalva, onCancella }) {
   const [punteggio, setPunteggio] = useState("");
   const [errors, setErrors] = useState({});
-  const [isSaving, setIsSaving] = useState(false);
+  const [staSalvando, setStaSalvando] = useState(false);
 
   // carica il punteggio esistente se già valutato o ricarica il punteggio ad ogni modifica del compito
   useEffect(() => {
@@ -14,7 +14,7 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
     }
   }, [compito]);
 
-  const validateForm = () => {
+  const validaForm = () => {
     const newErrors = {};
 
     // validazione punteggio - obbligatorio se c'è una risposta
@@ -33,11 +33,11 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!validaForm()) {
       return;
     }
 
-    setIsSaving(true);
+    setStaSalvando(true);
     
     try {
       // converti il punteggio in numero
@@ -46,7 +46,7 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
       const result = await API.valutaCompito(compito.id, punteggioNumero);
       
       // chiama la callback di successo passando il risultato
-      onSave(result);
+      onSalva(result);
     } catch (error) {
       //console.error("Errore nel salvataggio:", error);
       
@@ -63,11 +63,11 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
       
       setErrors({ general: errorMessage });
     } finally {
-      setIsSaving(false);
+      setStaSalvando(false);
     }
   };
 
-  const handlePunteggioChange = (e) => {
+  const handlePunteggioCambia = (e) => {
     const value = e.target.value;
     setPunteggio(value);
     
@@ -77,7 +77,7 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
     }
   };
 
-  const getPunteggioColor = () => {
+  const ottieniColorePunteggio = () => {
     const num = parseFloat(punteggio);
     if (isNaN(num)) return "text-muted";
     if (num >= 24) return "text-success";  // 24-30: Eccellente
@@ -85,7 +85,7 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
     return "text-danger";                  // 0-17: Insufficiente
   };
 
-  const getPunteggioLabel = () => {
+  const ottieniPunteggioLabel = () => {
     const num = parseFloat(punteggio);
     if (isNaN(num)) return "";
     if (num >= 27) return "Eccezionale";
@@ -106,8 +106,8 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
             <button 
               type="button" 
               className="btn-close" 
-              onClick={onCancel}
-              disabled={isSaving}
+              onClick={onCancella}
+              disabled={staSalvando}
             ></button>
           </div>
 
@@ -167,7 +167,7 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
                       className={`form-control ${errors.punteggio ? 'is-invalid' : ''}`}
                       id="punteggio"
                       value={punteggio}
-                      onChange={handlePunteggioChange}
+                      onChange={handlePunteggioCambia}
                       min="0"
                       max="30"
                       step="1"
@@ -182,8 +182,8 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
                   <div className="col-md-8">
                     {punteggio && (
                       <div className="mt-4">
-                        <span className={`fw-bold ${getPunteggioColor()}`} style={{ fontSize: '0.9rem' }}>
-                          {punteggio}/30 - {getPunteggioLabel()}
+                        <span className={`fw-bold ${ottieniColorePunteggio()}`} style={{ fontSize: '0.9rem' }}>
+                          {punteggio}/30 - {ottieniPunteggioLabel()}
                         </span>
                       </div>
                     )}
@@ -192,7 +192,7 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
 
                 {/* punteggi rapidi compatti */}
                 <div className="mb-3">
-                  <label className="form-label mb-2" style={{ fontSize: '0.9rem' }}>🎯 Punteggi rapidi:</label>
+                  <div className="mb-2" style={{ fontSize: '0.9rem', fontWeight: '500' }}>🎯 Punteggi rapidi:</div>
                   <div className="d-flex gap-1 flex-wrap">
                     {[30, 27, 24, 21, 18, 15, 12, 9, 6, 3, 0].map(voto => (
                       <button
@@ -201,7 +201,7 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
                         className={`btn btn-sm ${punteggio == voto.toString() ? 'btn-primary' : 'btn-outline-secondary'}`}
                         onClick={() => setPunteggio(voto.toString())}
                         style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem' }}
-                        disabled={isSaving}
+                        disabled={staSalvando}
                       >
                         {voto}
                       </button>
@@ -224,8 +224,8 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
             <button 
               type="button" 
               className="btn btn-secondary btn-sm" 
-              onClick={onCancel}
-              disabled={isSaving}
+              onClick={onCancella}
+              disabled={staSalvando}
             >
               ❌ Annulla
             </button>
@@ -235,9 +235,9 @@ function ValutazioneCompito({ compito, onSave, onCancel }) {
                 type="button"
                 className="btn btn-primary btn-sm" 
                 onClick={handleSubmit}
-                disabled={isSaving}
+                disabled={staSalvando}
               >
-                {isSaving ? (
+                {staSalvando ? (
                   <LoadingSpinner variant="inline" />
                 ) : (
                   <>💾 Salva Valutazione</>

@@ -15,11 +15,11 @@ function DettaglioCompitoStudentePage() {
   const [compitoPerRisposta, setCompitoPerRisposta] = useState(null);
 
   useEffect(() => {
-    const loadCompito = async () => {
+    const caricaCompito = async () => {
       setLoading(true);
       setError(null);
       try {
-        const compitoData = await API.getCompitoDettaglioStudente(id);
+        const compitoData = await API.ottieniCompitoDettaglioStudente(id);
         setCompito(compitoData);
       } catch (error) {
         setError(error.message || "Errore nel caricamento del compito");
@@ -29,18 +29,18 @@ function DettaglioCompitoStudentePage() {
     };
 
     if (id) {
-      loadCompito();
+      caricaCompito();
     }
   }, [id]);
 
   // FUNZIONI PER LA RISPOSTA -------------------
-  const handleOpenRisposta = (compito) => {
+  const handleApriRisposta = (compito) => {
     setCompitoPerRisposta(compito);
   };
 
-  const handleSaveRisposta = async (testoRisposta) => {
+  const handleSalvaRisposta = async (testoRisposta) => {
     try {
-      const result = await API.updateRispostaCompito(
+      const result = await API.aggiornaRispostaCompito(
         compitoPerRisposta.id,
         testoRisposta
       );
@@ -61,7 +61,7 @@ function DettaglioCompitoStudentePage() {
     }
   };
 
-  const handleCancelRisposta = () => {
+  const handleCancellaRisposta = () => {
     setCompitoPerRisposta(null);
   };
   // ----------------------------------------------
@@ -101,16 +101,16 @@ function DettaglioCompitoStudentePage() {
 
       <DettaglioCompitoStudente
         compito={compito}
-        currentUser={user}
-        onOpenRisposta={handleOpenRisposta}
+        utenteCorrente={user}
+        onApriRisposta={handleApriRisposta}
       />
 
       {/* modale per inserire/modificare la risposta */}
       {compitoPerRisposta && (
         <RispostaCompito
           compito={compitoPerRisposta}
-          onSave={handleSaveRisposta}
-          onCancel={handleCancelRisposta}
+          onSalva={handleSalvaRisposta}
+          onCancella={handleCancellaRisposta}
         />
       )}
     </div>
@@ -118,9 +118,9 @@ function DettaglioCompitoStudentePage() {
 }
 
 // Componente distinto per il contenuto del compito studente
-function DettaglioCompitoStudente({ compito, currentUser, onOpenRisposta }) {
+function DettaglioCompitoStudente({ compito, utenteCorrente, onApriRisposta }) {
   // Calcola se l'utente corrente ha inviato la risposta
-  const haInviatoRisposta = compito.risposta?.inviato_da?.id === currentUser.id;
+  const haInviatoRisposta = compito.risposta?.inviato_da?.id === utenteCorrente.id;
 
   // Calcola se può modificare la risposta (compito aperto)
   const puoModificareRisposta = compito.stato === "aperto";
@@ -176,15 +176,15 @@ function DettaglioCompitoStudente({ compito, currentUser, onOpenRisposta }) {
                 <span
                   key={membro.id}
                   className={`badge ${
-                    membro.id === currentUser.id
+                    membro.id === utenteCorrente.id
                       ? "bg-primary"
                       : "bg-light text-dark border"
                   }`}
                   style={{ fontSize: "0.75rem" }}
                 >
-                  {membro.id === currentUser.id ? "👤 " : ""}
+                  {membro.id === utenteCorrente.id ? "👤 " : ""}
                   {membro.nome} {membro.cognome}
-                  {membro.id === currentUser.id ? " (Tu)" : ""}
+                  {membro.id === utenteCorrente.id ? " (Tu)" : ""}
                 </span>
               ))}
             </div>
@@ -210,7 +210,7 @@ function DettaglioCompitoStudente({ compito, currentUser, onOpenRisposta }) {
                   <span className="ms-2">
                     • Inviata da:{" "}
                     <strong>
-                      {compito.risposta.inviato_da.id === currentUser.id
+                      {compito.risposta.inviato_da.id === utenteCorrente.id
                         ? "Te"
                         : `${compito.risposta.inviato_da.nome} ${compito.risposta.inviato_da.cognome}`}
                     </strong>
@@ -235,7 +235,7 @@ function DettaglioCompitoStudente({ compito, currentUser, onOpenRisposta }) {
               {puoModificareRisposta && (
                 <button
                   className="btn btn-outline-warning"
-                  onClick={() => onOpenRisposta(compito)}
+                  onClick={() => onApriRisposta(compito)}
                 >
                   ✏️ Modifica risposta
                 </button>
@@ -261,7 +261,7 @@ function DettaglioCompitoStudente({ compito, currentUser, onOpenRisposta }) {
               {puoModificareRisposta && (
                 <button
                   className="btn btn-success"
-                  onClick={() => onOpenRisposta(compito)}
+                  onClick={() => onApriRisposta(compito)}
                 >
                   📝 Inserisci risposta
                 </button>

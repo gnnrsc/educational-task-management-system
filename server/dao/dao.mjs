@@ -12,10 +12,10 @@ const db = new sqlite3.Database("compiti.sqlite", (err) => {
   console.log("Connesso al database SQLite.");
 });
 
-/*USERS*/
+/*UTENTI*/
 
 // Funzione di login: verifica email e password
-export const getUser = (email, password) => {
+export const ottieniUtente = (email, password) => {
   return new Promise((resolve, reject) => {
     const sql = "SELECT * FROM utenti WHERE email = ?";
     db.get(sql, [email], (err, row) => {
@@ -44,7 +44,7 @@ export const getUser = (email, password) => {
 };
 
 // Funzione per ottenere un utente dato il suo ID
-export const getUserById = (id) => {
+export const ottieniUtentePerId = (id) => {
   return new Promise((resolve, reject) => {
     const sql =
       "SELECT id, email, nome, cognome, ruolo FROM utenti WHERE id = ?";
@@ -70,9 +70,8 @@ export const getUserById = (id) => {
 // Funzioni comuni tra studenti e docenti per ottenere il compito
 
 // Ottiene il dettaglio completo di un compito con i membri del gruppo
-export const getCompitoConGruppo = async (compitoId) => {
+export const ottieniCompitoConGruppo = async (compitoId) => {
   return new Promise((resolve, reject) => {
-    // Query per dati base del compito + risposta
     const sqlCompito = `
       SELECT c.*, u.nome as docente_nome, u.cognome as docente_cognome,
              rc.testo_risposta, rc.aggiornato_il as risposta_aggiornata_il,
@@ -90,33 +89,39 @@ export const getCompitoConGruppo = async (compitoId) => {
       if (!compito) return resolve(null);
 
       try {
-        // Utilizza la funzione esistente per ottenere i membri del gruppo
-        const gruppo = await getMembriGruppoCompito(compitoId);
+        const gruppo = await ottieniMembriGruppoCompito(compitoId);
 
-        // Struttura la risposta se presente
-        const risposta = compito.testo_risposta ? {
-          testo_risposta: compito.testo_risposta,
-          aggiornato_il: compito.risposta_aggiornata_il,
-          inviato_da: compito.risposta_inviato_da,
-          inviato_da_nome: compito.risposta_nome,
-          inviato_da_cognome: compito.risposta_cognome
-        } : null;
+        const result = {
+          id: compito.id,
+          traccia: compito.traccia,
+          stato: compito.stato,
+          creato_il: compito.creato_il,
+          creato_da: compito.creato_da,
+          docente: {
+            id: compito.creato_da,
+            nome: compito.docente_nome,
+            cognome: compito.docente_cognome,
+          },
+          chiuso_il: compito.chiuso_il || null,
+          punteggio: compito.punteggio ?? null,
+          numero_studenti: compito.numero_studenti,
+          gruppo: gruppo.map(studente => ({
+            id: studente.id,
+            nome: studente.nome,
+            cognome: studente.cognome,
+          })),
+          risposta: compito.testo_risposta ? {
+            testo: compito.testo_risposta,
+            aggiornato_il: compito.risposta_aggiornata_il,
+            inviato_da: {
+              id: compito.risposta_inviato_da,
+              nome: compito.risposta_nome,
+              cognome: compito.risposta_cognome,
+            },
+          } : undefined
+        };
 
-        // Rimuovi i campi della risposta dall'oggetto principale
-        const { 
-          testo_risposta, 
-          risposta_aggiornata_il, 
-          risposta_inviato_da,
-          risposta_nome,
-          risposta_cognome,
-          ...compitoBase 
-        } = compito;
-
-        resolve({
-          ...compitoBase,
-          gruppo,
-          risposta
-        });
+        resolve(result);
       } catch (error) {
         reject(error);
       }
@@ -125,7 +130,7 @@ export const getCompitoConGruppo = async (compitoId) => {
 };
 
 // Ottiene i membri del gruppo di un compito
-export const getMembriGruppoCompito = (compitoId) => {
+export const ottieniMembriGruppoCompito = (compitoId) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT u.id, u.nome, u.cognome

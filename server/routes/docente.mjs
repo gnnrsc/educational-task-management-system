@@ -1,6 +1,6 @@
 import { body, param, query } from "express-validator";
 import * as dao from "../dao/docente-dao.mjs";
-import * as daoCommon from "../dao/dao.mjs";
+import * as daoComune from "../dao/dao.mjs";
 import { validationResult } from "express-validator";
 import express from "express";
 const router = express.Router();
@@ -22,8 +22,8 @@ const handleValidationErrors = (req, res, next) => {
 // GET: /classe - Ottenere lista studenti (solo per docenti)
 router.get("/classe", async (req, res) => {
   try {
-    const students = await dao.getAllStudents();
-    res.json(students);
+    const studenti = await dao.ottieniListaStudenti();
+    res.json(studenti);
   } catch (error) {
     res.status(500).json({ error: "Errore nel recupero degli studenti" });
   }
@@ -36,34 +36,34 @@ router.post(
     body("traccia")
       .isLength({ min: 1})
       .withMessage("La traccia è obbligatoria"),
-    body("studentIds")
+    body("studentiIds")
       .isArray({ min: 2, max: 6 })
       .withMessage("Il numero di studenti deve essere da 2 a 6"),
-    body("studentIds.*")
+    body("studentiIds.*")
       .isInt({ min: 1 })
       .withMessage("Gli ID degli studenti devono essere numeri interi positivi")
       .toInt(),
   ],
   handleValidationErrors,
   async (req, res) => {
-    const { traccia, studentIds } = req.body;
+    const { traccia, studentiIds } = req.body;
     const creatoDa = req.user.id;
 
     try {
-      const checkResult = await dao.checkStudentPairLimit(
-        studentIds,
+      const checkRisultato = await dao.checkLimiteCoppiaStudenti(
+        studentiIds,
         creatoDa,
         2
       );
 
-      if (!checkResult.allowed) {
-        const [s1, s2] = checkResult.pair;
+      if (!checkRisultato.allowed) {
+        const [s1, s2] = checkRisultato.coppia;
         return res.status(400).json({
-          error: `Gli studenti ${s1} e ${s2} hanno già collaborato ${checkResult.count} volte, limite superato.`,
+          error: `Gli studenti ${s1} e ${s2} hanno già collaborato ${checkRisultato.count} volte, limite superato.`,
         });
       }
 
-      const risultato = await dao.createTask(traccia, studentIds, creatoDa);
+      const risultato = await dao.creaCompito(traccia, studentiIds, creatoDa);
       res.status(201).json(risultato);
     } catch (error) {
       console.error("Errore creazione compito:", error);
@@ -88,12 +88,12 @@ router.get(
       const docenteId = req.user.id;
       const minCount = req.query.minCount || 2;
 
-      const pairs = await dao.getStudentPairsCollaborations(docenteId, minCount);
+      const coppie = await dao.ottieniCollaborazioniStudenti(docenteId, minCount);
 
       res.json({
         docenteId,
         minCount,
-        collaborazioni: pairs,
+        collaborazioni: coppie,
       });
     } catch (error) {
       console.error("Errore GET collaborazioni studenti:", error);
@@ -212,7 +212,7 @@ router.get(
       const { sort = "alfabetico" } = req.query;
       const docenteId = req.user.id;
 
-      const studenti = await dao.getStatisticheClasse(docenteId);
+      const studenti = await dao.ottieniStatisticheClasse(docenteId);
 
       // Ordinamento
       const sortFunctions = {
@@ -248,43 +248,30 @@ router.get(
 );
 
 // GET: /compiti - Visualizza tutti i compiti creati dal docente con filtro opzionale
-router.get(
-  "/compiti",
-  [
-    query("stato")
-      .optional()
-      .isIn(["aperto", "chiuso"])
-      .withMessage("Stato non valido. Valori accettati: aperto, chiuso"),
-  ],
-  handleValidationErrors,
-  async (req, res) => {
-    try {
-      const docenteId = req.user.id;
-      const { stato } = req.query;
+router.get("/compiti", async (req, res) => {
+  try {
+    const docenteId = req.user.id;
+    const compiti = await dao.ottieniCompitiDocente(docenteId);
 
-      const compiti = await dao.getCompitiDocente(docenteId, stato);
-
-      res.json({
-        filtro: stato || "tutti",
-        totale: compiti.length,
-        compiti: compiti.map((compito) => ({
-          id: compito.id,
-          traccia: compito.traccia,
-          stato: compito.stato,
-          creato_il: compito.creato_il,
-          chiuso_il: compito.chiuso_il || null,
-          numero_studenti: compito.numero_studenti,
-          gruppo: compito.gruppo,
-          risposta: compito.risposta || null,
-          punteggio: compito.punteggio || null,
-        })),
-      });
-    } catch (error) {
-      console.error("Errore GET compiti docente:", error);
-      res.status(500).json({ error: "Errore server" });
-    }
+    res.json({
+      totale: compiti.length,
+      compiti: compiti.map((compito) => ({
+        id: compito.id,
+        traccia: compito.traccia,
+        stato: compito.stato,
+        creato_il: compito.creato_il,
+        chiuso_il: compito.chiuso_il || null,
+        numero_studenti: compito.numero_studenti,
+        gruppo: compito.gruppo,
+        risposta: compito.risposta || null,
+        punteggio: compito.punteggio || null,
+      })),
+    });
+  } catch (error) {
+    console.error("Errore GET compiti docente:", error);
+    res.status(500).json({ error: "Errore server" });
   }
-);
+});
 
 // GET: /compiti/:id - Visualizza il dettaglio di un compito (solo per docente)
 router.get(
@@ -294,49 +281,22 @@ router.get(
   async (req, res) => {
     try {
       const compitoId = parseInt(req.params.id);
-      const userId = req.user.id;
+      const utenteID = req.user.id;
 
-      const compito = await daoCommon.getCompitoConGruppo(compitoId);
+      const compito = await daoComune.ottieniCompitoConGruppo(compitoId);
 
       if (!compito) {
         return res.status(404).json({ error: "Compito non trovato" });
       }
 
-      // Il docente può vedere solo i propri compiti
-      if (compito.creato_da !== userId) {
+      if (compito.creato_da !== utenteID) {
         return res.status(403).json({
           error: "Non sei autorizzato a visualizzare questo compito",
         });
       }
 
-      // Costruisci oggetto risposta nel formato desiderato
-      const risposta = compito.risposta
-        ? {
-            testo: compito.risposta.testo_risposta,
-            aggiornato_il: compito.risposta.aggiornato_il,
-            inviato_da: {
-              id: compito.risposta.inviato_da,
-              nome: compito.risposta.inviato_da_nome,
-              cognome: compito.risposta.inviato_da_cognome,
-            },
-          }
-        : undefined;
-
-      res.json({
-        id: compito.id,
-        traccia: compito.traccia,
-        stato: compito.stato,
-        creato_il: compito.creato_il,
-        chiuso_il: compito.chiuso_il || null,
-        punteggio: compito.punteggio ?? null,
-        numero_studenti: compito.numero_studenti,
-        gruppo: compito.gruppo.map((studente) => ({
-          id: studente.id,
-          nome: studente.nome,
-          cognome: studente.cognome,
-        })),
-        risposta,
-      });
+      res.json(compito);
+      
     } catch (error) {
       console.error("Errore GET dettaglio compito docente:", error);
       res.status(500).json({ error: "Errore server" });

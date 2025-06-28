@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    API.getUserInfo()
+    API.ottieniInformazioniUtente()
       .then((user) => {
         setUser(user);
         setLoggedIn(true);

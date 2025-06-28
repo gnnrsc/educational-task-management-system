@@ -11,18 +11,19 @@ function StudenteDashboard() {
   const { user } = useAuth();
   const [compiti, setCompiti] = useState([]);
   const [loading, setLoading] = useState(true);
+  // compito attualmente selezionato per aggiungere la risposta dallo studente
   const [compitoPerRisposta, setCompitoPerRisposta] = useState(null);
   const [filtroStato, setFiltroStato] = useState("tutti");
 
   useEffect(() => {
-    loadCompiti();
+    caricaCompiti();
   }, [filtroStato]);
 
-  const loadCompiti = async () => {
+  const caricaCompiti = async () => {
     setLoading(true);
     try {
       const stato = filtroStato === "tutti" ? null : filtroStato;
-      const response = await API.getCompitiStudente(stato);
+      const response = await API.ottieniCompitiStudente(stato);
 
       // la risposta contiene { filtro, totale, compiti }
       setCompiti(response.compiti);
@@ -34,13 +35,13 @@ function StudenteDashboard() {
   };
 
   // FUNZIONI PER LA RISPOSTA -------------------
-  const handleOpenRisposta = (compito) => {
+  const handleApriRisposta = (compito) => {
     setCompitoPerRisposta(compito);
   };
 
-  const handleSaveRisposta = async (testoRisposta) => {
+  const handleSalvaRisposta = async (testoRisposta) => {
     try {
-      const result=await API.updateRispostaCompito(compitoPerRisposta.id, testoRisposta);
+      const result=await API.aggiornaRispostaCompito(compitoPerRisposta.id, testoRisposta);
 
       // aggiorna lo stato locale del compito con la nuova risposta
       setCompiti((prev) =>
@@ -65,19 +66,19 @@ function StudenteDashboard() {
     }
   };
 
-  const handleCancelRisposta = () => {
+  const handleCancellaRisposta = () => {
     setCompitoPerRisposta(null);
   };
 
   // ----------------------------------------------
 
   // cambia pagina al dettaglio del compito
-  const handleOpenDettaglio = (compitoId) => {
+  const handleApriDettaglio = (compitoId) => {
     navigate(`/studente/compiti/${compitoId}`);
   };
 
   // gestione del filtro
-  const handleFiltroChange = (nuovoFiltro) => {
+  const handleCambioFiltro = (nuovoFiltro) => {
     setFiltroStato(nuovoFiltro);
   };
 
@@ -95,9 +96,9 @@ function StudenteDashboard() {
       <ListaCompiti
         compiti={compiti}
         filtroStato={filtroStato}
-        onFiltroChange={handleFiltroChange}
-        onOpenDettaglio={handleOpenDettaglio}
-        onOpenRisposta={handleOpenRisposta}
+        onFiltroChange={handleCambioFiltro}
+        onApriDettaglio={handleApriDettaglio}
+        onApriRisposta={handleApriRisposta}
       />
 
       <div
@@ -160,8 +161,8 @@ function StudenteDashboard() {
       {compitoPerRisposta && (
         <RispostaCompito
           compito={compitoPerRisposta}
-          onSave={handleSaveRisposta}
-          onCancel={handleCancelRisposta}
+          onSalva={handleSalvaRisposta}
+          onCancella={handleCancellaRisposta}
         />
       )}
     </div>

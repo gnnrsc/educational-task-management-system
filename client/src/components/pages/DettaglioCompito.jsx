@@ -12,14 +12,14 @@ function DettaglioCompitoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [compitoDaValutare, setCompitoDaValutare] = useState(null);
-  const [showAssegnaAltroGruppo, setShowAssegnaAltroGruppo] = useState(false);
+  const [mostraAssegnaAltroGruppo, setMostraAssegnaAltroGruppo] = useState(false);
 
   useEffect(() => {
-    const loadCompito = async () => {
+    const caricaCompito = async () => {
       setLoading(true);
       setError(null);
       try {
-        const compitoData = await API.getCompitoDettaglioDocente(id);
+        const compitoData = await API.ottieniCompitoDettaglioDocente(id);
         setCompito(compitoData);
       } catch (error) {
         //console.error('Errore nel caricamento del compito:', error);
@@ -30,16 +30,16 @@ function DettaglioCompitoPage() {
     };
 
     if (id) {
-      loadCompito();
+      caricaCompito();
     }
   }, [id]);
 
   // FUNZIONI PER LA VALUTAZIONE-------------------
-  const handleOpenValutazione = (compito) => {
+  const handleApriValutazione = (compito) => {
     setCompitoDaValutare(compito);
   };
 
-  const handleSaveValutazione = async (punteggio) => {
+  const handleSalvaValutazione = async (punteggio) => {
     try {
       // aggiorna lo stato locale del compito chiudendolo, dopo che ottiene il punteggio dal server
       setCompito((prev) => ({
@@ -53,7 +53,7 @@ function DettaglioCompitoPage() {
     }
   };
 
-  const handleCancelValutazione = () => {
+  const handleCancellaValutazione = () => {
     setCompitoDaValutare(null);
   };
 
@@ -61,16 +61,16 @@ function DettaglioCompitoPage() {
 
   // funzione per gestire l'assegnazione dello stesso compito ad un altro gruppo
   const handleAssegnaAltroGruppo = () => {
-    setShowAssegnaAltroGruppo(true);
+    setMostraAssegnaAltroGruppo(true);
   };
 
   const handleCompitoAssegnato = (nuovoCompito) => {
-    setShowAssegnaAltroGruppo(false);
+    setMostraAssegnaAltroGruppo(false);
     navigate(`/docente/compiti`);
   };
 
   const handleCancelAssegnazione = () => {
-    setShowAssegnaAltroGruppo(false);
+    setMostraAssegnaAltroGruppo(false);
   };
 
   if (loading) return <LoadingSpinner />;
@@ -106,7 +106,7 @@ function DettaglioCompitoPage() {
 
       <DettaglioCompito
         compito={compito}
-        onOpenValutazione={handleOpenValutazione}
+        onApriValutazione={handleApriValutazione}
         onAssegnaAltroGruppo={handleAssegnaAltroGruppo}
       />
 
@@ -114,13 +114,13 @@ function DettaglioCompitoPage() {
       {compitoDaValutare && (
         <ValutazioneCompito
           compito={compitoDaValutare}
-          onSave={handleSaveValutazione}
-          onCancel={handleCancelValutazione}
+          onSalva={handleSalvaValutazione}
+          onCancella={handleCancellaValutazione}
         />
       )}
 
       {/* modale per assegnare il compito ad un altro Gruppo */}
-      {showAssegnaAltroGruppo && (
+      {mostraAssegnaAltroGruppo && (
         <div
           className="modal show d-block"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
@@ -138,8 +138,8 @@ function DettaglioCompitoPage() {
               <div className="modal-body p-0">
                 <CreaCompito
                   onCompitoCreato={handleCompitoAssegnato}
-                  onCancel={handleCancelAssegnazione}
-                  initialData={{ traccia: compito.traccia }}
+                  onCancella={handleCancelAssegnazione}
+                  datiIniziali={{ traccia: compito.traccia }}
                 />
               </div>
             </div>
@@ -151,7 +151,7 @@ function DettaglioCompitoPage() {
 }
 
 // Componente distinto per il contenuto del compito
-function DettaglioCompito({ compito, onOpenValutazione, onAssegnaAltroGruppo }) {
+function DettaglioCompito({ compito, onApriValutazione, onAssegnaAltroGruppo }) {
   return (
     <div className="card">
       <div className="card-body p-3">
@@ -208,7 +208,7 @@ function DettaglioCompito({ compito, onOpenValutazione, onAssegnaAltroGruppo }) 
                       </span>
                       <button
                         className="btn btn-outline-success btn-sm"
-                        onClick={() => onOpenValutazione(compito)}
+                        onClick={() => onApriValutazione(compito)}
                       >
                         ✏️ Valuta
                       </button>
@@ -216,7 +216,7 @@ function DettaglioCompito({ compito, onOpenValutazione, onAssegnaAltroGruppo }) 
                   ) : (
                     <button
                       className="btn btn-outline-success"
-                      onClick={() => onOpenValutazione(compito)}
+                      onClick={() => onApriValutazione(compito)}
                     >
                       📊 Valuta
                     </button>

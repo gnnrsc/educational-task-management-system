@@ -43,7 +43,7 @@ Content-Type: application/json
 
 {
   "traccia": "Compito di prova",
-  "studentIds": [1, 2]
+  "studentiIds": [1, 2]
 }
 
 ### Creare un nuovo compito - ERRORE troppi studenti selezionati
@@ -52,7 +52,7 @@ Content-Type: application/json
 
 {
   "traccia": "Compito di prova",
-  "studentIds": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  "i": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 }
 
 ### Creare un nuovo compito - ERRORE supero limite collaborazioni tra studenti
@@ -61,7 +61,7 @@ Content-Type: application/json
 
 {
   "traccia": "Compito di prova",
-  "studentIds": [3, 4, 5]
+  "i": [3, 4, 5]
 }
 
 ### Ottenere la risposta di un compito

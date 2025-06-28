@@ -31,7 +31,7 @@ passport.use(
     password,
     cb
   ) {
-    const user = await dao.getUser(email, password);
+    const user = await dao.ottieniUtente(email, password);
     if (!user) return cb(null, false, "Incorrect email or password.");
 
     return cb(null, user);
@@ -45,7 +45,7 @@ passport.serializeUser(function (user, cb) {
 
 passport.deserializeUser(async function (id, cb) {
   try {
-    const user = await dao.getUserById(id);
+    const user = await dao.ottieniUtentePerId(id);
     cb(null, user);
   } catch (err) {
     cb(err);
