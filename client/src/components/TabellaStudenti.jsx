@@ -119,10 +119,6 @@ function TabellaStudenti({ ordinamento }) {
                             <strong>
                               {item.studente.cognome} {item.studente.nome}
                             </strong>
-                            <br />
-                            <small className="text-muted">
-                              ID: {item.studente.id}
-                            </small>
                           </div>
                         </div>
                       </td>

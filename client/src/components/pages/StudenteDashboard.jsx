@@ -40,7 +40,7 @@ function StudenteDashboard() {
 
   const handleSaveRisposta = async (testoRisposta) => {
     try {
-      await API.updateRispostaCompito(compitoPerRisposta.id, testoRisposta);
+      const result=await API.updateRispostaCompito(compitoPerRisposta.id, testoRisposta);
 
       // aggiorna lo stato locale del compito con la nuova risposta
       setCompiti((prev) =>
@@ -50,7 +50,7 @@ function StudenteDashboard() {
                 ...c,
                 risposta: {
                   testo: testoRisposta,
-                  aggiornato_il: new Date().toLocaleString(),
+                  aggiornato_il: result.aggiornato_il,
                   inviato_da: user,
                 },
               }
