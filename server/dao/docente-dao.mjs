@@ -35,11 +35,11 @@ export const creaCompito = (traccia, studentiIds, creatoDa) => {
 
         assegnaStudenti(compitoId, studentiIds)
           .then(() => {
-            // Lancia aggiornaCollaborazioni senza aspettarla
-            aggiornaCollaborazioni(studentiIds, creatoDa).catch((err) => {
-              console.error("Errore aggiornamento collaborazioni:", err);
-            });
-            // Risolvi subito, senza aspettare aggiornaCollaborazioni
+            // aspetta anche aggiornaCollaborazioni prima di risolvere
+            return aggiornaCollaborazioni(studentiIds, creatoDa);
+          })
+          .then(() => {
+            // Risolvi solo dopo che tutte le operazioni sono completate
             resolve({ id: compitoId, creato_il: creatoIl });
           })
           .catch(reject);
@@ -130,69 +130,32 @@ export const ottieniCollaborazioniStudenti = (docenteId, minCount = 2) => {
 
 // Controlla se le coppie di studenti superano il limite minimo di collaborazioni
 export const checkLimiteCoppiaStudenti = (studentiIds, docenteId, minLimit = 2) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const collaborations = await ottieniCollaborazioniStudenti(
-        docenteId,
-        minLimit
-      );
-
-      const coppiaKey = (id1, id2) =>
-        id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`;
-
-      for (let i = 0; i < studentiIds.length; i++) {
-        for (let j = i + 1; j < studentiIds.length; j++) {
-          const key = coppiaKey(studentiIds[i], studentiIds[j]);
-          if (collaborations[key]) {
-            return resolve({
-              allowed: false,
-              coppia: [studentiIds[i], studentiIds[j]],
-              count: collaborations[key],
-            });
-          }
-        }
-      }
-
-      resolve({ allowed: true });
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
-// Recupera risposta di un compito per un docente
-export const getRispostaCompito = (compitoId, docenteId) => {
   return new Promise((resolve, reject) => {
-    db.get(
-      `SELECT id, traccia, stato, numero_studenti, punteggio
-       FROM compiti 
-       WHERE id = ? AND creato_da = ?`,
-      [compitoId, docenteId],
-      (err, compito) => {
-        if (err) return reject(err);
-        if (!compito) return resolve(null); // Compito non trovato
+    if (studentiIds.length < 2) return resolve({ allowed: true });
 
-        db.get(
-          `SELECT r.testo_risposta, r.aggiornato_il, r.inviato_da,
-                  u.nome AS risposta_nome, u.cognome AS risposta_cognome
-           FROM risposte_compiti r
-           LEFT JOIN utenti u ON u.id = r.inviato_da
-           WHERE r.compito_id = ?`,
-          [compitoId],
-          (err2, risposta) => {
-            if (err2) return reject(err2);
+    const conditions = studentiIds.flatMap((id1, i) => 
+      studentiIds.slice(i + 1).map(id2 => '(studente1_id = ? AND studente2_id = ?)')
+    ).join(' OR ');
 
-            // anche se risposta è undefined, restituiamo comunque il compito
-            resolve({
-              ...compito,
-              risposta,
-            });
-          }
-        );
-      }
-    );
+    const params = [docenteId, minLimit, ...studentiIds.flatMap((id1, i) => 
+      studentiIds.slice(i + 1).flatMap(id2 => id1 < id2 ? [id1, id2] : [id2, id1])
+    )];
+
+    const sql = `SELECT studente1_id, studente2_id, numero_collaborazioni
+      FROM collaborazioni_studenti
+      WHERE docente_id = ? AND numero_collaborazioni >= ? AND (${conditions}) LIMIT 1`;
+
+    db.get(sql, params, (err, row) => {
+      if (err) return reject(err);
+      resolve(row ? {
+        allowed: false,
+        coppia: [row.studente1_id, row.studente2_id],
+        count: row.numero_collaborazioni
+      } : { allowed: true });
+    });
   });
 };
+
 
 // Verifica stato compito e presenza risposta per effettuare la valutazione
 export const verificaCompitoPerValutazione = (compitoId, docenteId) => {
@@ -229,31 +192,48 @@ export const valutaEChiudiCompito = (compitoId, punteggio) => {
 };
 
 export const ottieniStatisticheClasse = (docenteId) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // 1. Prima ottieni tutti gli studenti
-      const studenti = await ottieniListaStudenti();
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT 
+        u.id,
+        u.nome,
+        u.cognome,
+        COUNT(CASE WHEN c.stato = 'aperto' THEN 1 END) as aperti,
+        COUNT(CASE WHEN c.stato = 'chiuso' THEN 1 END) as chiusi,
+        COUNT(c.id) as totale,
+        CASE 
+          WHEN SUM(CASE WHEN c.stato = 'chiuso' AND c.punteggio IS NOT NULL THEN 1.0 / c.numero_studenti ELSE 0 END) > 0
+          THEN ROUND(
+            SUM(CASE WHEN c.stato = 'chiuso' AND c.punteggio IS NOT NULL THEN c.punteggio * (1.0 / c.numero_studenti) ELSE 0 END) 
+            / 
+            SUM(CASE WHEN c.stato = 'chiuso' AND c.punteggio IS NOT NULL THEN 1.0 / c.numero_studenti ELSE 0 END)
+          , 3)
+          ELSE NULL
+        END as media
+      FROM utenti u
+      LEFT JOIN assegnazioni_compiti ac ON u.id = ac.studente_id
+      LEFT JOIN compiti c ON ac.compito_id = c.id AND c.creato_da = ?
+      WHERE u.ruolo = 'studente'
+      GROUP BY u.id, u.nome, u.cognome
+      ORDER BY u.id
+    `;
 
-      // 2. Per ogni studente, calcola le sue statistiche
-      const statistiche = [];
-
-      for (const studente of studenti) {
-        const stats = await ottieniStatisticheStudente(studente.id, docenteId);
-        statistiche.push({
-          id: studente.id,
-          nome: studente.nome,
-          cognome: studente.cognome,
-          aperti: stats.aperti,
-          chiusi: stats.chiusi,
-          totale: stats.totale,
-          media: stats.media,
-        });
+    db.all(sql, [docenteId], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        const statistiche = rows.map(row => ({
+          id: row.id,
+          nome: row.nome,
+          cognome: row.cognome,
+          aperti: row.aperti || 0,
+          chiusi: row.chiusi || 0,
+          totale: row.totale || 0,
+          media: row.media ? Math.round(row.media * 100) / 100 : null,
+        }));
+        resolve(statistiche);
       }
-
-      resolve(statistiche);
-    } catch (error) {
-      reject(error);
-    }
+    });
   });
 };
 

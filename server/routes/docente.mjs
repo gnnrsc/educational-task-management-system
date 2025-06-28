@@ -103,54 +103,6 @@ router.get(
 );
 
 
-// GET: /compiti/:id/risposta - Ottenere la risposta di un compito (solo per docenti)
-router.get(
-  "/compiti/:id/risposta",
-  [param("id").isInt({ min: 1 }).withMessage("ID compito non valido").toInt()],
-  handleValidationErrors,
-  async (req, res) => {
-    try {
-      const { id: compitoId } = req.params;
-      const docenteId = req.user.id;
-
-      const risultato = await dao.getRispostaCompito(compitoId, docenteId);
-
-      if (!risultato) {
-        return res
-          .status(404)
-          .json({ error: "Compito non trovato o non accessibile" });
-      }
-
-      const response = {
-        id: risultato.id,
-        traccia: risultato.traccia,
-        stato: risultato.stato,
-        numero_studenti: risultato.numero_studenti,
-        punteggio: risultato.punteggio,
-      };
-
-      if (!risultato.risposta || !risultato.risposta.testo_risposta) {
-        // Compito esiste, ma non ha risposta
-        return res
-          .status(204)
-          .json({ message: "Nessuna risposta disponibile per questo compito" });
-      }
-
-      // Risposta presente
-      response.risposta = {
-        testo: risultato.risposta.testo_risposta,
-        aggiornato_il: risultato.risposta.aggiornato_il,
-        inviato_da: `${risultato.risposta.risposta_nome} ${risultato.risposta.risposta_cognome}`,
-      };
-
-      res.json(response);
-    } catch (error) {
-      console.error("Errore GET risposta:", error);
-      res.status(500).json({ error: "Errore server" });
-    }
-  }
-);
-
 // PUT: /compiti/:id/valutazione - Effettuare una valutazione di un compito (solo per docenti)
 router.put(
   "/compiti/:id/valutazione",
@@ -283,7 +235,7 @@ router.get(
       const compitoId = parseInt(req.params.id);
       const utenteID = req.user.id;
 
-      const compito = await daoComune.ottieniCompitoConGruppo(compitoId);
+      const compito = await daoComune.ottieniCompito(compitoId);
 
       if (!compito) {
         return res.status(404).json({ error: "Compito non trovato" });

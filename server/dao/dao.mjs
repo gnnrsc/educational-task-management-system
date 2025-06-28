@@ -70,79 +70,66 @@ export const ottieniUtentePerId = (id) => {
 // Funzioni comuni tra studenti e docenti per ottenere il compito
 
 // Ottiene il dettaglio completo di un compito con i membri del gruppo
-export const ottieniCompitoConGruppo = async (compitoId) => {
+export const ottieniCompito = async (compitoId) => {
   return new Promise((resolve, reject) => {
-    const sqlCompito = `
-      SELECT c.*, u.nome as docente_nome, u.cognome as docente_cognome,
-             rc.testo_risposta, rc.aggiornato_il as risposta_aggiornata_il,
-             rc.inviato_da as risposta_inviato_da,
-             ur.nome as risposta_nome, ur.cognome as risposta_cognome
+    const sql = `
+      SELECT 
+        c.*, 
+        u.nome as docente_nome, u.cognome as docente_cognome,
+        rc.testo_risposta, rc.aggiornato_il as risposta_aggiornata_il,
+        rc.inviato_da as risposta_inviato_da,
+        ur.nome as risposta_nome, ur.cognome as risposta_cognome,
+        us.id as studente_id, us.nome as studente_nome, us.cognome as studente_cognome
       FROM compiti c
       JOIN utenti u ON c.creato_da = u.id
       LEFT JOIN risposte_compiti rc ON c.id = rc.compito_id
       LEFT JOIN utenti ur ON rc.inviato_da = ur.id
+      LEFT JOIN assegnazioni_compiti ac ON c.id = ac.compito_id
+      LEFT JOIN utenti us ON ac.studente_id = us.id
       WHERE c.id = ?
+      ORDER BY us.cognome, us.nome
     `;
 
-    db.get(sqlCompito, [compitoId], async (err, compito) => {
-      if (err) return reject(err);
-      if (!compito) return resolve(null);
-
-      try {
-        const gruppo = await ottieniMembriGruppoCompito(compitoId);
-
-        const result = {
-          id: compito.id,
-          traccia: compito.traccia,
-          stato: compito.stato,
-          creato_il: compito.creato_il,
-          creato_da: compito.creato_da,
-          docente: {
-            id: compito.creato_da,
-            nome: compito.docente_nome,
-            cognome: compito.docente_cognome,
-          },
-          chiuso_il: compito.chiuso_il || null,
-          punteggio: compito.punteggio ?? null,
-          numero_studenti: compito.numero_studenti,
-          gruppo: gruppo.map(studente => ({
-            id: studente.id,
-            nome: studente.nome,
-            cognome: studente.cognome,
-          })),
-          risposta: compito.testo_risposta ? {
-            testo: compito.testo_risposta,
-            aggiornato_il: compito.risposta_aggiornata_il,
-            inviato_da: {
-              id: compito.risposta_inviato_da,
-              nome: compito.risposta_nome,
-              cognome: compito.risposta_cognome,
-            },
-          } : undefined
-        };
-
-        resolve(result);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  });
-};
-
-// Ottiene i membri del gruppo di un compito
-export const ottieniMembriGruppoCompito = (compitoId) => {
-  return new Promise((resolve, reject) => {
-    const sql = `
-      SELECT u.id, u.nome, u.cognome
-      FROM assegnazioni_compiti ac
-      JOIN utenti u ON ac.studente_id = u.id
-      WHERE ac.compito_id = ?
-      ORDER BY u.cognome, u.nome
-    `;
-    
     db.all(sql, [compitoId], (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows);
+      if (err) return reject(err);
+      if (!rows || rows.length === 0) return resolve(null);
+
+      // Post-processing per raggruppare i dati
+      const compito = rows[0]; // I dati del compito sono gli stessi in tutte le righe
+      
+      const result = {
+        id: compito.id,
+        traccia: compito.traccia,
+        stato: compito.stato,
+        creato_il: compito.creato_il,
+        creato_da: compito.creato_da,
+        docente: {
+          id: compito.creato_da,
+          nome: compito.docente_nome,
+          cognome: compito.docente_cognome,
+        },
+        chiuso_il: compito.chiuso_il || null,
+        punteggio: compito.punteggio ?? null,
+        numero_studenti: compito.numero_studenti,
+        gruppo: rows
+          .filter(row => row.studente_id) // Filtra eventuali null
+          .map(row => ({
+            id: row.studente_id,
+            nome: row.studente_nome,
+            cognome: row.studente_cognome,
+          })),
+        risposta: compito.testo_risposta ? {
+          testo: compito.testo_risposta,
+          aggiornato_il: compito.risposta_aggiornata_il,
+          inviato_da: {
+            id: compito.risposta_inviato_da,
+            nome: compito.risposta_nome,
+            cognome: compito.risposta_cognome,
+          },
+        } : undefined
+      };
+
+      resolve(result);
     });
   });
 };

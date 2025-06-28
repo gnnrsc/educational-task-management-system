@@ -77,7 +77,7 @@ router.put(
       const studenteId = req.user.id;
 
       // Verifica che il compito esista e sia aperto
-      const compito = await dao.ottieniCompitoPerId(compitoId);
+      const compito = await daoComune.ottieniCompito(compitoId);
       if (!compito) {
         return res.status(404).json({ error: "Compito non trovato" });
       }
@@ -153,7 +153,7 @@ router.get(
       }
 
       // Ottieni tutti i dettagli del compito con una sola chiamata
-      const compito = await daoComune.ottieniCompitoConGruppo(compitoId);
+      const compito = await daoComune.ottieniCompito(compitoId);
       if (!compito) {
         return res.status(404).json({ error: "Compito non trovato" });
       }

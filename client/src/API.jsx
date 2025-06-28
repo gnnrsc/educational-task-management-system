@@ -169,48 +169,6 @@ async function creaCompito(traccia, studentiIds) {
   }
 }
 
-// GET: /api/docente/compiti/:id/risposta - Ottenere la risposta di un compito (solo per docenti)
-async function getRispostaCompito(compitoId) {
-  const response = await fetch(URL + `/docente/compiti/${compitoId}/risposta`, {
-    credentials: "include",
-  });
-
-  // Gestisce anche il caso 204 (nessuna risposta)
-  if (response.status === 204) {
-    return { message: "Nessuna risposta disponibile per questo compito" };
-  }
-
-  const data = await response.json();
-  if (response.ok) {
-    // Mappa la risposta se presente
-    const mapped = {
-      id: data.id,
-      traccia: data.traccia,
-      stato: data.stato,
-      numero_studenti: data.numero_studenti,
-      punteggio: data.punteggio,
-    };
-
-    if (data.risposta) {
-      // Crea oggetto inviato_da per il costruttore Risposta
-      const inviatoDa = {
-        id: null, // Non disponibile nell'API del docente
-        nome: data.risposta.inviato_da.split(" ")[0],
-        cognome: data.risposta.inviato_da.split(" ").slice(1).join(" "),
-      };
-
-      mapped.risposta = new Risposta(
-        data.risposta.testo,
-        data.risposta.aggiornato_il,
-        inviatoDa
-      );
-    }
-
-    return mapped;
-  } else {
-    throw data;
-  }
-}
 
 // PUT: /api/docente/compiti/:id/valutazione - Effettuare una valutazione di un compito (solo per docenti)
 async function valutaCompito(compitoId, punteggio) {
@@ -295,7 +253,6 @@ const API = {
   ottieniStudenti,
   ottieniCollaborazioniClasse,
   creaCompito,
-  getRispostaCompito,
   valutaCompito,
   ottieniStatisticheClasse,
   ottieniCompitiDocente,

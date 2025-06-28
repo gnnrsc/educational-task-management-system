@@ -3,24 +3,6 @@ import db from "..//dao/dao.mjs";
 
 //STUDENTE DAO
 
-// Recupera la risposta di un compito (con dettagli di chi l'ha inviata)
-export const getRispostaCompito = (compitoId) => {
-  return new Promise((resolve, reject) => {
-    const sql = `
-      SELECT rc.testo_risposta, rc.aggiornato_il, rc.inviato_da,
-             u.nome as inviato_da_nome, u.cognome as inviato_da_cognome
-      FROM risposte_compiti rc
-      JOIN utenti u ON rc.inviato_da = u.id
-      WHERE rc.compito_id = ?
-    `;
-
-    db.get(sql, [compitoId], (err, row) => {
-      if (err) reject(err);
-      else resolve(row);
-    });
-  });
-};
-
 // Inserisce o aggiorna la risposta di un compito
 export const aggiornaRispostaCompito = (compitoId, testoRisposta, studenteId) => {
   return new Promise((resolve, reject) => {
@@ -199,23 +181,6 @@ export const ottieniNumeroCompitiChiusiStudente = (studenteId) => {
     db.get(sql, [studenteId], (err, row) => {
       if (err) reject(err);
       else resolve(row.count || 0);
-    });
-  });
-};
-
-// Recupera un compito per ID (base, senza controlli di autorizzazione)
-export const ottieniCompitoPerId = (compitoId) => {
-  return new Promise((resolve, reject) => {
-    const sql = `
-      SELECT c.*, u.nome as docente_nome, u.cognome as docente_cognome
-      FROM compiti c
-      JOIN utenti u ON c.creato_da = u.id
-      WHERE c.id = ?
-    `;
-
-    db.get(sql, [compitoId], (err, row) => {
-      if (err) reject(err);
-      else resolve(row);
     });
   });
 };
