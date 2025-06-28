@@ -159,21 +159,29 @@ export const getCompitiStudente = (studenteId, stato = null) => {
   });
 };
 
-// Ottiene la media (ponderata o no) di uno studente
+ // Ottiene la media ponderata di uno studente
 export const getMediaStudente = (studenteId) => {
   return new Promise((resolve, reject) => {
     const sql = `
-      SELECT AVG(CAST(c.punteggio AS REAL) / c.numero_studenti) as media
+      SELECT
+        CASE 
+          WHEN SUM(1.0 / c.numero_studenti) > 0 THEN
+            ROUND(
+              SUM(c.punteggio * (1.0 / c.numero_studenti)) /
+              SUM(1.0 / c.numero_studenti),
+            3)
+          ELSE NULL
+        END AS media
       FROM assegnazioni_compiti ac
       JOIN compiti c ON ac.compito_id = c.id
-      WHERE ac.studente_id = ? 
-      AND c.stato = 'chiuso' 
+      WHERE ac.studente_id = ?
+      AND c.stato = 'chiuso'
       AND c.punteggio IS NOT NULL
     `;
 
     db.get(sql, [studenteId], (err, row) => {
       if (err) reject(err);
-      else resolve(row?.media || null);
+      else resolve(row?.media ?? null);
     });
   });
 };

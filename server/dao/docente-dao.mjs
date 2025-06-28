@@ -270,7 +270,7 @@ export const getStatisticheStudente = (studenteId, docenteId) => {
               SUM(CASE WHEN c.stato = 'chiuso' AND c.punteggio IS NOT NULL THEN c.punteggio * (1.0 / c.numero_studenti) ELSE 0 END) 
               / 
               SUM(CASE WHEN c.stato = 'chiuso' AND c.punteggio IS NOT NULL THEN 1.0 / c.numero_studenti ELSE 0 END)
-            , 2)
+            , 3)
             ELSE NULL
           END as media
         FROM assegnazioni_compiti ac

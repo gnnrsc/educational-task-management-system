@@ -153,7 +153,7 @@ function TabellaStudenti({ ordinamento }) {
                             style={{ fontSize: "1.1rem" }}
                           >
                             {item.media !== null && item.media !== undefined
-                              ? `${item.media.toFixed(1)}/30`
+                              ? `${item.media.toFixed(2)}/30`
                               : "N/A"}
                           </strong>
                         </div>
