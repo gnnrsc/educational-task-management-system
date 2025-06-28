@@ -1,5 +1,6 @@
-import { Form, Button, Alert } from "react-bootstrap";
+import { Form, Button, Alert, InputGroup } from "react-bootstrap";
 import { useState } from "react";
+// Usando Bootstrap Icons via CSS classes
 import LoadingSpinner from "../utils/LoadingSpinner";
 import { useAuth } from "../../AuthContext"; 
 
@@ -8,7 +9,8 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Nuovo stato
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,13 +21,17 @@ function LoginForm() {
       setLoading(false);
 
       if (serverError) {
-        setError(serverError.message); // Errore arrivato dal backend
+        setError(serverError.message);
       } else {
-        setError(""); // Login riuscito
+        setError("");
       }
     } else {
       setError("Per favore, inserisci un'email valida e una password di almeno 6 caratteri.");
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -37,19 +43,32 @@ function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
-          disabled={loading} // disabilita input mentre carica
+          disabled={loading}
         />
       </Form.Group>
 
       <Form.Group className="mb-3" controlId="password">
         <Form.Label>Password</Form.Label>
-        <Form.Control
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="current-password"
-          disabled={loading} // disabilita input mentre carica
-        />
+        <InputGroup>
+          <Form.Control
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            disabled={loading}
+          />
+          <Button
+            variant="outline-secondary"
+            onClick={togglePasswordVisibility}
+            disabled={loading}
+            style={{ 
+              border: '1px solid #ced4da',
+              borderLeft: 'none'
+            }}
+          >
+            <i className={showPassword ? "bi bi-eye-slash" : "bi bi-eye"}></i>
+          </Button>
+        </InputGroup>
       </Form.Group>
 
       {error && (
