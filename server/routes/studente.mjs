@@ -117,7 +117,7 @@ router.put(
 router.get("/media", async (req, res) => {
   try {
     const studenteId = req.user.id;
-    const media = await dao.ottieniMediaStudente(studenteId);
+    const risultato = await dao.ottieniMediaStudente(studenteId);
 
     res.json({
       studente: {
@@ -125,8 +125,8 @@ router.get("/media", async (req, res) => {
         nome: req.user.nome,
         cognome: req.user.cognome,
       },
-      totale_compiti: await dao.ottieniNumeroCompitiChiusiStudente(studenteId),
-      media: media ? Math.round(media * 100) / 100 : null,
+      totale_compiti: risultato.totale_compiti,
+      media: risultato.media,
     });
   } catch (error) {
     console.error("Errore GET media studente:", error);
@@ -165,10 +165,10 @@ router.get(
         stato: compito.stato,
         creato_il: compito.creato_il,
         chiuso_il: compito.chiuso_il,
-        docente: compito.docente, // Già strutturato dal DAO
-        gruppo: compito.gruppo, // Già strutturato dal DAO
+        docente: compito.docente,
+        gruppo: compito.gruppo,
         numero_studenti: compito.numero_studenti,
-        risposta: compito.risposta || null, // Già strutturato dal DAO
+        risposta: compito.risposta || null,
         punteggio: compito.punteggio,
       });
     } catch (error) {

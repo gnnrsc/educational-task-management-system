@@ -169,7 +169,8 @@ export const ottieniMediaStudente = (studenteId) => {
               SUM(1.0 / c.numero_studenti),
             3)
           ELSE NULL
-        END AS media
+        END AS media,
+        COUNT(*) AS totale_compiti
       FROM assegnazioni_compiti ac
       JOIN compiti c ON ac.compito_id = c.id
       WHERE ac.studente_id = ?
@@ -180,27 +181,14 @@ export const ottieniMediaStudente = (studenteId) => {
     // pesi = 1 / numero_studenti
     db.get(sql, [studenteId], (err, row) => {
       if (err) reject(err);
-      else resolve(row?.media ?? null);
+      else resolve({
+        media: row?.media ?? null,
+        totale_compiti: row?.totale_compiti ?? 0
+      });
     });
   });
 };
 
-// Ottiene il numero di compiti chiusi/valutati di uno studente
-export const ottieniNumeroCompitiChiusiStudente = (studenteId) => {
-  return new Promise((resolve, reject) => {
-    const sql = `
-      SELECT COUNT(*) as count
-      FROM assegnazioni_compiti ac
-      JOIN compiti c ON ac.compito_id = c.id
-      WHERE ac.studente_id = ? AND c.stato = 'chiuso'
-    `;
-
-    db.get(sql, [studenteId], (err, row) => {
-      if (err) reject(err);
-      else resolve(row.count || 0);
-    });
-  });
-};
 
 // Verifica se uno studente fa parte del gruppo di un compito
 export const checkStudenteGruppo = (compitoId, studenteId) => {
