@@ -63,7 +63,7 @@ export const assegnaStudenti = (compitoId, studentiIds) => {
   return Promise.all(promesse);
 };
 
-//Funzione per aggiornare il conteggio di collaborazioni tra studenti per quel docente
+//Funzione per aggiornare il conteggio di collaborazioni tra studenti per quel docente - usata in creaCompito
 export const aggiornaCollaborazioni = (studentiIds, docenteId) => {
   const tasks = [];
 
@@ -131,12 +131,15 @@ export const ottieniCollaborazioniStudenti = (docenteId, minCount = 2) => {
 // Controlla se le coppie di studenti superano il limite minimo di collaborazioni
 export const checkLimiteCoppiaStudenti = (studentiIds, docenteId, minLimit = 2) => {
   return new Promise((resolve, reject) => {
+    //se ci sono meno di 2 studenti, non c'è coppia da controllare
     if (studentiIds.length < 2) return resolve({ allowed: true });
 
+    //crea tutte le possibili coppie di studenti e genera condizioni SQL del tipo: (studente1_id = ? AND studente2_id = ?) OR (studente1_id = ? AND studente2_id = ?)
     const conditions = studentiIds.flatMap((id1, i) => 
-      studentiIds.slice(i + 1).map(id2 => '(studente1_id = ? AND studente2_id = ?)')
+      studentiIds.slice(i + 1).map(id2 => '(studente1_id = ? AND studente2_id = ?)') //senza appunto mettere già i parametri
     ).join(' OR ');
 
+    //parametri per la query: docenteId, minLimit e poi tutte le coppie di studenti in ordine crescente
     const params = [docenteId, minLimit, ...studentiIds.flatMap((id1, i) => 
       studentiIds.slice(i + 1).flatMap(id2 => id1 < id2 ? [id1, id2] : [id2, id1])
     )];
@@ -195,9 +198,7 @@ export const ottieniStatisticheClasse = (docenteId) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT 
-        u.id,
-        u.nome,
-        u.cognome,
+        u.id, u.nome, u.cognome,
         COUNT(CASE WHEN c.stato = 'aperto' THEN 1 END) as aperti,
         COUNT(CASE WHEN c.stato = 'chiuso' THEN 1 END) as chiusi,
         COUNT(c.id) as totale,
@@ -217,6 +218,9 @@ export const ottieniStatisticheClasse = (docenteId) => {
       GROUP BY u.id, u.nome, u.cognome
       ORDER BY u.id
     `;
+    //Media = Somma(punteggio_individuale) / Somma(pesi)
+    // pesi = 1 / numero_studenti
+    // left join per includere anche studenti senza compiti e punteggi
 
     db.all(sql, [docenteId], (err, rows) => {
       if (err) {
@@ -285,14 +289,28 @@ export const ottieniCompitiDocente = (docenteId) => {
         ur.nome as risposta_nome, ur.cognome as risposta_cognome
       FROM compiti c
       JOIN utenti u ON c.creato_da = u.id
-      LEFT JOIN assegnazioni_compiti ac ON c.id = ac.compito_id
+      LEFT JOIN assegnazioni_compiti ac ON c.id = ac.compito_id --LEFT JOIN: Include compiti che potrebbero aver perso l'assegnazione per cancellazioni/errori nel DB
       LEFT JOIN utenti s ON ac.studente_id = s.id
       LEFT JOIN risposte_compiti rc ON c.id = rc.compito_id
-      LEFT JOIN utenti ur ON rc.inviato_da = ur.id
+      LEFT JOIN utenti ur ON rc.inviato_da = ur.id --LEFT JOIN: Gestisce il caso teorico di inconsistenze nel DB (utente cancellato ma risposta rimasta)
       WHERE c.creato_da = ?
       ORDER BY c.creato_il DESC
     `;
-
+    /*
+    # ESEMPIO
+# +----+----------------------------+--------+------------------+-----------+---------------------+---------------------+---------------+------------------+---------------------+---------------------+---------------------+
+# | ID | Traccia                    | Stato  | Numero Studenti  | Punteggio | Creato il           | Chiuso il           | Docente       | Studente         | Testo Risp.         | Risp. Aggior.       | Inviato da          |
+# +----+----------------------------+--------+------------------+-----------+---------------------+---------------------+---------------+------------------+---------------------+---------------------+---------------------+
+# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Alice Rossi      |                     |                     |                     |
+# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Marco Bianchi    |                     |                     |                     |
+# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Giulia Verdi     |                     |                     |                     |
+# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Andrea Neri      |                     |                     |                     |
+# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Francesca Gialli |                     |                     |                     |
+# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Simone Mazza     |                     |                     |                     |
+# | 2  | Crea una SPA con React...  | chiuso | 2                | 28        | 2025-05-30 10:00:00 | 2025-06-07 10:00:00 | De Russis L.  | Alice Rossi      | La SPA è un'a...    | 2025-06-01 15:00:00 | Marco Bianchi       |
+# | 2  | Crea una SPA con React...  | chiuso | 2                | 28        | 2025-05-30 10:00:00 | 2025-06-07 10:00:00 | De Russis L.  | Marco Bianchi    | La SPA è un'a...    | 2025-06-01 15:00:00 | Marco Bianchi       |
+# +----+----------------------------+--------+------------------+-----------+---------------------+---------------------+---------------+------------------+---------------------+---------------------+---------------------+
+*/
     db.all(sql, [docenteId], (err, rows) => {
       if (err) {
         reject(err);

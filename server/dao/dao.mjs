@@ -69,7 +69,7 @@ export const ottieniUtentePerId = (id) => {
 
 // Funzioni comuni tra studenti e docenti per ottenere il compito
 
-// Ottiene il dettaglio completo di un compito con i membri del gruppo
+// Ottiene il dettaglio completo di un compito con i membri del gruppo e la risposta
 export const ottieniCompito = async (compitoId) => {
   return new Promise((resolve, reject) => {
     const sql = `
@@ -90,11 +90,20 @@ export const ottieniCompito = async (compitoId) => {
       ORDER BY us.cognome, us.nome
     `;
 
+    /*
+    esempio:
+id | traccia                  | creato_da | stato  | numero_studenti | punteggio | creato_il           | chiuso_il           | docente_nome | docente_cognome | testo_risposta                   | risposta_aggiornata_il | risposta_inviato_da | risposta_nome | risposta_cognome | studente_id | studente_nome | studente_cognome
+---|--------------------------|-----------|--------|-----------------|-----------|---------------------|---------------------|--------------|-----------------|----------------------------------|------------------------|---------------------|---------------|------------------|-------------|---------------|------------------
+2  | Crea una Single Page ... | 1         | chiuso | 2               | 28        | 2025-05-30 10:00:00 | 2025-06-07 10:00:00 | Luigi        | De Russis       | La SPA è un'applicazione web ... | 2025-06-01 15:00:00    | 4                   | Marco         | Bianchi          | 4           | Marco         | Bianchi
+2  | Crea una Single Page ... | 1         | chiuso | 2               | 28        | 2025-05-30 10:00:00 | 2025-06-07 10:00:00 | Luigi        | De Russis       | La SPA è un'applicazione web ... | 2025-06-01 15:00:00    | 4                   | Marco         | Bianchi          | 3           | Alice         | Rossi
+    
+*/
+
     db.all(sql, [compitoId], (err, rows) => {
       if (err) return reject(err);
       if (!rows || rows.length === 0) return resolve(null);
 
-      // Post-processing per raggruppare i dati
+      //una riga per ogni componente del gruppo, ma i dati del compito sono gli stessi
       const compito = rows[0]; // I dati del compito sono gli stessi in tutte le righe
       
       const result = {
@@ -112,7 +121,7 @@ export const ottieniCompito = async (compitoId) => {
         punteggio: compito.punteggio ?? null,
         numero_studenti: compito.numero_studenti,
         gruppo: rows
-          .filter(row => row.studente_id) // Filtra eventuali null
+          .filter(row => row.studente_id) // Filtra eventuali null (non ci dovrebbero essere)
           .map(row => ({
             id: row.studente_id,
             nome: row.studente_nome,

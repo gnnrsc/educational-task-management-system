@@ -69,6 +69,22 @@ export const ottieniCompitiStudente = (studenteId, stato = null) => {
       LEFT JOIN utenti us ON ac2.studente_id = us.id
       WHERE ac.studente_id = ?
     `;
+    /*esempio con studente 3:
+    # Tabella delle tracce con risposte di gruppo:
+# +----+----------------------------+--------+------------------+-----------+---------------------+---------------------+---------------+------------------+ Testo Risp.     | Risp. Aggior.       | Inviato da        | Gruppo Studente     |
+# | ID | Traccia                    | Stato  | Numero Studenti  | Punteggio | Creato il           | Chiuso il           | Docente       |                  |                 |                     |                   |                     |
+# +----+----------------------------+--------+------------------+-----------+---------------------+---------------------+---------------+------------------+-----------------+---------------------+-------------------+---------------------+
+# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Alice Rossi      |                 |                     |                   |                     |
+# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Marco Bianchi    |                 |                     |                   |                     |
+# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Giulia Verdi     |                 |                     |                   |                     |
+# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Andrea Neri      |                 |                     |                   |                     |
+# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Francesca Gialli |                 |                     |                   |                     |
+# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Simone Mazza     |                 |                     |                   |                     |
+# | 2  | Crea una SPA con React...  | chiuso | 2                | 28        | 2025-05-30 10:00:00 | 2025-06-07 10:00:00 | De Russis L.  | Alice Rossi      | La SPA è un'a...| 2025-06-01 15:00:00 | Marco Bianchi     |                     |
+# | 2  | Crea una SPA con React...  | chiuso | 2                | 28        | 2025-05-30 10:00:00 | 2025-06-07 10:00:00 | De Russis L.  | Marco Bianchi    | La SPA è un'a...| 2025-06-01 15:00:00 | Marco Bianchi     |                     |
+# +----+----------------------------+--------+------------------+-----------+---------------------+---------------------+---------------+------------------+-----------------+---------------------+-------------------+---------------------+
+
+    */
 
     const params = [studenteId];
 
@@ -160,7 +176,8 @@ export const ottieniMediaStudente = (studenteId) => {
       AND c.stato = 'chiuso'
       AND c.punteggio IS NOT NULL
     `;
-
+    //Media = Somma(punteggio_individuale) / Somma(pesi)
+    // pesi = 1 / numero_studenti
     db.get(sql, [studenteId], (err, row) => {
       if (err) reject(err);
       else resolve(row?.media ?? null);
