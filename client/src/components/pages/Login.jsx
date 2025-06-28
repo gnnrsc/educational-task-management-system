@@ -1,6 +1,5 @@
 import { Form, Button, Alert, InputGroup } from "react-bootstrap";
 import { useState } from "react";
-// Usando Bootstrap Icons via CSS classes
 import LoadingSpinner from "../utils/LoadingSpinner";
 import { useAuth } from "../../AuthContext"; 
 
@@ -10,7 +9,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // Nuovo stato
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
