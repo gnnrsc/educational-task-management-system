@@ -260,16 +260,22 @@ export const getStatisticheClasse = (docenteId) => {
 export const getStatisticheStudente = (studenteId, docenteId) => {
   return new Promise((resolve, reject) => {
     db.get(
-      `
-            SELECT 
-                COUNT(CASE WHEN c.stato = 'aperto' THEN 1 END) as aperti,
-                COUNT(CASE WHEN c.stato = 'chiuso' THEN 1 END) as chiusi,
-                COUNT(c.id) as totale,
-                AVG(CASE WHEN c.stato = 'chiuso' AND c.punteggio IS NOT NULL 
-                    THEN CAST(c.punteggio AS REAL) / c.numero_studenti END) as media
-            FROM assegnazioni_compiti ac
-            JOIN compiti c ON ac.compito_id = c.id
-            WHERE ac.studente_id = ? AND c.creato_da = ?
+      `SELECT 
+          COUNT(CASE WHEN c.stato = 'aperto' THEN 1 END) as aperti,
+          COUNT(CASE WHEN c.stato = 'chiuso' THEN 1 END) as chiusi,
+          COUNT(c.id) as totale,
+          CASE 
+            WHEN SUM(CASE WHEN c.stato = 'chiuso' AND c.punteggio IS NOT NULL THEN 1.0 / c.numero_studenti ELSE 0 END) > 0
+            THEN ROUND(
+              SUM(CASE WHEN c.stato = 'chiuso' AND c.punteggio IS NOT NULL THEN c.punteggio * (1.0 / c.numero_studenti) ELSE 0 END) 
+              / 
+              SUM(CASE WHEN c.stato = 'chiuso' AND c.punteggio IS NOT NULL THEN 1.0 / c.numero_studenti ELSE 0 END)
+            , 2)
+            ELSE NULL
+          END as media
+        FROM assegnazioni_compiti ac
+        JOIN compiti c ON ac.compito_id = c.id
+        WHERE ac.studente_id = ? AND c.creato_da = ?
         `,
       [studenteId, docenteId],
       (err, row) => {
