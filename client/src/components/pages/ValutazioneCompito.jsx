@@ -255,7 +255,7 @@ function ValutazioneCompito() {
                   <button 
                     type="submit"
                     className="btn btn-primary"
-                    disabled={staSalvando}
+                    disabled={!punteggio || staSalvando}
                   >
                     {staSalvando ? (
                       <>
