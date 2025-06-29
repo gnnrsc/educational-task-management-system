@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import ListaCompiti from "../ListaCompiti";
 import RispostaCompito from "../RispostaCompito";
 import LoadingSpinner from "../utils/LoadingSpinner";
@@ -9,6 +9,8 @@ import API from "../../API";
 function StudenteDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   const [compiti, setCompiti] = useState([]);
   const [loading, setLoading] = useState(true);
   // compito attualmente selezionato per aggiungere la risposta dallo studente
@@ -29,17 +31,30 @@ function StudenteDashboard() {
       setLoading(false);
     };
 
-  caricaCompiti();
-}, [filtroStato]);
+    caricaCompiti();
+  }, [filtroStato]);
+
+  // Effect per gestire i parametri URL
+  useEffect(() => {
+    const modalParam = searchParams.get('modal');
+    const compitoIdParam = searchParams.get('compitoId');
+
+    if (modalParam === 'risposta' && compitoIdParam && compiti.length > 0) {
+      const compito = compiti.find(c => c.id === parseInt(compitoIdParam));
+      if (compito) {
+        setCompitoPerRisposta(compito);
+      }
+    }
+  }, [searchParams, compiti]);
 
   // FUNZIONI PER LA RISPOSTA -------------------
   const handleApriRisposta = (compito) => {
-    setCompitoPerRisposta(compito);
+    setSearchParams({ modal: 'risposta', compitoId: compito.id.toString() });
   };
 
   const handleSalvaRisposta = async (testoRisposta) => {
     try {
-      const result=await API.aggiornaRispostaCompito(compitoPerRisposta.id, testoRisposta);
+      const result = await API.aggiornaRispostaCompito(compitoPerRisposta.id, testoRisposta);
 
       // aggiorna lo stato locale del compito con la nuova risposta
       setCompiti((prev) =>
@@ -57,8 +72,9 @@ function StudenteDashboard() {
         )
       );
 
-      // chiude il modale
+      // chiude il modale e pulisce l'URL
       setCompitoPerRisposta(null);
+      setSearchParams({});
     } catch (error) {
       throw error; // rilancia l'errore per gestirlo nel modale
     }
@@ -66,6 +82,7 @@ function StudenteDashboard() {
 
   const handleCancellaRisposta = () => {
     setCompitoPerRisposta(null);
+    setSearchParams({});
   };
 
   // ----------------------------------------------

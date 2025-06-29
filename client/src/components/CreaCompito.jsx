@@ -6,20 +6,35 @@ import StepDomanda from "./CreaCompitoComponents/StepDomanda";
 import StepSelezioneStudenti from "./CreaCompitoComponents/StepSelezioneStudenti";
 import FooterNavigazione from "./CreaCompitoComponents/FooterNavigazione";
 
-function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null }) {
-  const [stepCorrente, setStepCorrente] = useState(datiIniziali ? 2 : 1);
-  const [domanda, setDomanda] = useState(datiIniziali ? datiIniziali.traccia : "");
+function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIniziale = 1, domandaIniziale = "", onSalvaStato = null }) {
+
+  const SELEZIONE_MINIMA = 2;
+  const SELEZIONE_MASSIMA = 6;
+ 
+  const [stepCorrente, setStepCorrente] = useState(datiIniziali ? 2 : stepIniziale);
+  const [domanda, setDomanda] = useState(datiIniziali ? datiIniziali.traccia : domandaIniziale);
   const [studentiSelezionati, setStudentiSelezionati] = useState([]);
   const [studenti, setStudenti] = useState([]);
   const [collaborazioni, setCollaborazioni] = useState([]);
   const [errore, setErrore] = useState("");
+  
+  // stati per gestione delle varie visualizzazioni e caricamenti
   const [caricamentoStudenti, setCaricamentoStudenti] = useState(true);
   const [invioInCorso, setInvioInCorso] = useState(false);
   const [direzioneSlide, setDirezioneSlide] = useState("");
 
-  const SELEZIONE_MINIMA = 2;
-  const SELEZIONE_MASSIMA = 6;
+  // sincronizza con props quando cambiano
+  useEffect(() => {
+    if (datiIniziali?.traccia) {
+      setStepCorrente(2);
+      setDomanda(datiIniziali.traccia);
+    } else {
+      setStepCorrente(stepIniziale);
+      setDomanda(domandaIniziale);
+    }
+  }, [datiIniziali?.traccia, stepIniziale, domandaIniziale]);
 
+  // carica i dati degli studenti e collaborazioni
   useEffect(() => {
     const caricaDati = async () => {
       try {
@@ -29,7 +44,6 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null }) {
         ]);
 
         const studentiMappati = rispostaStudenti.map((utente) => new Utente(utente));
-
         setStudenti(studentiMappati);
         setCollaborazioni(rispostaCollaborazioni.collaborazioni);
       } catch (err) {
@@ -42,6 +56,16 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null }) {
     caricaDati();
   }, []);
 
+  // GESTORI EVENTI
+
+  const handleCambioDomanda = (nuovaDomanda) => {
+    setDomanda(nuovaDomanda);
+    // salva lo stato attuale solo se non stiamo riassegnando un compito esistente ad un altro gruppo
+    if (onSalvaStato && !datiIniziali) {
+      onSalvaStato(stepCorrente, nuovaDomanda, true);
+    }
+  };
+
   const gestisciAvanti = () => {
     setErrore("");
     if (!domanda.trim()) {
@@ -52,6 +76,9 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null }) {
     setDirezioneSlide("slide-left");
     setTimeout(() => {
       setStepCorrente(2);
+      if (onSalvaStato && !datiIniziali) {
+        onSalvaStato(2, domanda, true);
+      }
       setDirezioneSlide("");
     }, 300);
   };
@@ -62,20 +89,48 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null }) {
     setDirezioneSlide("slide-right");
     setTimeout(() => {
       setStepCorrente(1);
+      if (onSalvaStato && !datiIniziali) {
+        onSalvaStato(1, domanda, true);
+      }
       setDirezioneSlide("");
     }, 300);
   };
 
-  const gruppoValido = studentiSelezionati.length >= SELEZIONE_MINIMA && 
-                      studentiSelezionati.length <= SELEZIONE_MASSIMA;
+  const gestisciToggleStudente = (studenteId) => {
+    setErrore("");
+    setStudentiSelezionati((precedenti) => {
+      const giaSelezionato = precedenti.find(s => s.id === studenteId);
+      
+      if (giaSelezionato) {
+        return precedenti.filter((studente) => studente.id !== studenteId);
+      } else {
+        if (precedenti.length >= SELEZIONE_MASSIMA) {
+          setErrore(`Hai raggiunto il limite massimo di ${SELEZIONE_MASSIMA} studenti.`);
+          return precedenti;
+        }
+        
+        const studenteDaAggiungere = studenti.find(s => s.id === studenteId);
+        if (studenteDaAggiungere) {
+          return [...precedenti, studenteDaAggiungere];
+        }
+        return precedenti;
+      }
+    });
+  };
+
+  const gestisciResetSelezione = () => {
+    setStudentiSelezionati([]);
+    setErrore("");
+  };
 
   const gestisciInvio = async () => {
     setErrore("");
 
+    const gruppoValido = studentiSelezionati.length >= SELEZIONE_MINIMA && 
+                        studentiSelezionati.length <= SELEZIONE_MASSIMA;
+
     if (!gruppoValido) {
-      setErrore(
-        `Il gruppo deve avere almeno ${SELEZIONE_MINIMA} studenti e al massimo ${SELEZIONE_MASSIMA}.`
-      );
+      setErrore(`Il gruppo deve avere almeno ${SELEZIONE_MINIMA} studenti e al massimo ${SELEZIONE_MASSIMA}.`);
       return;
     }
 
@@ -94,58 +149,32 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null }) {
           numero_studenti: studentiIds.length,
           gruppo: studentiSelezionati,
         });
-                                  
-        onCompitoCreato(compitoCreato);
+        
+        // reset del form all'invio
         setDomanda("");
         setStudentiSelezionati([]);
         setStepCorrente(1);
+
+        onCompitoCreato(compitoCreato);
+
       } else {
         setErrore("Compito non creato correttamente. Riprova.");
       }
       
     } catch (error) {
-      //console.error("Errore nella creazione del compito:", error);
       setErrore("Errore nella creazione del compito. Riprova.");
     } finally {
       setInvioInCorso(false);
     }
   };
 
-  const gestisciToggleStudente = (studenteId) => {
-    setErrore("");
-    //gestione della selezione degli studenti con lo stato
-    setStudentiSelezionati((precedenti) => {
-      const giaSelezionato = precedenti.find(s => s.id === studenteId);
-      
-      if (giaSelezionato) {
-        //se lo studente è già selezionato, lo rimuoviamo da quelli selezionati
-        return precedenti.filter((studente) => studente.id !== studenteId);
-      } else {
-        if (precedenti.length >= SELEZIONE_MASSIMA) {
-          setErrore(
-            `Hai raggiunto il limite massimo di ${SELEZIONE_MASSIMA} studenti.`
-          );
-          return precedenti;
-        }
-        
-        //trovo lo l'oggetto Utente e lo aggiungo all'elenco dei selezionati
-        const studenteDaAggiungere = studenti.find(s => s.id === studenteId);
-        if (studenteDaAggiungere) {
-          return [...precedenti, studenteDaAggiungere];
-        }
-        return precedenti;
-      }
-    });
-  };
+  // funzioni utility
 
-  const gestisciResetSelezione = () => {
-    setStudentiSelezionati([]);
-    setErrore("");
-  };
+  const gruppoValido = studentiSelezionati.length >= SELEZIONE_MINIMA && 
+                      studentiSelezionati.length <= SELEZIONE_MASSIMA;
 
   const ottieniTitoloStep = () => {
-    if (stepCorrente === 1) return "📝 Domanda del Compito";
-    return "👥 Seleziona Studenti";
+    return stepCorrente === 1 ? "📝 Domanda del Compito" : "👥 Seleziona Studenti";
   };
 
   const ottieniProgresso = () => {
@@ -173,7 +202,7 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null }) {
           visibile={stepCorrente === 1}
           direzioneSlide={direzioneSlide}
           domanda={domanda}
-          onCambioDomanda={setDomanda}
+          onCambioDomanda={handleCambioDomanda}
           invioInCorso={invioInCorso}
           errore={errore}
         />

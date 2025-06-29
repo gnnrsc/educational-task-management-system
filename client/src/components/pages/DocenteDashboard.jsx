@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import CreaCompito from "../CreaCompito";
 import ListaCompiti from "../ListaCompiti";
 import ValutazioneCompito from "../ValutazioneCompito"; 
@@ -8,12 +8,32 @@ import API from "../../API";
 
 function DocenteDashboard() {
   const navigate = useNavigate();
-  const [mostraCreaCompito, setMostraCreaCompito] = useState(false);
-  const [compitoDatiIniziali, setCompitoDatiIniziali] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // stati principali per caricamento compiti e gestione dei caricamenti
   const [compiti, setCompiti] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [compitoDaValutare, setCompitoDaValutare] = useState(null);
   
+  // lettura parametri URL per gestire modali e stati
+  const modalParam = searchParams.get('modal');     
+  const compitoIdParam = searchParams.get('compitoId');   
+  const stepParam = searchParams.get('step');             
+  const assegnaParam = searchParams.get('assegna');       
+  
+  // stati derivati dall'URL
+  const mostraCreaCompito = modalParam === 'crea';
+  const stepCorrente = stepParam ? parseInt(stepParam) : 1;
+  const compitoDatiIniziali = assegnaParam && compiti.length > 0 
+    ? compiti.find(c => c.id === parseInt(assegnaParam)) 
+    : null;
+  const compitoDaValutare = modalParam === 'valuta' && compitoIdParam && compiti.length > 0
+    ? compiti.find(c => c.id === parseInt(compitoIdParam))
+    : null;
+  
+  // stato persistente per salvare la domanda (non esponendola in URL)
+  const domandaSalvata = sessionStorage.getItem('creaCompito_domanda') || "";
+
+  // carica compiti all'avvio
   useEffect(() => {
     const caricaCompiti = async () => {
       setLoading(true);
@@ -21,23 +41,65 @@ function DocenteDashboard() {
         const response = await API.ottieniCompitiDocente();
         setCompiti(response.compiti);
       } catch (error) {
-        console.error("Errore nel caricamento compiti:", error);
         setCompiti([]);
       }
       setLoading(false);
     };
 
     caricaCompiti();
-  }, []); 
+  }, []);
 
-  // FUNZIONI PER LA VALUTAZIONE-------------------
-  const handleApriValutazione = (compito) => {
-    setCompitoDaValutare(compito);
+  // validazione step 2 all'avvio (serve domanda salvata nel caso si apra direttamente l'url con step 2)
+  // altrimenti reindirizza a step 1
+  useEffect(() => {
+    if (stepCorrente === 2) {
+      if (!domandaSalvata) {
+        searchParams.set("step", "1");
+        setSearchParams(searchParams, { replace: true });
+      }
+    }
+  }, []);
+
+  // GESTORI PER CAMBIARE URL
+
+  const apriCreaCompito = () => {
+    setSearchParams({ modal: 'crea' });
   };
 
-  const handleSalvaValutazione = async (punteggio) => {
-    try {      
-      // aggiorna lo stato locale del compito chiudendolo, dopo che ottiene il punteggio dal server
+  const chiudiTuttiIModali = () => {
+    sessionStorage.removeItem('creaCompito_domanda');
+    if (searchParams.get('step') == 2) {
+      setSearchParams({}, { replace: true });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  const salvaStatoForm = (step, domanda, isUserAction = false) => {
+    // salva sempre in sessionStorage la domanda corrente se è presente
+    if (domanda.trim()) {
+      sessionStorage.setItem('creaCompito_domanda', domanda.trim());
+    } else {
+      sessionStorage.removeItem('creaCompito_domanda');
+    }
+    
+    // Aggiorna URL non appena l'utente cambia step o modifica la domanda
+    if (isUserAction) {
+      const params = new URLSearchParams(searchParams);
+      params.set('modal', 'crea');
+      params.set('step', step.toString());
+      setSearchParams(params);
+    }
+  };
+
+  // GESTORI VALUTAZIONE
+  
+  const apriValutazione = (compito) => {
+    setSearchParams({ modal: 'valuta', compitoId: compito.id.toString() });
+  };
+
+  const salvaValutazione = async (punteggio) => {
+    try {
       setCompiti((prev) =>
         prev.map((c) =>
           c.id === compitoDaValutare.id
@@ -46,16 +108,17 @@ function DocenteDashboard() {
         )
       );
       
-      // chiude il modale
-      setCompitoDaValutare(null);
-    
+      chiudiTuttiIModali();
     } catch (error) {
       //console.error("Errore nel salvataggio:", error);
     }
   };
 
-  const handleCancellaValutazione = () => {
-    setCompitoDaValutare(null);
+  // GESTORI COMPITI
+  
+  const handleCompitoCreato = (nuovoCompito) => {
+    setCompiti(prev => [nuovoCompito, ...prev]);
+    chiudiTuttiIModali();
   };
 
   // ----------------------------------------------
@@ -65,28 +128,12 @@ function DocenteDashboard() {
     navigate(`/docente/compiti/${compitoId}`);
   };
 
-  // gestione della creazione di un nuovo compito
-  const handleCompitoCreato = async (nuovoCompito) => {
-    try {
-      const compitoPerLista = nuovoCompito;
-
-      // aggiungo il nuovo compito in cima alla lista
-      setCompiti(prev => [compitoPerLista, ...prev]);
-      
-      // chiudo il modal solo DOPO aver aggiornato con successo
-      setMostraCreaCompito(false);
-      setCompitoDatiIniziali(null);
-
-    } catch (error) {
-      //console.error("Errore nell'aggiornamento della lista:", error);
-      // il modale rimane aperto se c'è un errore nell'aggiornamento
-    }
-  };
-
-  // funzione per gestire l'assegnazione dello stesso compito ad un altro gruppo
+// funzione per gestire l'assegnazione dello stesso compito ad un altro gruppo
   const handleAssegnaAltroGruppo = (compito) => {
-    setCompitoDatiIniziali(compito);
-    setMostraCreaCompito(true);
+    setSearchParams({ 
+      modal: 'crea', 
+      assegna: compito.id.toString() 
+    });
   };
 
   if (loading) return <LoadingSpinner />;
@@ -105,7 +152,7 @@ function DocenteDashboard() {
       <div className="d-flex justify-content-center mb-4">
         <button
           className="btn btn-primary btn-lg"
-          onClick={() => setMostraCreaCompito(true)}
+          onClick={apriCreaCompito}
         >
           ➕ Crea Nuovo Compito
         </button>
@@ -114,7 +161,7 @@ function DocenteDashboard() {
       <ListaCompiti 
         compiti={compiti}
         onApriDettaglio={handleApriDettaglio}
-        onApriValutazione={handleApriValutazione} 
+        onApriValutazione={apriValutazione} 
         onAssegnaAltroGruppo={handleAssegnaAltroGruppo}
       />
 
@@ -133,20 +180,17 @@ function DocenteDashboard() {
                 <button
                   type="button"
                   className="btn-close"
-                  onClick={() => { 
-                    setMostraCreaCompito(false); 
-                    setCompitoDatiIniziali(null); 
-                  }}
+                  onClick={chiudiTuttiIModali}
                 ></button>
               </div>
               <div className="modal-body p-0">
                 <CreaCompito
                   onCompitoCreato={handleCompitoCreato}
-                  onCancella={() => { 
-                    setMostraCreaCompito(false); 
-                    setCompitoDatiIniziali(null); 
-                  }}
+                  onCancella={chiudiTuttiIModali}
                   datiIniziali={compitoDatiIniziali}
+                  stepIniziale={stepCorrente}
+                  domandaIniziale={domandaSalvata}
+                  onSalvaStato={salvaStatoForm}
                 />
               </div>
             </div>
@@ -158,8 +202,8 @@ function DocenteDashboard() {
       {compitoDaValutare && (
         <ValutazioneCompito
           compito={compitoDaValutare}
-          onSalva={handleSalvaValutazione}
-          onCancella={handleCancellaValutazione}
+          onSalva={salvaValutazione}
+          onCancella={chiudiTuttiIModali}
         />
       )}
     </div>
