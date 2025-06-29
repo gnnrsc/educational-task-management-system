@@ -23,7 +23,7 @@ function Compito(data) {
   this.punteggio = data.punteggio ?? null;
   //creato_da
   this.docente = data.docente ? new Utente(data.docente) : undefined;
-
+  this.ha_risposta = data.ha_risposta ?? false; // indica se il compito ha una risposta
   this.gruppo = data.gruppo ? data.gruppo.map(p => new Utente(p)) : [];
   this.risposta = data.risposta ? new Risposta(data.risposta.testo, data.risposta.aggiornato_il, data.risposta.inviato_da) : undefined;
 
@@ -34,6 +34,7 @@ function Compito(data) {
     creato_il: this.creato_il.format('YYYY-MM-DD HH:mm:ss'),
     chiuso_il: this.chiuso_il?.format('YYYY-MM-DD HH:mm:ss') ?? null,
     numero_studenti: this.numero_studenti,
+    ha_risposta: this.ha_risposta,
     gruppo: this.gruppo.map(p => p.serialize()),
     ...(this.docente && { docente: this.docente.serialize() }),
     punteggio: this.punteggio,

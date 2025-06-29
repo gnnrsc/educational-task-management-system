@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from 'react-router';
 import CreaCompito from "../CreaCompito";
 import ListaCompiti from "../ListaCompiti";
-import ValutazioneCompito from "../ValutazioneCompito"; 
 import LoadingSpinner from "../utils/LoadingSpinner";
 import API from "../../API";
 
@@ -16,7 +15,6 @@ function DocenteDashboard() {
   
   // lettura parametri URL per gestire modali e stati
   const modalParam = searchParams.get('modal');     
-  const compitoIdParam = searchParams.get('compitoId');   
   const stepParam = searchParams.get('step');             
   const assegnaParam = searchParams.get('assegna');       
   
@@ -25,9 +23,6 @@ function DocenteDashboard() {
   const stepCorrente = stepParam ? parseInt(stepParam) : 1;
   const compitoDatiIniziali = assegnaParam && compiti.length > 0 
     ? compiti.find(c => c.id === parseInt(assegnaParam)) 
-    : null;
-  const compitoDaValutare = modalParam === 'valuta' && compitoIdParam && compiti.length > 0
-    ? compiti.find(c => c.id === parseInt(compitoIdParam))
     : null;
   
   // stato persistente per salvare la domanda (non esponendola in URL)
@@ -61,7 +56,7 @@ function DocenteDashboard() {
   }, []);
 
   // GESTORI PER CAMBIARE URL
-
+  
   const apriCreaCompito = () => {
     setSearchParams({ modal: 'crea' });
   };
@@ -83,7 +78,7 @@ function DocenteDashboard() {
       sessionStorage.removeItem('creaCompito_domanda');
     }
     
-    // Aggiorna URL non appena l'utente cambia step o modifica la domanda
+    // aggiorna URL non appena l'utente cambia step o modifica la domanda
     if (isUserAction) {
       const params = new URLSearchParams(searchParams);
       params.set('modal', 'crea');
@@ -92,26 +87,12 @@ function DocenteDashboard() {
     }
   };
 
-  // GESTORI VALUTAZIONE
+  // naviga alla pagina di valutazione ricordando che si arriva da lista compiti
   
   const apriValutazione = (compito) => {
-    setSearchParams({ modal: 'valuta', compitoId: compito.id.toString() });
-  };
-
-  const salvaValutazione = async (punteggio) => {
-    try {
-      setCompiti((prev) =>
-        prev.map((c) =>
-          c.id === compitoDaValutare.id
-            ? { ...c, punteggio: punteggio, stato: "chiuso" }
-            : c
-        )
-      );
-      
-      chiudiTuttiIModali();
-    } catch (error) {
-      //console.error("Errore nel salvataggio:", error);
-    }
+    navigate(`/docente/compiti/${compito.id}/valutazione`, { 
+      state: { daDettaglio: false } 
+    });
   };
 
   // GESTORI COMPITI
@@ -120,8 +101,6 @@ function DocenteDashboard() {
     setCompiti(prev => [nuovoCompito, ...prev]);
     chiudiTuttiIModali();
   };
-
-  // ----------------------------------------------
 
   //cambia pagina al dettaglio del compito
   const handleApriDettaglio = (compitoId) => {
@@ -196,15 +175,6 @@ function DocenteDashboard() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* modale per aggiungere la valutazione */}
-      {compitoDaValutare && (
-        <ValutazioneCompito
-          compito={compitoDaValutare}
-          onSalva={salvaValutazione}
-          onCancella={chiudiTuttiIModali}
-        />
       )}
     </div>
   );

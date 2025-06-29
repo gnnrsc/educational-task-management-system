@@ -1,18 +1,21 @@
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useSearchParams } from 'react-router';
 import { useState, useEffect } from 'react';
 import LoadingSpinner from '../utils/LoadingSpinner.jsx';
-import ValutazioneCompito from '../ValutazioneCompito.jsx';
 import CreaCompito from '../CreaCompito.jsx';
 import API from '../../API';
 
 function DettaglioCompitoPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   const [compito, setCompito] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [compitoDaValutare, setCompitoDaValutare] = useState(null);
-  const [mostraAssegnaAltroGruppo, setMostraAssegnaAltroGruppo] = useState(false);
+
+  // gestione stati modali tramite URL params
+  const modalParam = searchParams.get('modal');
+  const mostraAssegnaAltroGruppo = modalParam === 'assegna';
 
   useEffect(() => {
     const caricaCompito = async () => {
@@ -33,44 +36,25 @@ function DettaglioCompitoPage() {
       caricaCompito();
     }
   }, [id]);
-
-  // FUNZIONI PER LA VALUTAZIONE-------------------
-  const handleApriValutazione = (compito) => {
-    setCompitoDaValutare(compito);
+  
+  const apriValutazione = () => {
+    navigate(`/docente/compiti/${id}/valutazione`, {
+      state: { daDettaglio: true },
+    });
+    
+  };
+// gestore per aprire il modale di assegnazione ad un altro gruppo
+  const apriAssegnaAltroGruppo = () => {
+    setSearchParams({ modal: 'assegna' });
   };
 
-  const handleSalvaValutazione = async (punteggio) => {
-    try {
-      // aggiorna lo stato locale del compito chiudendolo, dopo che ottiene il punteggio dal server
-      setCompito((prev) => ({
-      ...prev,
-      punteggio: punteggio,
-      stato: "chiuso"
-    }));
-      setCompitoDaValutare(null);
-    } catch (error) {
-      //console.error("Errore nel salvataggio:", error);
-    }
+  const chiudiModali = () => {
+    setSearchParams({});
   };
-
-  const handleCancellaValutazione = () => {
-    setCompitoDaValutare(null);
-  };
-
-  // ----------------------------------------------
-
-  // funzione per gestire l'assegnazione dello stesso compito ad un altro gruppo
-  const handleAssegnaAltroGruppo = () => {
-    setMostraAssegnaAltroGruppo(true);
-  };
-
+  
   const handleCompitoAssegnato = (nuovoCompito) => {
-    setMostraAssegnaAltroGruppo(false);
+    chiudiModali();
     navigate(`/docente/compiti`);
-  };
-
-  const handleCancelAssegnazione = () => {
-    setMostraAssegnaAltroGruppo(false);
   };
 
   if (loading) return <LoadingSpinner />;
@@ -106,18 +90,9 @@ function DettaglioCompitoPage() {
 
       <DettaglioCompito
         compito={compito}
-        onApriValutazione={handleApriValutazione}
-        onAssegnaAltroGruppo={handleAssegnaAltroGruppo}
+        onApriValutazione={apriValutazione}
+        onAssegnaAltroGruppo={apriAssegnaAltroGruppo}
       />
-
-      {/* modale valutazione */}
-      {compitoDaValutare && (
-        <ValutazioneCompito
-          compito={compitoDaValutare}
-          onSalva={handleSalvaValutazione}
-          onCancella={handleCancellaValutazione}
-        />
-      )}
 
       {/* modale per assegnare il compito ad un altro Gruppo */}
       {mostraAssegnaAltroGruppo && (
@@ -132,13 +107,13 @@ function DettaglioCompitoPage() {
                 <button
                   type="button"
                   className="btn-close"
-                  onClick={handleCancelAssegnazione}
+                  onClick={chiudiModali}
                 ></button>
               </div>
               <div className="modal-body p-0">
                 <CreaCompito
                   onCompitoCreato={handleCompitoAssegnato}
-                  onCancella={handleCancelAssegnazione}
+                  onCancella={chiudiModali}
                   datiIniziali={{ traccia: compito.traccia }}
                 />
               </div>

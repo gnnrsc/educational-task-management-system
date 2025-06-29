@@ -4,6 +4,7 @@ import LoginForm from "./components/pages/Login";
 import DefaultLayout from "./components/pages/DefaultLayout";
 import DocenteDashboard from "./components/pages/DocenteDashboard.jsx";
 import DettaglioCompito from "./components/pages/DettaglioCompito.jsx";
+import ValutazioneCompito from "./components/pages/ValutazioneCompito.jsx";
 import StatoClasse from "./components/pages/StatoClasse.jsx";
 import StudenteDashboard from "./components/pages/StudenteDashboard.jsx";
 import DettaglioCompitoStudente from "./components/pages/DettaglioCompitoStudente.jsx";
@@ -36,6 +37,7 @@ function App() {
         ) : ( <LoginForm /> ) } />
         <Route path="/docente/compiti" element={ <ProtectedRoute ruoliConcessi={['docente']}><DocenteDashboard /></ProtectedRoute> } />
         <Route path="/docente/compiti/:id" element={<ProtectedRoute ruoliConcessi={['docente']}><DettaglioCompito /></ProtectedRoute>} />
+        <Route path="/docente/compiti/:id/valutazione" element={<ProtectedRoute ruoliConcessi={['docente']}><ValutazioneCompito /></ProtectedRoute>} />
         <Route path="/docente/classe" element={ <ProtectedRoute ruoliConcessi={['docente']}><StatoClasse /></ProtectedRoute> } />
         <Route path="/studente/compiti" element={ <ProtectedRoute ruoliConcessi={['studente']}><StudenteDashboard /></ProtectedRoute> } />
         <Route path="/studente/compiti/:id" element={<ProtectedRoute ruoliConcessi={['studente']}><DettaglioCompitoStudente /></ProtectedRoute>} />

@@ -194,6 +194,85 @@ export const valutaEChiudiCompito = (compitoId, punteggio) => {
   });
 };
 
+// Ottiene i dettagli completi di un compito per la valutazione
+export const ottieniDettaglioCompitoValutazione = (compitoId, docenteId) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT 
+        c.id, c.traccia, c.stato, c.numero_studenti, c.punteggio, 
+        c.creato_il, c.chiuso_il,
+        u.nome as docente_nome, u.cognome as docente_cognome,
+        s.id as studente_id, s.nome as studente_nome, s.cognome as studente_cognome,
+        rc.testo_risposta, rc.aggiornato_il as risposta_aggiornato_il, 
+        rc.inviato_da as risposta_inviato_da,
+        ur.nome as risposta_nome, ur.cognome as risposta_cognome
+      FROM compiti c
+      JOIN utenti u ON c.creato_da = u.id
+      LEFT JOIN assegnazioni_compiti ac ON c.id = ac.compito_id
+      LEFT JOIN utenti s ON ac.studente_id = s.id
+      LEFT JOIN risposte_compiti rc ON c.id = rc.compito_id
+      LEFT JOIN utenti ur ON rc.inviato_da = ur.id
+      WHERE c.id = ? AND c.creato_da = ?
+      ORDER BY s.cognome, s.nome
+    `;
+
+    db.all(sql, [compitoId, docenteId], (err, rows) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      if (rows.length === 0) {
+        resolve(null); // Compito non trovato o non autorizzato
+        return;
+      }
+
+      // Costruisce l'oggetto compito con tutti i dettagli
+      const firstRow = rows[0];
+      const compito = {
+        id: firstRow.id,
+        traccia: firstRow.traccia,
+        stato: firstRow.stato,
+        numero_studenti: firstRow.numero_studenti,
+        punteggio: firstRow.punteggio,
+        creato_il: firstRow.creato_il,
+        chiuso_il: firstRow.chiuso_il,
+        docente: {
+          id: docenteId,
+          nome: firstRow.docente_nome,
+          cognome: firstRow.docente_cognome
+        },
+        gruppo: [],
+        risposta: firstRow.testo_risposta ? {
+          testo: firstRow.testo_risposta,
+          aggiornato_il: firstRow.risposta_aggiornato_il,
+          inviato_da: firstRow.risposta_inviato_da ? {
+            id: firstRow.risposta_inviato_da,
+            nome: firstRow.risposta_nome,
+            cognome: firstRow.risposta_cognome
+          } : null
+        } : null
+      };
+
+      // Aggiungi tutti gli studenti del gruppo usando Map per migliori performance
+      const studentiMap = new Map();
+      rows.forEach(row => {
+        if (row.studente_id && !studentiMap.has(row.studente_id)) {
+          studentiMap.set(row.studente_id, {
+            id: row.studente_id,
+            nome: row.studente_nome,
+            cognome: row.studente_cognome
+          });
+        }
+      });
+      
+      compito.gruppo = Array.from(studentiMap.values());
+
+      resolve(compito);
+    });
+  });
+};
+
 export const ottieniStatisticheClasse = (docenteId) => {
   return new Promise((resolve, reject) => {
     const sql = `
@@ -277,7 +356,7 @@ export const ottieniStatisticheStudente = (studenteId, docenteId) => {
   });
 };
 
-// Ottiene tutti i compiti di un docente
+// Ottiene tutti i compiti di un docente con solo flag risposta
 export const ottieniCompitiDocente = (docenteId) => {
   return new Promise((resolve, reject) => {
     let sql = `
@@ -285,32 +364,16 @@ export const ottieniCompitiDocente = (docenteId) => {
         c.id, c.traccia, c.stato, c.numero_studenti, c.punteggio, c.creato_il, c.chiuso_il,
         u.nome as docente_nome, u.cognome as docente_cognome,
         s.id as studente_id, s.nome as studente_nome, s.cognome as studente_cognome,
-        rc.testo_risposta, rc.aggiornato_il as risposta_aggiornato_il, rc.inviato_da as risposta_inviato_da,
-        ur.nome as risposta_nome, ur.cognome as risposta_cognome
+        CASE WHEN rc.id IS NOT NULL THEN 1 ELSE 0 END as ha_risposta
       FROM compiti c
       JOIN utenti u ON c.creato_da = u.id
-      LEFT JOIN assegnazioni_compiti ac ON c.id = ac.compito_id --LEFT JOIN: Include compiti che potrebbero aver perso l'assegnazione per cancellazioni/errori nel DB
+      LEFT JOIN assegnazioni_compiti ac ON c.id = ac.compito_id
       LEFT JOIN utenti s ON ac.studente_id = s.id
       LEFT JOIN risposte_compiti rc ON c.id = rc.compito_id
-      LEFT JOIN utenti ur ON rc.inviato_da = ur.id --LEFT JOIN: Gestisce il caso teorico di inconsistenze nel DB (utente cancellato ma risposta rimasta)
       WHERE c.creato_da = ?
       ORDER BY c.creato_il DESC
     `;
-    /*
-    # ESEMPIO
-# +----+----------------------------+--------+------------------+-----------+---------------------+---------------------+---------------+------------------+---------------------+---------------------+---------------------+
-# | ID | Traccia                    | Stato  | Numero Studenti  | Punteggio | Creato il           | Chiuso il           | Docente       | Studente         | Testo Risp.         | Risp. Aggior.       | Inviato da          |
-# +----+----------------------------+--------+------------------+-----------+---------------------+---------------------+---------------+------------------+---------------------+---------------------+---------------------+
-# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Alice Rossi      |                     |                     |                     |
-# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Marco Bianchi    |                     |                     |                     |
-# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Giulia Verdi     |                     |                     |                     |
-# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Andrea Neri      |                     |                     |                     |
-# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Francesca Gialli |                     |                     |                     |
-# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Simone Mazza     |                     |                     |                     |
-# | 2  | Crea una SPA con React...  | chiuso | 2                | 28        | 2025-05-30 10:00:00 | 2025-06-07 10:00:00 | De Russis L.  | Alice Rossi      | La SPA è un'a...    | 2025-06-01 15:00:00 | Marco Bianchi       |
-# | 2  | Crea una SPA con React...  | chiuso | 2                | 28        | 2025-05-30 10:00:00 | 2025-06-07 10:00:00 | De Russis L.  | Marco Bianchi    | La SPA è un'a...    | 2025-06-01 15:00:00 | Marco Bianchi       |
-# +----+----------------------------+--------+------------------+-----------+---------------------+---------------------+---------------+------------------+---------------------+---------------------+---------------------+
-*/
+
     db.all(sql, [docenteId], (err, rows) => {
       if (err) {
         reject(err);
@@ -338,15 +401,7 @@ export const ottieniCompitiDocente = (docenteId) => {
               cognome: row.docente_cognome
             },
             gruppo: [],
-            risposta: row.testo_risposta ? {
-              testo: row.testo_risposta,
-              aggiornato_il: row.risposta_aggiornato_il,
-              inviato_da: row.risposta_inviato_da ? {
-                id: row.risposta_inviato_da,
-                nome: row.risposta_nome,
-                cognome: row.risposta_cognome
-              } : null
-            } : null
+            ha_risposta: row.ha_risposta === 1
           });
         }
 

@@ -65,7 +65,7 @@ function ListaCompiti({
   // Renderizzazione azioni di default per docente
   const renderAzioniDocente = (c) => (
     <div className="d-inline-flex align-items-center gap-2 justify-content-end">
-      {c.risposta && c.stato !== "chiuso" && (
+      {c.ha_risposta && c.stato !== "chiuso" && (
         <button
           className="btn btn-outline-success btn-sm"
           title="Valuta"

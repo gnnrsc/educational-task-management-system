@@ -169,6 +169,25 @@ async function creaCompito(traccia, studentiIds) {
   }
 }
 
+// GET: /api/docente/compiti/:id/valutazione - Ottiene i dettagli per la valutazione di un compito (solo per docenti)
+async function ottieniDettaglioCompitoValutazione(compitoId) {
+  const response = await fetch(URL + `/docente/compiti/${compitoId}/valutazione`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  
+
+  const data = await response.json();
+  if (response.ok) {
+    return data; // ritorna { compito, risposta, studenti }
+  } else {
+    throw data;
+  }
+}
+
 
 // PUT: /api/docente/compiti/:id/valutazione - Effettuare una valutazione di un compito (solo per docenti)
 async function valutaCompito(compitoId, punteggio) {
@@ -253,6 +272,7 @@ const API = {
   ottieniStudenti,
   ottieniCollaborazioniClasse,
   creaCompito,
+  ottieniDettaglioCompitoValutazione,
   valutaCompito,
   ottieniStatisticheClasse,
   ottieniCompitiDocente,
