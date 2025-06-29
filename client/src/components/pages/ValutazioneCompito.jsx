@@ -242,23 +242,30 @@ function ValutazioneCompito() {
                   </div>
                 </div>
 
-                <div className="d-flex justify-content-end pt-2 border-top">
-                  <div className="d-flex gap-2">
-                    <button 
-                      type="submit"
-                      className="btn btn-primary"
-                      disabled={staSalvando}
-                    >
-                      {staSalvando ? (
-                        <>
-                          <LoadingSpinner variant="inline" />
-                          Salvataggio...
-                        </>
-                      ) : (
-                        <>💾 Salva Valutazione</>
-                      )}
-                    </button>
-                  </div>
+                <div className="d-flex justify-content-end align-items-center gap-2 pt-2 border-top">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={handleBackClick}
+                    disabled={staSalvando}
+                  >
+                    ❌ Annulla
+                  </button>
+
+                  <button 
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={staSalvando}
+                  >
+                    {staSalvando ? (
+                      <>
+                        <LoadingSpinner variant="inline" />
+                        Salvataggio...
+                      </>
+                    ) : (
+                      <>💾 Salva Valutazione</>
+                    )}
+                  </button>
                 </div>
               </form>
             </>
