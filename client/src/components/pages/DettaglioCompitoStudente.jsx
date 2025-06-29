@@ -1,7 +1,6 @@
 import { useParams, useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import LoadingSpinner from "../utils/LoadingSpinner.jsx";
-import RispostaCompito from "../RispostaCompito.jsx";
 import { useAuth } from "../../AuthContext";
 import API from "../../API";
 
@@ -12,7 +11,6 @@ function DettaglioCompitoStudentePage() {
   const [compito, setCompito] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [compitoPerRisposta, setCompitoPerRisposta] = useState(null);
 
   useEffect(() => {
     const caricaCompito = async () => {
@@ -33,38 +31,12 @@ function DettaglioCompitoStudentePage() {
     }
   }, [id]);
 
-  // FUNZIONI PER LA RISPOSTA -------------------
+  // Naviga alla pagina di risposta
   const handleApriRisposta = (compito) => {
-    setCompitoPerRisposta(compito);
+    navigate(`/studente/compiti/${compito.id}/risposta`, {
+      state: { daDettaglio: true },
+    });
   };
-
-  const handleSalvaRisposta = async (testoRisposta) => {
-    try {
-      const result = await API.aggiornaRispostaCompito(
-        compitoPerRisposta.id,
-        testoRisposta
-      );
-
-      // aggiorna lo stato locale del compito con la nuova risposta
-      setCompito((prev) => ({
-        ...prev,
-        risposta: {
-          testo: testoRisposta,
-          aggiornato_il: result.aggiornato_il,
-          inviato_da: user,
-        },
-      }));
-
-      setCompitoPerRisposta(null);
-    } catch (error) {
-      throw error; // rilancia l'errore per gestirlo nel modale
-    }
-  };
-
-  const handleCancellaRisposta = () => {
-    setCompitoPerRisposta(null);
-  };
-  // ----------------------------------------------
 
   if (loading) return <LoadingSpinner />;
   if (error)
@@ -104,15 +76,6 @@ function DettaglioCompitoStudentePage() {
         utenteCorrente={user}
         onApriRisposta={handleApriRisposta}
       />
-
-      {/* modale per inserire/modificare la risposta */}
-      {compitoPerRisposta && (
-        <RispostaCompito
-          compito={compitoPerRisposta}
-          onSalva={handleSalvaRisposta}
-          onCancella={handleCancellaRisposta}
-        />
-      )}
     </div>
   );
 }

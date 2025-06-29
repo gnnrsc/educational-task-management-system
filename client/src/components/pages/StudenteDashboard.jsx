@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate } from "react-router";
 import ListaCompiti from "../ListaCompiti";
-import RispostaCompito from "../RispostaCompito";
 import LoadingSpinner from "../utils/LoadingSpinner";
 import { useAuth } from "../../AuthContext";
 import API from "../../API";
@@ -9,12 +8,9 @@ import API from "../../API";
 function StudenteDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
   
   const [compiti, setCompiti] = useState([]);
   const [loading, setLoading] = useState(true);
-  // compito attualmente selezionato per aggiungere la risposta dallo studente
-  const [compitoPerRisposta, setCompitoPerRisposta] = useState(null);
   const [filtroStato, setFiltroStato] = useState("tutti");
 
   useEffect(() => {
@@ -34,58 +30,12 @@ function StudenteDashboard() {
     caricaCompiti();
   }, [filtroStato]);
 
-  // Effect per gestire i parametri URL
-  useEffect(() => {
-    const modalParam = searchParams.get('modal');
-    const compitoIdParam = searchParams.get('compitoId');
-
-    if (modalParam === 'risposta' && compitoIdParam && compiti.length > 0) {
-      const compito = compiti.find(c => c.id === parseInt(compitoIdParam));
-      if (compito) {
-        setCompitoPerRisposta(compito);
-      }
-    }
-  }, [searchParams, compiti]);
-
-  // FUNZIONI PER LA RISPOSTA -------------------
+  // naviga alla pagina di risposta
   const handleApriRisposta = (compito) => {
-    setSearchParams({ modal: 'risposta', compitoId: compito.id.toString() });
+    navigate(`/studente/compiti/${compito.id}/risposta`, { 
+      state: { daDettaglio: false } 
+    });
   };
-
-  const handleSalvaRisposta = async (testoRisposta) => {
-    try {
-      const result = await API.aggiornaRispostaCompito(compitoPerRisposta.id, testoRisposta);
-
-      // aggiorna lo stato locale del compito con la nuova risposta
-      setCompiti((prev) =>
-        prev.map((c) =>
-          c.id === compitoPerRisposta.id
-            ? {
-                ...c,
-                risposta: {
-                  testo: testoRisposta,
-                  aggiornato_il: result.aggiornato_il,
-                  inviato_da: user,
-                },
-              }
-            : c
-        )
-      );
-
-      // chiude il modale e pulisce l'URL
-      setCompitoPerRisposta(null);
-      setSearchParams({});
-    } catch (error) {
-      throw error; // rilancia l'errore per gestirlo nel modale
-    }
-  };
-
-  const handleCancellaRisposta = () => {
-    setCompitoPerRisposta(null);
-    setSearchParams({});
-  };
-
-  // ----------------------------------------------
 
   // cambia pagina al dettaglio del compito
   const handleApriDettaglio = (compitoId) => {
@@ -171,15 +121,6 @@ function StudenteDashboard() {
           </div>
         </div>
       </div>
-
-      {/* modale per inserire/modificare la risposta */}
-      {compitoPerRisposta && (
-        <RispostaCompito
-          compito={compitoPerRisposta}
-          onSalva={handleSalvaRisposta}
-          onCancella={handleCancellaRisposta}
-        />
-      )}
     </div>
   );
 }
