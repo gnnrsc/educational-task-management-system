@@ -22,7 +22,7 @@ function ValutazioneCompito() {
   useEffect(() => {
     const caricaCompito = async () => {
       try {
-        const response = await API.ottieniDettaglioCompitoValutazione(id);
+        const response = await API.ottieniCompitoDettaglioDocente(id);
         if (response?.stato === 'chiuso') {
           navigate(`/docente/compiti/${id}`, { 
             replace: true,

@@ -256,30 +256,4 @@ router.get(
   }
 );
 
-// GET: /compiti/:id/valutazione - Ottenere i dati del compito per la valutazione (solo per docenti)
-router.get(
-  "/compiti/:id/valutazione",
-  [param("id").isInt({ min: 1 }).withMessage("ID compito non valido")],
-  handleValidationErrors,
-  async (req, res) => {
-    try {
-      const compitoId = parseInt(req.params.id);
-      const docenteId = req.user.id;
-
-      const compito = await dao.ottieniDettaglioCompitoValutazione(compitoId, docenteId);
-
-      if (!compito) {
-        return res.status(404).json({ error: "Compito non trovato" });
-      }
-
-      res.json(compito);
-      
-    } catch (error) {
-      console.error("Errore GET compito per valutazione:", error);
-      res.status(500).json({ error: "Errore server" });
-    }
-  }
-);
-
-
 export default router;
