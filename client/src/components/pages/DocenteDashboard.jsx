@@ -1,13 +1,17 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from 'react-router';
+import { useState, useEffect, use } from "react";
+import { useNavigate, useSearchParams, useLocation} from 'react-router';
 import CreaCompito from "../CreaCompito";
 import ListaCompiti from "../ListaCompiti";
 import LoadingSpinner from "../utils/LoadingSpinner";
+import ConfermaSuccesso from "../utils/ConfermaSuccesso";
 import API from "../../API";
+
 
 function DocenteDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [conferma, setConferma] = useState({});
   
   // stati principali per caricamento compiti e gestione dei caricamenti
   const [compiti, setCompiti] = useState([]);
@@ -54,6 +58,24 @@ function DocenteDashboard() {
       }
     }
   }, []);
+  //gestione della conferma dopo le operazioni di assegnazione da DettaglioCompito e valutazione compito
+  useEffect(() => {
+  if(location.state?.conferma) {
+    const messaggi = {
+      'compito-assegnato': 'Compito assegnato con successo ad un nuovo gruppo!',
+      'valutazione-completata': location.state.messaggio || 'Valutazione completata con successo!'
+    };
+
+    setConferma({
+      mostra: true,
+      tipo: location.state.conferma,
+      messaggio: messaggi[location.state.conferma] || 'Operazione completata!'
+    });
+    
+    // rimuove lo stato per evitare che si ripeta alla navigazione
+    navigate(location.pathname, { replace: true, state: {} });
+  }
+}, [location.state, location.pathname]);
 
   // GESTORI PER CAMBIARE URL
   
@@ -99,6 +121,17 @@ function DocenteDashboard() {
   
   const handleCompitoCreato = (nuovoCompito) => {
     setCompiti(prev => [nuovoCompito, ...prev]);
+    // controlla se era un'assegnazione o una creazione
+    const eraAssegnazione = compitoDatiIniziali !== null;
+    
+    // Mostra la conferma appropriata
+    setConferma({
+      mostra: true,
+      tipo: eraAssegnazione ? 'compito-assegnato' : 'compito-creato',
+      messaggio: eraAssegnazione 
+        ? `Compito assegnato con successo ad un nuovo gruppo!`
+        : `Compito creato con successo!`
+    });
     chiudiTuttiIModali();
   };
 
@@ -176,6 +209,10 @@ function DocenteDashboard() {
           </div>
         </div>
       )}
+      <ConfermaSuccesso
+        {...conferma}
+        onChiudi={() => setConferma({})}
+      />
     </div>
   );
 }

@@ -54,7 +54,9 @@ function DettaglioCompitoPage() {
   
   const handleCompitoAssegnato = (nuovoCompito) => {
     chiudiModali();
-    navigate(`/docente/compiti`);
+    navigate(`/docente/compiti`,{
+      state:{conferma:'compito-assegnato',}
+    });
   };
 
   if (loading) return <LoadingSpinner />;

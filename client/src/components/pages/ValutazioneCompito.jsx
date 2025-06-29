@@ -68,7 +68,7 @@ function ValutazioneCompito() {
       // naviga alla pagina appropriata in base a dove arrivava l'utente
       const targetPath = daDettaglio ? `/docente/compiti/${id}` : '/docente/compiti';
       navigate(targetPath, { 
-        state: { successMessage: `Compito valutato con successo! Punteggio: ${punteggioNumero}/30` }
+        state: { conferma: 'valutazione-completata', messaggio: `Compito valutato con successo! Punteggio: ${punteggioNumero}/30` }
       });
     } catch (error) {
       setErrors({ general: error.message || "Errore nel salvataggio. Riprova." });
