@@ -3,6 +3,8 @@ import { useAuth } from "../AuthContext";
 
 function ListaCompiti({
   compiti, 
+  filtroStato, // ricevuto dal componente padre (studente)
+  onFiltroChange, // callback per notificare il padre del cambio filtro (studente)
   onApriDettaglio, 
   onApriValutazione, // per docente
   onAssegnaAltroGruppo, // per docente
@@ -10,16 +12,20 @@ function ListaCompiti({
 }) {
 
   const { user } = useAuth();
-
-  const [filtroStato, setFiltroStato] = useState("tutti");
   
-  // Stato per gestire il menu a tendina per copiare il compito
+  // stato per gestire il menu a tendina per copiare il compito
   const [menuApertoId, setMenuApertoId] = useState(null);
 
+  // se il docente non passa filtroStato, usa uno stato interno (altrimenti studente usa filtroStato)
+  const [filtroStatoInterno, setFiltroStatoInterno] = useState("tutti");
+  
+  // determina quale filtro usare: quello passato dal padre (studente) o quello interno (docente)
+  const filtroAttivo = filtroStato !== undefined ? filtroStato : filtroStatoInterno;
+
   // filtra i compiti in base al filtro selezionato
-  const compitiFiltrati = filtroStato === "tutti" 
+  const compitiFiltrati = filtroAttivo === "tutti" 
     ? compiti 
-    : compiti.filter(compito => compito.stato === filtroStato);
+    : compiti.filter(compito => compito.stato === filtroAttivo);
 
   useEffect(() => {
     const handleClickFuori = (e) => {
@@ -32,10 +38,16 @@ function ListaCompiti({
   }, []);
 
   const handleCambioFiltro = (nuovoFiltro) => {
-    setFiltroStato(nuovoFiltro);
+    if (onFiltroChange) {
+      // se il componente padre gestisce il filtro, notificalo (studente)
+      onFiltroChange(nuovoFiltro);
+    } else {
+      // altrimenti usa lo stato interno (per il docente)
+      setFiltroStatoInterno(nuovoFiltro);
+    }
   };
 
-  // Renderizzazione azioni di default per studente
+  // renderizzazione azioni di default per studente
   const renderAzioniStudente = (c) => (
     <div className="d-inline-flex align-items-center gap-2">
       {c.stato === "aperto" && (
@@ -62,7 +74,7 @@ function ListaCompiti({
     </div>
   );
 
-  // Renderizzazione azioni di default per docente
+  // renderizzazione azioni di default per docente
   const renderAzioniDocente = (c) => (
     <div className="d-inline-flex align-items-center gap-2 justify-content-end">
       {c.ha_risposta && c.stato !== "chiuso" && (
@@ -128,7 +140,7 @@ function ListaCompiti({
               key={f}
               onClick={() => handleCambioFiltro(f)}
               className={`btn btn-sm me-1 ${
-                filtroStato === f
+                filtroAttivo === f
                   ? "btn-outline-primary active"
                   : "btn-outline-secondary"
               }`}
@@ -176,9 +188,9 @@ function ListaCompiti({
                     </span>
                     <strong>Nessun compito trovato</strong>
                     <small>
-                      {filtroStato === "tutti"
+                      {filtroAttivo === "tutti"
                         ? "Non ci sono compiti da visualizzare"
-                        : `Non ci sono compiti con stato "${filtroStato}"`}
+                        : `Non ci sono compiti con stato "${filtroAttivo}"`}
                     </small>
                   </div>
                 </td>

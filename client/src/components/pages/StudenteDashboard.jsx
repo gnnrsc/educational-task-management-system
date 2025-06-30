@@ -13,7 +13,7 @@ function StudenteDashboard() {
   
   const [compiti, setCompiti] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filtroStato, setFiltroStato] = useState("tutti");
+  const [filtroStato, setFiltroStato] = useState("aperto");
   const [conferma, setConferma] = useState({});
 
   useEffect(() => {
