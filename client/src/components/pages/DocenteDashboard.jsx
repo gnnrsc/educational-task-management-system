@@ -58,24 +58,25 @@ function DocenteDashboard() {
       }
     }
   }, []);
+
   //gestione della conferma dopo le operazioni di assegnazione da DettaglioCompito e valutazione compito
   useEffect(() => {
-  if(location.state?.conferma) {
-    const messaggi = {
-      'compito-assegnato': 'Compito assegnato con successo ad un nuovo gruppo!',
-      'valutazione-completata': location.state.messaggio || 'Valutazione completata con successo!'
-    };
+    if(location.state?.conferma) {
+      const messaggi = {
+        'compito-assegnato': 'Compito assegnato con successo ad un nuovo gruppo!',
+        'valutazione-completata': location.state.messaggio || 'Valutazione completata con successo!'
+      };
 
-    setConferma({
-      mostra: true,
-      tipo: location.state.conferma,
-      messaggio: messaggi[location.state.conferma] || 'Operazione completata!'
-    });
-    
-    // rimuove lo stato per evitare che si ripeta alla navigazione
-    navigate(location.pathname, { replace: true, state: {} });
-  }
-}, [location.state, location.pathname]);
+      setConferma({
+        mostra: true,
+        tipo: location.state.conferma,
+        messaggio: messaggi[location.state.conferma] || 'Operazione completata!'
+      });
+      
+      // rimuove lo stato per evitare che si ripeta alla navigazione
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname]);
 
   // GESTORI PER CAMBIARE URL
   

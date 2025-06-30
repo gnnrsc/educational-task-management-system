@@ -1,17 +1,20 @@
-import { useParams, useNavigate, useSearchParams } from 'react-router';
+import { useParams, useNavigate, useSearchParams, useLocation} from 'react-router';
 import { useState, useEffect } from 'react';
 import LoadingSpinner from '../utils/LoadingSpinner.jsx';
+import ConfermaSuccesso from '../utils/ConfermaSuccesso.jsx';
 import CreaCompito from '../CreaCompito.jsx';
 import API from '../../API';
 
 function DettaglioCompitoPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   
   const [compito, setCompito] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [conferma, setConferma] = useState({});
 
   // gestione stati modali tramite URL params
   const modalParam = searchParams.get('modal');
@@ -36,6 +39,20 @@ function DettaglioCompitoPage() {
       caricaCompito();
     }
   }, [id]);
+
+  //gestione della conferma dopo la valutazione compito
+  useEffect(() => {
+  if(location.state?.conferma === 'valutazione-completata') {
+    setConferma({
+      mostra: true,
+      tipo: 'valutazione-completata',
+      messaggio: location.state.messaggio || 'Valutazione completata con successo!'
+    });
+    
+    // rimuove lo stato per evitare che si ripeta alla navigazione
+    navigate(location.pathname, { replace: true, state: {} });
+  }
+  }, [location.state, location.pathname]);
   
   const apriValutazione = () => {
     navigate(`/docente/compiti/${id}/valutazione`, {
@@ -123,12 +140,24 @@ function DettaglioCompitoPage() {
           </div>
         </div>
       )}
+      <ConfermaSuccesso
+        {...conferma}
+        onChiudi={() => setConferma({})}
+      />
     </div>
   );
 }
 
 // Componente distinto per il contenuto del compito
 function DettaglioCompito({ compito, onApriValutazione, onAssegnaAltroGruppo }) {
+
+  const ottieniColoreSfondoMedia = (media) => {
+    if (media === null || media === undefined) return "bg-secondary";
+    if (media >= 24) return "bg-success";
+    if (media >= 18) return "bg-warning";
+    return "bg-danger";
+  };
+  
   return (
     <div className="card">
       <div className="card-body p-3">
@@ -137,9 +166,7 @@ function DettaglioCompito({ compito, onApriValutazione, onAssegnaAltroGruppo }) 
             <div className="d-flex align-items-center gap-2 mb-2">
               <strong className="text-muted" style={{ fontSize: '0.9rem' }}>Traccia:</strong>
               <span
-                className={`badge bg-${
-                  compito.stato === "aperto" ? "success" : "secondary"
-                } ms-auto`}
+                className={`badge bg-${compito.stato === "aperto" ? "success" : "secondary"} ms-auto`}
               >
                 {compito.stato === "aperto" ? "🟢 Aperto" : "🔴 Chiuso"}
               </span>
@@ -172,9 +199,9 @@ function DettaglioCompito({ compito, onApriValutazione, onAssegnaAltroGruppo }) 
                 )}
               </small>
             </div>
-            
+
             <div style={{ fontSize: '0.95rem' }} className="flex-grow-1">{compito.risposta.testo}</div>
-            
+
             <div className="d-flex justify-content-end mt-auto pt-2">
               {compito.stato !== "chiuso" && (
                 <>
@@ -200,9 +227,10 @@ function DettaglioCompito({ compito, onApriValutazione, onAssegnaAltroGruppo }) 
                   )}
                 </>
               )}
-              
+
               {compito.stato === "chiuso" && compito.punteggio !== null && compito.punteggio !== undefined && (
-                <span className="badge bg-secondary">
+
+                <span className={`badge fs-6 ${ottieniColoreSfondoMedia(compito.punteggio)}`}>
                   Punteggio finale: {compito.punteggio}/30
                 </span>
               )}
@@ -222,7 +250,7 @@ function DettaglioCompito({ compito, onApriValutazione, onAssegnaAltroGruppo }) 
         )}
 
         <div className="d-flex justify-content-end pt-2 border-top">
-          <button 
+          <button
             className="btn btn-outline-secondary btn-sm"
             onClick={onAssegnaAltroGruppo}
           >
