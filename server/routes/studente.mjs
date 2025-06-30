@@ -47,7 +47,7 @@ router.get(
           chiuso_il: compito.chiuso_il || null,
           docente: compito.docente,
           gruppo: compito.gruppo,
-          risposta: compito.risposta,
+          ha_risposta: compito.ha_risposta,
           punteggio: compito.punteggio || null,
           numero_studenti: compito.numero_studenti,
         })),

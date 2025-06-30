@@ -57,34 +57,16 @@ export const ottieniCompitiStudente = (studenteId, stato = null) => {
       SELECT 
         c.*,
         u.nome as docente_nome, u.cognome as docente_cognome,
-        rc.testo_risposta, rc.aggiornato_il as risposta_aggiornato_il, rc.inviato_da as risposta_inviato_da,
-        ur.nome as risposta_nome, ur.cognome as risposta_cognome,
+        CASE WHEN rc.id IS NOT NULL THEN 1 ELSE 0 END as ha_risposta,
         us.id as gruppo_studente_id, us.nome as gruppo_studente_nome, us.cognome as gruppo_studente_cognome
       FROM assegnazioni_compiti ac
       JOIN compiti c ON ac.compito_id = c.id
       JOIN utenti u ON c.creato_da = u.id
       LEFT JOIN risposte_compiti rc ON c.id = rc.compito_id
-      LEFT JOIN utenti ur ON rc.inviato_da = ur.id
       LEFT JOIN assegnazioni_compiti ac2 ON ac2.compito_id = c.id
       LEFT JOIN utenti us ON ac2.studente_id = us.id
       WHERE ac.studente_id = ?
     `;
-    /*esempio con studente 3:
-    # Tabella delle tracce con risposte di gruppo:
-# +----+----------------------------+--------+------------------+-----------+---------------------+---------------------+---------------+------------------+ Testo Risp.     | Risp. Aggior.       | Inviato da        | Gruppo Studente     |
-# | ID | Traccia                    | Stato  | Numero Studenti  | Punteggio | Creato il           | Chiuso il           | Docente       |                  |                 |                     |                   |                     |
-# +----+----------------------------+--------+------------------+-----------+---------------------+---------------------+---------------+------------------+-----------------+---------------------+-------------------+---------------------+
-# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Alice Rossi      |                 |                     |                   |                     |
-# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Marco Bianchi    |                 |                     |                   |                     |
-# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Giulia Verdi     |                 |                     |                   |                     |
-# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Andrea Neri      |                 |                     |                   |                     |
-# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Francesca Gialli |                 |                     |                   |                     |
-# | 1  | Spiega i principali rich...| aperto | 6                |           | 2025-06-15 12:00:00 |                     | De Russis L.  | Simone Mazza     |                 |                     |                   |                     |
-# | 2  | Crea una SPA con React...  | chiuso | 2                | 28        | 2025-05-30 10:00:00 | 2025-06-07 10:00:00 | De Russis L.  | Alice Rossi      | La SPA è un'a...| 2025-06-01 15:00:00 | Marco Bianchi     |                     |
-# | 2  | Crea una SPA con React...  | chiuso | 2                | 28        | 2025-05-30 10:00:00 | 2025-06-07 10:00:00 | De Russis L.  | Marco Bianchi    | La SPA è un'a...| 2025-06-01 15:00:00 | Marco Bianchi     |                     |
-# +----+----------------------------+--------+------------------+-----------+---------------------+---------------------+---------------+------------------+-----------------+---------------------+-------------------+---------------------+
-
-    */
 
     const params = [studenteId];
 
@@ -117,15 +99,7 @@ export const ottieniCompitiStudente = (studenteId, stato = null) => {
             punteggio: row.punteggio,
             creato_il: row.creato_il,
             chiuso_il: row.chiuso_il,
-            risposta: row.testo_risposta ? {
-              testo: row.testo_risposta,
-              aggiornato_il: row.risposta_aggiornato_il,
-              inviato_da: row.risposta_inviato_da ? {
-                id: row.risposta_inviato_da,
-                nome: row.risposta_nome,
-                cognome: row.risposta_cognome
-              } : null
-            } : null,
+            ha_risposta: Boolean(row.ha_risposta),
             docente: {
               id: row.creato_da,
               nome: row.docente_nome,

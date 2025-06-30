@@ -41,14 +41,14 @@ function ListaCompiti({
       {c.stato === "aperto" && (
         <button
           className={`btn btn-sm ${
-            c.risposta 
+            c.ha_risposta 
               ? "btn-outline-warning"
               : "btn-outline-success"
           }`}
-          title={c.risposta ? "Modifica risposta" : "Inserisci risposta"}
+          title={c.ha_risposta ? "Modifica risposta" : "Inserisci risposta"}
           onClick={() => onApriRisposta(c)}
         >
-          {c.risposta ? "✏️ Modifica" : "📝 Rispondi"}
+          {c.ha_risposta ? "✏️ Modifica" : "📝 Rispondi"}
         </button>
       )}
 
