@@ -32,19 +32,19 @@ function StepSelezioneStudenti({
     <div className={`modal-step ${direzioneSlide} ${!visibile ? 'step-hidden' : ''}`}>
       <Form>
         {/* Riepilogo della domanda */}
-        <div className="bg-light rounded p-2 mb-3">
-          <small className="text-muted d-block mb-1"><strong>📝 Traccia:</strong></small>
-          <small style={{ fontSize: '0.8rem' }}>
-              {domanda.length > 80 ? `${domanda.substring(0, 80)}...` : domanda}
+        <div className="bg-light rounded p-1 mb-1">
+          <small className="text-muted d-block mb-0"><strong>📝 Traccia:</strong></small>
+          <small style={{ fontSize: '0.8rem', lineHeight: '1.3' }}>
+              {domanda.length > 200 ? `${domanda.substring(0, 200)}...` : domanda}
           </small>
         </div>
 
         {/* Avviso per gli studenti evidenziati - limite collaborazioni */}
         <div className="warning-alert-placeholder">
           {studentiEvidenziati.size > 0 ? (
-              <div className="alert alert-warning py-1 mb-0 w-100">
-              <small style={{ fontSize: '0.75rem' }}>
-                  <strong>⚠️</strong> Gli studenti evidenziati in rosso
+              <div className="alert alert-warning py-1 mb-1 w-100">
+              <small style={{ fontSize: '0.75rem', lineHeight: '1.3' }}>
+                  <strong>⚠️</strong> Gli studenti evidenziati in rosso,
                   hanno già partecipato ad almeno 2 compiti precedenti con
                   uno degli studenti selezionati e non possono essere
                   aggiunti al gruppo.
@@ -55,8 +55,8 @@ function StepSelezioneStudenti({
           )}
         </div>
         
-        <Form.Group className="mb-3">
-          <div className="d-flex justify-content-between align-items-center mb-2">
+        <Form.Group className="mb-1">
+          <div className="d-flex justify-content-between align-items-center mb-1">
             <h6 className="fw-bold mb-0">👥 Seleziona gli studenti per il gruppo</h6>
             <Button
               size="sm"
@@ -91,8 +91,8 @@ function StepSelezioneStudenti({
         />
 
         {errore && (
-          <Alert variant="danger" className="py-2 mt-2">
-            <small>{errore}</small>
+          <Alert variant="danger" className="py-1 mt-1">
+            <small style={{ fontSize: '0.8rem' }}>{errore}</small>
           </Alert>
         )}
       </Form>
@@ -104,8 +104,8 @@ function ContatoreSelezionati({
   numeroSelezionati, selezioneMassima, selezioneMinima, gruppoValido
 }) {
   return (
-    <div className="mb-3">
-      <small className="text-muted">
+    <div className="mb-1">
+      <small className="text-muted" style={{ fontSize: '0.8rem' }}>
         Selezionati: <strong className={gruppoValido ? 'text-success' : 'text-warning'}>
           {numeroSelezionati}
         </strong>/{selezioneMassima}
@@ -123,14 +123,14 @@ function GrigliaStudenti({
 }) {
   if (caricamentoStudenti) {
     return (
-      <div className="text-center py-3">
+      <div className="text-center py-2">
         <CaricamentoSpinner variant="inline" />
       </div>
     );
   }
 
   return (
-    <div className="student-grid">
+    <div className="student-grid" style={{ gap: '0.5rem' }}>
       {studenti.map((studente) => {
         const evidenziato = studentiEvidenziati.has(studente.id) && 
                            !studentiSelezionatiIds.includes(studente.id);
@@ -189,7 +189,7 @@ function PulsanteStudente({ studente, selezionato, evidenziato, invioInCorso, on
 function RiepilogoStudentiSelezionati({ studentiSelezionati }) {
   if (studentiSelezionati.length === 0) {
     return (
-      <div className="mt-2 p-1 bg-light rounded text-center">
+      <div className="mt-1 p-1 bg-light rounded text-center">
         <small className="text-muted" style={{ fontSize: '0.75rem' }}>
           <strong>👥</strong> Nessuno studente selezionato
         </small>
@@ -202,7 +202,7 @@ function RiepilogoStudentiSelezionati({ studentiSelezionati }) {
   ).join(", ");
 
   return (
-    <div className="mt-2 p-1 bg-primary bg-opacity-10 rounded">
+    <div className="mt-1 p-1 bg-primary bg-opacity-10 rounded">
       <small className="text-muted d-block" style={{ fontSize: '0.75rem' }}>
         <strong>👥 Gruppo selezionato:</strong> {nomiSelezionati}
       </small>
