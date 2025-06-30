@@ -84,16 +84,12 @@ function StudenteDashboard() {
         onApriRisposta={handleApriRisposta}
       />
 
-      <div
-        className="fixed-bottom d-flex justify-content-center mb-3"
-        style={{ pointerEvents: "none" }} // evita click non voluti sotto
-      >
+      <div className="d-flex justify-content-center mt-4 mb-3">
         <div
           className="card border-top shadow-sm px-3 py-2"
           style={{
             minWidth: "280px",
-            width: "82%",
-            pointerEvents: "auto",
+            width: "98%",
           }}
         >
           <div className="row text-center small">
@@ -107,21 +103,9 @@ function StudenteDashboard() {
             </div>
             <div className="col">
               <div className="d-flex flex-column">
-                <span className="fw-semibold text-success">
-                  {
-                    compiti.filter(
-                      (c) => c.risposta?.inviato_da?.id === user.id
-                    ).length
-                  }
-                </span>
-                <small className="text-muted">Risposte inviate</small>
-              </div>
-            </div>
-            <div className="col">
-              <div className="d-flex flex-column">
                 <span className="fw-semibold text-warning">
                   {
-                    compiti.filter((c) => c.stato === "aperto" && !c.risposta)
+                    compiti.filter((c) => c.stato === "aperto" && !c.ha_risposta)
                       .length
                   }
                 </span>
@@ -139,10 +123,7 @@ function StudenteDashboard() {
           </div>
         </div>
       </div>
-      <ConfermaSuccesso
-        {...conferma}
-        onChiudi={() => setConferma({})}
-      />
+      <ConfermaSuccesso {...conferma} onChiudi={() => setConferma({})} />
     </div>
   );
 }
