@@ -1,16 +1,20 @@
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, useLocation } from "react-router";
 import { useState, useEffect } from "react";
 import LoadingSpinner from "../utils/LoadingSpinner.jsx";
+import ConfermaSuccesso from "../utils/ConfermaSuccesso.jsx";
 import { useAuth } from "../../AuthContext";
 import API from "../../API";
 
 function DettaglioCompitoStudentePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { user } = useAuth();
   const [compito, setCompito] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [conferma, setConferma] = useState({});
 
   useEffect(() => {
     const caricaCompito = async () => {
@@ -30,6 +34,20 @@ function DettaglioCompitoStudentePage() {
       caricaCompito();
     }
   }, [id]);
+
+  //gestione della conferma dopo la risposta del compito
+  useEffect(() => {
+  if(location.state?.conferma) {
+    setConferma({
+      mostra: true,
+      tipo: location.state.conferma,
+      messaggio: location.state.messaggio || 'Risposta completata con successo!'
+    });
+    
+    // rimuove lo stato per evitare che si ripeta alla navigazione
+    navigate(location.pathname, { replace: true, state: {} });
+  }
+  }, [location.state, location.pathname]);
 
   // Naviga alla pagina di risposta
   const handleApriRisposta = (compito) => {
@@ -75,6 +93,10 @@ function DettaglioCompitoStudentePage() {
         compito={compito}
         utenteCorrente={user}
         onApriRisposta={handleApriRisposta}
+      />
+      <ConfermaSuccesso
+        {...conferma}
+        onChiudi={() => setConferma({})}
       />
     </div>
   );

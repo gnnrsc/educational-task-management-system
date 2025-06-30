@@ -33,8 +33,9 @@ function ConfermaSuccesso({
       'compito-creato': { icona: '✅', titolo: 'Compito Creato!', colore: 'success' },
       'compito-assegnato': { icona: '📤', titolo: 'Compito Assegnato!', colore: 'success' },
       'valutazione-completata': { icona: '📝', titolo: 'Valutazione Completata!', colore: 'success' },
-      'errore': { icona: '❌', titolo: 'Errore!', colore: 'danger' },
-      'errore-generico': { icona: '⚠️', titolo: 'Si è verificato un errore!', colore: 'danger' },
+      'risposta-inviata': { icona: '📬', titolo: 'Risposta Inviata!', colore: 'success' },
+      'risposta-modificata': { icona: '✏️', titolo: 'Risposta Modificata!', colore: 'success' },
+      'errore': { icona: '❌', titolo: 'Si è verificato un errore!', colore: 'danger' },
       'successo': { icona: '✅', titolo: 'Completato!', colore: 'success' }
     };
     

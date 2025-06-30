@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import ListaCompiti from "../ListaCompiti";
 import LoadingSpinner from "../utils/LoadingSpinner";
+import ConfermaSuccesso from "../utils/ConfermaSuccesso";
 import { useAuth } from "../../AuthContext";
 import API from "../../API";
 
 function StudenteDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   
   const [compiti, setCompiti] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroStato, setFiltroStato] = useState("tutti");
+  const [conferma, setConferma] = useState({});
 
   useEffect(() => {
     const caricaCompiti = async () => {
@@ -29,6 +32,21 @@ function StudenteDashboard() {
 
     caricaCompiti();
   }, [filtroStato]);
+
+  //gestione della conferma dopo le operazioni di assegnazione da DettaglioCompito e valutazione compito
+  useEffect(() => {
+    if(location.state?.conferma) {
+
+      setConferma({
+        mostra: true,
+        tipo: location.state.conferma,
+        messaggio: location.state.messaggio || 'Operazione completata!'
+      });
+      
+      // rimuove lo stato per evitare che si ripeta alla navigazione
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname]);
 
   // naviga alla pagina di risposta
   const handleApriRisposta = (compito) => {
@@ -121,6 +139,10 @@ function StudenteDashboard() {
           </div>
         </div>
       </div>
+      <ConfermaSuccesso
+        {...conferma}
+        onChiudi={() => setConferma({})}
+      />
     </div>
   );
 }

@@ -37,8 +37,7 @@ function RispostaCompito() {
             replace: true,
             state: { warningMessage: "Il compito è chiuso e non può essere più modificato." }
           });
-          // Non impostare loading a false per evitare rendering
-          return;
+          return; // il componente verrà smontato
         }
         
         setCompito(response);
@@ -59,7 +58,7 @@ function RispostaCompito() {
     if (id) {
       caricaCompito();
     }
-  }, [id, navigate]);
+  }, [id]);
 
   const validaForm = () => {
     const newErrors = {};
@@ -85,7 +84,16 @@ function RispostaCompito() {
     
     try {
       const result = await API.aggiornaRispostaCompito(compito.id, testoRisposta.trim());
-      navigate("/studente/compiti");
+
+      // naviga alla pagina appropriata in base a dove arrivava l'utente
+      const targetPath = daDettaglio ? `/studente/compiti/${id}` : '/studente/compiti';
+
+      navigate(targetPath, { 
+        state: { 
+          conferma: result.modificato ? 'risposta-modificata' : 'risposta-inviata',
+          messaggio: result.modificato ? 'Risposta modificata con successo!' : 'Risposta inviata con successo!'
+        }
+      });
     } catch (error) {
       console.error("Errore nel salvataggio:", error);
       
