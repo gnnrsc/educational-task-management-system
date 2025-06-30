@@ -18,88 +18,153 @@ export const ottieniListaStudenti = () => {
 // Funzione per creare un nuovo compito ed assegnarlo agli studenti
 export const creaCompito = (traccia, studentiIds, creatoDa) => {
   return new Promise((resolve, reject) => {
-    const stato = "aperto";
-    const numeroStudenti = studentiIds.length;
-    const creatoIl = dayjs().format('YYYY-MM-DD HH:mm:ss');
-
-    const sql = `
-      INSERT INTO compiti (traccia, creato_da, stato, numero_studenti, creato_il)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    db.run(
-      sql,
-      [traccia, creatoDa, stato, numeroStudenti, creatoIl],
-      function (err) {
+    db.serialize(() => {
+      db.run("BEGIN TRANSACTION", (err) => {
         if (err) return reject(err);
-        const compitoId = this.lastID;
 
-        assegnaStudenti(compitoId, studentiIds)
-          .then(() => {
-            // aspetta anche aggiornaCollaborazioni prima di risolvere
-            return aggiornaCollaborazioni(studentiIds, creatoDa);
-          })
-          .then(() => {
-            // Risolvi solo dopo che tutte le operazioni sono completate
-            resolve({ id: compitoId, creato_il: creatoIl });
-          })
-          .catch(reject);
-      }
-    );
-  });
-};
+        const stato = "aperto";
+        const numeroStudenti = studentiIds.length;
+        const creatoIl = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
-//Funzione per assegnare studenti a un compito - usata in creaCompito
-export const assegnaStudenti = (compitoId, studentiIds) => {
-  const sql =
-    "INSERT INTO assegnazioni_compiti (compito_id, studente_id) VALUES (?, ?)";
-  const promesse = studentiIds.map((id) => {
-    return new Promise((res, rej) => {
-      db.run(sql, [compitoId, id], (err) => {
-        if (err) rej(err);
-        else res();
+        const sql = `
+          INSERT INTO compiti (traccia, creato_da, stato, numero_studenti, creato_il)
+          VALUES (?, ?, ?, ?, ?)
+        `;
+
+        db.run(sql, [traccia, creatoDa, stato, numeroStudenti, creatoIl], function (err) {
+          if (err) {
+            return db.run("ROLLBACK", () => reject(err));
+          }
+
+          const compitoId = this.lastID;
+
+          // esegue tutte le operazioni nella stessa transazione
+          assegnaStudenti(compitoId, studentiIds)
+            .then(() => aggiornaCollaborazioni(studentiIds, creatoDa))
+            .then(() => {
+              // se tutto va bene, commit della transazione
+              db.run("COMMIT", (err) => {
+                if (err) {
+                  return db.run("ROLLBACK", () => reject(err));
+                }
+                resolve({ id: compitoId, creato_il: creatoIl });
+              });
+            })
+            .catch((error) => {
+              // se qualcosa va male, rollback di TUTTO
+              db.run("ROLLBACK", () => reject(error));
+            });
+        });
       });
     });
   });
-  return Promise.all(promesse);
 };
 
-//Funzione per aggiornare il conteggio di collaborazioni tra studenti per quel docente - usata in creaCompito
-export const aggiornaCollaborazioni = (studentiIds, docenteId) => {
-  const tasks = [];
+// Funzione per assegnare studenti a un compito - usata in creaCompito
+const assegnaStudenti = (compitoId, studentiIds) => {
+  return new Promise((resolve, reject) => {
+    if (!studentiIds || studentiIds.length === 0) {
+      return resolve();
+    }
 
-  //per ogni combinazione di coppia di studenti del gruppo, aggiungi o aggiorna il conteggio
-  for (let i = 0; i < studentiIds.length; i++) {
-    for (let j = i + 1; j < studentiIds.length; j++) {
-      const s1 = Math.min(studentiIds[i], studentiIds[j]);
-      const s2 = Math.max(studentiIds[i], studentiIds[j]);
+    const sql = "INSERT INTO assegnazioni_compiti (compito_id, studente_id) VALUES (?, ?)";
+    let completati = 0;
+    let erroreOccorso = false;
 
-      tasks.push(
-        new Promise((res, rej) => {
-          const checkSql =
-            "SELECT numero_collaborazioni FROM collaborazioni_studenti WHERE studente1_id = ? AND studente2_id = ? AND docente_id = ?";
-          db.get(checkSql, [s1, s2, docenteId], (err, row) => {
-            if (err) return rej(err);
+    studentiIds.forEach((id) => {
+      if (erroreOccorso) return;
 
-            if (row) {
-              const updateSql =
-                "UPDATE collaborazioni_studenti SET numero_collaborazioni = numero_collaborazioni + 1 WHERE studente1_id = ? AND studente2_id = ? AND docente_id = ?";
-              db.run(updateSql, [s1, s2, docenteId], (err) =>
-                err ? rej(err) : res()
-              );
-            } else {
-              const insertSql =
-                "INSERT INTO collaborazioni_studenti (studente1_id, studente2_id, docente_id, numero_collaborazioni) VALUES (?, ?, ?, 1)";
-              db.run(insertSql, [s1, s2, docenteId], (err) =>
-                err ? rej(err) : res()
-              );
+      db.run(sql, [compitoId, id], (err) => {
+        if (err && !erroreOccorso) {
+          erroreOccorso = true;
+          return reject(new Error(`Errore nell'assegnazione dello studente ${id}: ${err.message}`));
+        }
+
+        completati++;
+        if (completati === studentiIds.length && !erroreOccorso) {
+          resolve();
+        }
+      });
+    });
+  });
+};
+
+// funzione per aggiornare il conteggio delle collaborazioni tra studenti per quel docente - usata in creaCompito
+const aggiornaCollaborazioni = (studentiIds, docenteId) => {
+  return new Promise((resolve, reject) => {
+    if (!studentiIds || studentiIds.length < 2) {
+      return resolve();
+    }
+
+    const coppie = [];
+    
+    // genera tutte le coppie
+    for (let i = 0; i < studentiIds.length; i++) {
+      for (let j = i + 1; j < studentiIds.length; j++) {
+        const s1 = Math.min(studentiIds[i], studentiIds[j]);
+        const s2 = Math.max(studentiIds[i], studentiIds[j]);
+        coppie.push({ s1, s2 });
+      }
+    }
+
+    let completati = 0;
+    let erroreOccorso = false;
+
+    coppie.forEach(({ s1, s2 }) => {
+      if (erroreOccorso) return;
+
+      const checkSql = `
+        SELECT numero_collaborazioni 
+        FROM collaborazioni_studenti 
+        WHERE studente1_id = ? AND studente2_id = ? AND docente_id = ?
+      `;
+      
+      db.get(checkSql, [s1, s2, docenteId], (err, row) => {
+        if (err && !erroreOccorso) {
+          erroreOccorso = true;
+          return reject(new Error(`Errore nel controllo collaborazioni ${s1}-${s2}: ${err.message}`));
+        }
+
+        if (row) {
+          // aggiorna collaborazione esistente
+          const updateSql = `
+            UPDATE collaborazioni_studenti 
+            SET numero_collaborazioni = numero_collaborazioni + 1 
+            WHERE studente1_id = ? AND studente2_id = ? AND docente_id = ?
+          `;
+          db.run(updateSql, [s1, s2, docenteId], (err) => {
+            if (err && !erroreOccorso) {
+              erroreOccorso = true;
+              return reject(new Error(`Errore nell'aggiornamento collaborazione ${s1}-${s2}: ${err.message}`));
+            }
+
+            completati++;
+            if (completati === coppie.length && !erroreOccorso) {
+              resolve();
             }
           });
-        })
-      );
-    }
-  }
+        } else {
+          // crea nuova collaborazione
+          const insertSql = `
+            INSERT INTO collaborazioni_studenti 
+            (studente1_id, studente2_id, docente_id, numero_collaborazioni) 
+            VALUES (?, ?, ?, 1)
+          `;
+          db.run(insertSql, [s1, s2, docenteId], (err) => {
+            if (err && !erroreOccorso) {
+              erroreOccorso = true;
+              return reject(new Error(`Errore nella creazione collaborazione ${s1}-${s2}: ${err.message}`));
+            }
 
-  return Promise.all(tasks);
+            completati++;
+            if (completati === coppie.length && !erroreOccorso) {
+              resolve();
+            }
+          });
+        }
+      });
+    });
+  });
 };
 
 // Funzione per ottenere le collaborazioni tra coppie di studenti per quel docente con un conteggio minimo
