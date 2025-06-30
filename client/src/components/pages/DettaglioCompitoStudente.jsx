@@ -265,8 +265,12 @@ function DettaglioCompitoStudente({ compito, utenteCorrente, onApriRisposta }) {
                 </strong>
                 <br />
                 <small>
-                  Questo compito è stato valutato dal docente e non può più
-                  essere modificato.
+                  Questo compito è stato valutato dal docente e non può più essere modificato.
+                  {compito.chiuso_il && (
+                    <span className="d-block mt-1">
+                      📅 Data di chiusura: {compito.chiuso_il}
+                    </span>
+                  )}
                 </small>
               </div>
             </div>

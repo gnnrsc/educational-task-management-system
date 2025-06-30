@@ -178,14 +178,22 @@ function DettaglioCompito({ compito, onApriValutazione, onAssegnaAltroGruppo }) 
         </div>
 
         <div className="row mb-3">
-          <div className="col-md-6">
-            <small className="text-muted">Data: </small>
+          <div className="col-md-3">
+            <small className="text-muted">Data creazione: </small>
             <span style={{ fontSize: '0.9rem' }}>{compito.creato_il}</span>
           </div>
           <div className="col-md-6">
             <small className="text-muted">Gruppo: </small>
             <span style={{ fontSize: '0.9rem' }}>{compito.gruppo.map(utente => `${utente.nome} ${utente.cognome}`).join(", ")}</span>
           </div>
+          {compito.stato === "chiuso" && compito.chiuso_il && (
+            <div className="col-md-3">
+              <small className="text-muted">Data chiusura: </small>
+              <span style={{ fontSize: '0.9rem' }} className="text-danger">
+                🔒 {compito.chiuso_il}
+              </span>
+            </div>
+          )}
         </div>
 
         {compito.risposta ? (
