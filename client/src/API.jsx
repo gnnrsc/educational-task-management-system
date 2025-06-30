@@ -170,7 +170,12 @@ async function creaCompito(traccia, studentiIds) {
 }
 
 // PUT: /api/docente/compiti/:id/valutazione - Effettuare una valutazione di un compito (solo per docenti)
-async function valutaCompito(compitoId, punteggio) {
+async function valutaCompito(compitoId, punteggio, ultimaModificaRisposta = null) {
+  const body = { punteggio };
+  if (ultimaModificaRisposta) {
+    body.ultimaModificaRisposta = ultimaModificaRisposta;
+  }
+
   const response = await fetch(
     URL + `/docente/compiti/${compitoId}/valutazione`,
     {
@@ -179,7 +184,7 @@ async function valutaCompito(compitoId, punteggio) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ punteggio }),
+      body: JSON.stringify(body),
     }
   );
   const data = await response.json();

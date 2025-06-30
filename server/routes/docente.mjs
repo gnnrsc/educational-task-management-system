@@ -112,12 +112,16 @@ router.put(
       .isInt({ min: 0, max: 30 })
       .withMessage("Punteggio deve essere intero tra 0-30")
       .toInt(),
+    body("ultimaModificaRisposta")
+      .optional()
+      .isString()
+      .withMessage("Timestamp ultima modifica non valido"),
   ],
   handleValidationErrors,
   async (req, res) => {
     try {
       const { id: compitoId } = req.params;
-      const { punteggio } = req.body;
+      const { punteggio, ultimaModificaRisposta } = req.body;
       const docenteId = req.user.id;
 
       const compito = await dao.verificaCompitoPerValutazione(
@@ -135,6 +139,14 @@ router.put(
 
       if (!compito.ha_risposta) {
         return res.status(400).json({ error: "Nessuna risposta da valutare" });
+      }
+
+      // Controllo se la risposta è cambiata durante la valutazione
+      if (ultimaModificaRisposta && compito.ultima_modifica_risposta !== ultimaModificaRisposta) {
+        return res.status(409).json({ 
+          error: "La risposta è stata modificata durante la valutazione. Ricarica la pagina per vedere la nuova risposta.",
+          codice: "RISPOSTA_MODIFICATA"
+        });
       }
 
       await dao.valutaEChiudiCompito(compitoId, punteggio);

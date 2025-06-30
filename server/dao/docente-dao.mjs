@@ -165,8 +165,10 @@ export const verificaCompitoPerValutazione = (compitoId, docenteId) => {
   return new Promise((resolve, reject) => {
     db.get(
       `SELECT c.stato, 
-      EXISTS(SELECT 1 FROM risposte_compiti WHERE compito_id = c.id) as ha_risposta
+      EXISTS(SELECT 1 FROM risposte_compiti WHERE compito_id = c.id) as ha_risposta,
+      r.aggiornato_il as ultima_modifica_risposta
       FROM compiti c 
+      LEFT JOIN risposte_compiti r ON c.id = r.compito_id
       WHERE c.id = ? AND c.creato_da = ?`,
       [compitoId, docenteId],
       (err, row) => {

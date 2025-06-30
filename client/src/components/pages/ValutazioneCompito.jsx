@@ -34,6 +34,7 @@ function ValutazioneCompito() {
         if (response?.punteggio !== null && response?.punteggio !== undefined) {
           setPunteggio(response.punteggio.toString());
         }
+
       } catch (error) {
         setErrors({ general: "Errore nel caricamento del compito. Riprova." });
       } finally {
@@ -63,7 +64,9 @@ function ValutazioneCompito() {
     setStaSalvando(true);
     try {
       const punteggioNumero = parseInt(punteggio);
-      await API.valutaCompito(compito.id, punteggioNumero);
+      // passa il timestamp dell'ultima modifica direttamente dal compito corrente
+      const timestampRisposta = compito?.risposta?.aggiornato_il;
+      await API.valutaCompito(compito.id, punteggioNumero, timestampRisposta);
       
       // naviga alla pagina appropriata in base a dove arrivava l'utente
       const targetPath = daDettaglio ? `/docente/compiti/${id}` : '/docente/compiti';
@@ -71,10 +74,22 @@ function ValutazioneCompito() {
         state: { conferma: 'valutazione-completata', messaggio: `Compito valutato con successo! Punteggio: ${punteggioNumero}/30` }
       });
     } catch (error) {
-      setErrors({ general: error.message || "Errore nel salvataggio. Riprova." });
+      // gestione specifica per risposta modificata
+      if (error.codice === 'RISPOSTA_MODIFICATA') {
+        setErrors({ 
+          general: error.error,
+          tipo: 'risposta_modificata'
+        });
+      } else {
+        setErrors({ general: error.message || "Errore nel salvataggio. Riprova." });
+      }
     } finally {
       setStaSalvando(false);
     }
+  };
+
+  const handleRicaricaPagina = () => {
+    window.location.reload();
   };
 
   const handleBackClick = () => {
@@ -190,7 +205,27 @@ function ValutazioneCompito() {
 
               <form onSubmit={handleSubmit}>
                 {errors.general && (
-                  <div className="alert alert-danger py-2 mb-3">{errors.general}</div>
+                  <div className={`alert ${errors.tipo === 'risposta_modificata' ? 'alert-warning' : 'alert-danger'} py-2 mb-3`}>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div>
+                        <strong>⚠️ {errors.general}</strong>
+                        {errors.tipo === 'risposta_modificata' && (
+                          <div className="mt-1">
+                            <small>Lo studente ha modificato la risposta mentre stavi valutando il compito.</small>
+                          </div>
+                        )}
+                      </div>
+                      {errors.tipo === 'risposta_modificata' && (
+                        <button
+                          type="button"
+                          className="btn btn-warning btn-sm ms-2"
+                          onClick={handleRicaricaPagina}
+                        >
+                          🔄 Ricarica pagina
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 )}
                 
                 <div className="row mb-3">
