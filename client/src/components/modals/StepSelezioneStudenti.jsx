@@ -10,18 +10,22 @@ function StepSelezioneStudenti({
 }) {
   if (!visibile) return null;
 
-  const chiaveCoppia = (id1, id2) => (id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`);
+  const chiaveCoppia = (id1, id2) =>
+    id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`;
 
-  //ottengo gli ID degli studenti selezionati
-  const studentiSelezionatiIds = studentiSelezionati.map(s => s.id);
+  // converte l'array di collaborazioni in un Set per ricerca più veloce
+  const collaborazioniSet = new Set(collaborazioni);
 
-  //in base ai studenti selezionati, evidenzia quelli che hanno collaborato 2 volte con uno di essi
+  // ottiene gli ID degli studenti selezionati
+  const studentiSelezionatiIds = studentiSelezionati.map((s) => s.id);
+
+  // evidenzia gli studenti che hanno collaborato ≥ 2 volte con uno dei selezionati
   const studentiEvidenziati = new Set();
   studentiSelezionatiIds.forEach((idSelezionato) => {
     studenti.forEach((studente) => {
       if (studente.id !== idSelezionato) {
         const chiave = chiaveCoppia(idSelezionato, studente.id);
-        if (collaborazioni[chiave]) {
+        if (collaborazioniSet.has(chiave)) {
           studentiEvidenziati.add(studente.id);
         }
       }
@@ -35,26 +39,25 @@ function StepSelezioneStudenti({
         <div className="bg-light rounded p-1 mb-1">
           <small className="text-muted d-block mb-0"><strong>📝 Traccia:</strong></small>
           <small style={{ fontSize: '0.8rem', lineHeight: '1.3' }}>
-              {domanda.length > 200 ? `${domanda.substring(0, 200)}...` : domanda}
+            {domanda.length > 200 ? `${domanda.substring(0, 200)}...` : domanda}
           </small>
         </div>
 
         {/* Avviso per gli studenti evidenziati - limite collaborazioni */}
         <div className="warning-alert-placeholder">
           {studentiEvidenziati.size > 0 ? (
-              <div className="alert alert-warning py-1 mb-1 w-100">
-              <small style={{ fontSize: '0.75rem', lineHeight: '1.3' }}>
-                  <strong>⚠️</strong> Gli studenti evidenziati in rosso,
-                  hanno già partecipato ad almeno 2 compiti precedenti con
-                  uno degli studenti selezionati e non possono essere
-                  aggiunti al gruppo.
+            <div className="alert alert-warning py-1 mb-1 w-100">
+              <small style={{ fontSize: "0.75rem", lineHeight: "1.3" }}>
+                <strong>⚠️</strong> Gli studenti evidenziati in rosso, hanno già
+                partecipato ad almeno 2 compiti precedenti con uno degli
+                studenti selezionati e non possono essere aggiunti al gruppo.
               </small>
-              </div>
+            </div>
           ) : (
-              <div></div>
+            <div></div>
           )}
         </div>
-        
+
         <Form.Group className="mb-1">
           <div className="d-flex justify-content-between align-items-center mb-1">
             <h6 className="fw-bold mb-0">👥 Seleziona gli studenti per il gruppo</h6>
@@ -63,12 +66,12 @@ function StepSelezioneStudenti({
               variant="outline-secondary"
               disabled={invioInCorso || studentiSelezionatiIds.length === 0}
               onClick={onResetSelezione}
-              style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+              style={{ fontSize: "0.75rem", padding: "0.25rem 0.5rem" }}
             >
               🔄 Reset
             </Button>
           </div>
-          
+
           <ContatoreSelezionati
             numeroSelezionati={studentiSelezionatiIds.length}
             selezioneMassima={selezioneMassima}
@@ -92,7 +95,7 @@ function StepSelezioneStudenti({
 
         {errore && (
           <Alert variant="danger" className="py-1 mt-1">
-            <small style={{ fontSize: '0.8rem' }}>{errore}</small>
+            <small style={{ fontSize: "0.8rem" }}>{errore}</small>
           </Alert>
         )}
       </Form>

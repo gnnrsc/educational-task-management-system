@@ -1,4 +1,4 @@
-import { Compito, Risposta } from "./models/Compito.mjs";
+import { Compito } from "./models/Compito.mjs";
 import { Utente, StatisticheStudente } from "./models/Utente.mjs";
 // default URL
 const URL = "http://localhost:3001/api";
@@ -112,7 +112,6 @@ async function ottieniMediaStudente() {
   const data = await response.json();
   if (response.ok) {
     return {
-      studente: new Utente(data.studente),
       totale_compiti: data.totale_compiti,
       media: data.media,
     };
@@ -163,8 +162,6 @@ async function ottieniCollaborazioniClasse(minCount = 2) {
 
   if (response.ok) {
     return {
-      docenteId: data.docenteId,
-      minCount: data.minCount,
       collaborazioni: data.collaborazioni, // Oggetto con le coppie di studenti come chiavi e il numero di collaborazioni come valori
     };
   } else {

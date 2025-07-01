@@ -102,8 +102,6 @@ router.get(
       const coppie = await dao.ottieniCollaborazioniStudenti(docenteId, minCount);
 
       res.json({
-        docenteId,
-        minCount,
         collaborazioni: coppie,
       });
     } catch (error) {

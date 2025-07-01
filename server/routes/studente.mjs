@@ -147,11 +147,6 @@ router.get("/media", async (req, res) => {
     const risultato = await dao.ottieniMediaStudente(studenteId);
 
     res.json({
-      studente: {
-        id: req.user.id,
-        nome: req.user.nome,
-        cognome: req.user.cognome,
-      },
       totale_compiti: risultato.totale_compiti,
       media: risultato.media,
     });

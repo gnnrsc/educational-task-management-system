@@ -168,13 +168,13 @@ const aggiornaCollaborazioni = (studentiIds, docenteId) => {
 };
 
 // Funzione per ottenere le collaborazioni tra coppie di studenti per quel docente con un conteggio minimo
-// Restituisce un oggetto con le coppie come chiavi e il numero di collaborazioni come valori
-// Esempio: { "1-2": 3, "1-3": 2, "2-3": 1 }
+// Restituisce un oggetto con le coppie degli id degli studenti che hanno >= minCount collaborazioni
+// Esempio: { "1-2", "1-3", "2-3"}
 // Nota: le coppie sono sempre ordinate (min, max) per evitare duplicati come "1-2" e "2-1"
 export const ottieniCollaborazioniStudenti = (docenteId, minCount = 2) => {
   return new Promise((resolve, reject) => {
     const sql = `
-      SELECT studente1_id, studente2_id, numero_collaborazioni
+      SELECT studente1_id, studente2_id
       FROM collaborazioni_studenti
       WHERE docente_id = ?
       AND numero_collaborazioni >= ?
@@ -182,10 +182,9 @@ export const ottieniCollaborazioniStudenti = (docenteId, minCount = 2) => {
     db.all(sql, [docenteId, minCount], (err, rows) => {
       if (err) return reject(err);
 
-      const collaborations = {};
+      const collaborations = [];
       for (const row of rows) {
-        const key = `${row.studente1_id}-${row.studente2_id}`;
-        collaborations[key] = row.numero_collaborazioni;
+        collaborations.push(`${row.studente1_id}-${row.studente2_id}`);
       }
 
       resolve(collaborations);
