@@ -1,11 +1,11 @@
 import { useParams, useNavigate, useSearchParams, useLocation} from 'react-router';
 import { useState, useEffect } from 'react';
-import LoadingSpinner from '../utils/LoadingSpinner.jsx';
-import ConfermaSuccesso from '../utils/ConfermaSuccesso.jsx';
-import CreaCompito from '../CreaCompito.jsx';
-import API from '../../API';
+import LoadingSpinner from '../../utils/LoadingSpinner.jsx';
+import ConfermaSuccesso from '../../utils/ConfermaSuccesso.jsx';
+import CreaCompito from '../../modals/CreaCompito.jsx';
+import API from '../../../API.jsx';
 
-function DettaglioCompitoPage() {
+function DettaglioCompitoDocentePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -107,7 +107,7 @@ function DettaglioCompitoPage() {
         </button>
       </div>
 
-      <DettaglioCompito
+      <DettaglioCompitoDocente
         compito={compito}
         onApriValutazione={apriValutazione}
         onAssegnaAltroGruppo={apriAssegnaAltroGruppo}
@@ -149,7 +149,7 @@ function DettaglioCompitoPage() {
 }
 
 // Componente distinto per il contenuto del compito
-function DettaglioCompito({ compito, onApriValutazione, onAssegnaAltroGruppo }) {
+function DettaglioCompitoDocente({ compito, onApriValutazione, onAssegnaAltroGruppo }) {
 
   const ottieniColoreSfondoMedia = (media) => {
     if (media === null || media === undefined) return "bg-secondary";
@@ -270,4 +270,4 @@ function DettaglioCompito({ compito, onApriValutazione, onAssegnaAltroGruppo }) 
   );
 }
 
-export default DettaglioCompitoPage;
+export default DettaglioCompitoDocentePage;

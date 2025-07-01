@@ -83,11 +83,12 @@ router.put(
       }
 
       if (compito.stato !== "aperto") {
-        return res
-          .status(400)
-          .json({
-            error: "Il compito è già chiuso e non può essere modificato",
-          });
+        return res.status(200).json({
+          success: false,
+          conflict: true,
+          error: "Il compito è già stato chiuso e non può essere più modificato",
+          codice: "COMPITO_CHIUSO_STUDENTE"
+        });
       }
 
       // Verifica che lo studente sia parte del gruppo
@@ -101,10 +102,13 @@ router.put(
       // Inserisce o aggiorna la risposta
       const result = await dao.aggiornaRispostaCompito(compitoId, testo_risposta, studenteId);
 
-      res.json({
-        aggiornato_il: result.aggiornato_il,
-        compito_id: compitoId,
-        testo_risposta: testo_risposta,
+      res.status(200).json({
+        success: true,
+        data: {
+          aggiornato_il: result.aggiornato_il,
+          compito_id: compitoId,
+          testo_risposta: testo_risposta,
+        }
       });
     } catch (error) {
       console.error("Errore PUT risposta compito:", error);

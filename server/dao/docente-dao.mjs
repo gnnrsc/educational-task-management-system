@@ -209,15 +209,24 @@ export const checkLimiteCoppiaStudenti = (studentiIds, docenteId, minLimit = 2) 
       studentiIds.slice(i + 1).flatMap(id2 => id1 < id2 ? [id1, id2] : [id2, id1])
     )];
 
-    const sql = `SELECT studente1_id, studente2_id, numero_collaborazioni
-      FROM collaborazioni_studenti
-      WHERE docente_id = ? AND numero_collaborazioni >= ? AND (${conditions}) LIMIT 1`;
+    const sql = `SELECT 
+        c.studente1_id, 
+        c.studente2_id, 
+        c.numero_collaborazioni,
+        s1.nome as nome1,
+        s1.cognome as cognome1,
+        s2.nome as nome2,
+        s2.cognome as cognome2
+      FROM collaborazioni_studenti c
+      JOIN utenti s1 ON c.studente1_id = s1.id
+      JOIN utenti s2 ON c.studente2_id = s2.id
+      WHERE c.docente_id = ? AND c.numero_collaborazioni >= ? AND (${conditions}) LIMIT 1`;
 
     db.get(sql, params, (err, row) => {
       if (err) return reject(err);
       resolve(row ? {
         allowed: false,
-        coppia: [row.studente1_id, row.studente2_id],
+        coppia: [`${row.nome1} ${row.cognome1}`, `${row.nome2} ${row.cognome2}`],
         count: row.numero_collaborazioni
       } : { allowed: true });
     });

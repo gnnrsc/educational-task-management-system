@@ -1,10 +1,10 @@
 import { useState, useEffect, use } from "react";
 import { useNavigate, useSearchParams, useLocation} from 'react-router';
-import CreaCompito from "../CreaCompito";
-import ListaCompiti from "../ListaCompiti";
-import LoadingSpinner from "../utils/LoadingSpinner";
-import ConfermaSuccesso from "../utils/ConfermaSuccesso";
-import API from "../../API";
+import CreaCompito from "../../modals/CreaCompito";
+import ListaCompiti from "../../ListaCompiti";
+import LoadingSpinner from "../../utils/LoadingSpinner";
+import ConfermaSuccesso from "../../utils/ConfermaSuccesso";
+import API from "../../../API";
 
 
 function DocenteDashboard() {
@@ -59,7 +59,7 @@ function DocenteDashboard() {
     }
   }, []);
 
-  //gestione della conferma dopo le operazioni di assegnazione da DettaglioCompito e valutazione compito
+  //gestione della conferma dopo le operazioni di assegnazione da DettaglioCompitoDocente e valutazione compito
   useEffect(() => {
     if(location.state?.conferma) {
       const messaggi = {

@@ -75,10 +75,25 @@ async function aggiornaRispostaCompito(compitoId, testoRisposta) {
       body: JSON.stringify({ testo_risposta: testoRisposta }),
     }
   );
+  
   const data = await response.json();
+  
   if (response.ok) {
-    return data; 
+    // controlla se è un successo o un conflitto
+    if (data.success === false && data.conflict) {
+      // crea un errore personalizzato per i conflitti
+      const customError = new Error(data.error);
+      customError.isConflict = true;
+      customError.codice = data.codice;
+      customError.error = data.error;
+      throw customError;
+    }
+    
+    // ritorna il successo reale
+    return data.data || data;
   } else {
+    // altri errori (404, 500, ecc.)
+    console.error(`Errore API ${response.status}:`, data);
     throw data;
   }
 }
@@ -161,10 +176,26 @@ async function creaCompito(traccia, studentiIds) {
     },
     body: JSON.stringify({ traccia, studentiIds }),
   });
+  
   const data = await response.json();
+  
   if (response.ok) {
-    return data; // Ritorna { id: compitoId }
+    // controlla se è un successo o un conflitto
+    if (data.success === false && data.conflict) {
+      // crea un errore personalizzato per i conflitti
+      const customError = new Error(data.error);
+      customError.isConflict = true;
+      customError.codice = data.codice;
+      customError.error = data.error;
+      customError.dettagli = data.dettagli;
+      throw customError;
+    }
+
+    // ritorna il successo reale
+    return data.data || data;
   } else {
+    // altri errori (404, 500, ecc.)
+    console.error(`Errore API ${response.status}:`, data);
     throw data;
   }
 }
@@ -187,10 +218,25 @@ async function valutaCompito(compitoId, punteggio, ultimaModificaRisposta = null
       body: JSON.stringify(body),
     }
   );
+  
   const data = await response.json();
+  
   if (response.ok) {
-    return data; // Ritorna { message: "Compito valutato", punteggio }
+    // Controlla se è un successo o un conflitto
+    if (data.success === false && data.conflict) {
+      // Crea un errore personalizzato per i conflitti
+      const customError = new Error(data.error);
+      customError.isConflict = true;
+      customError.codice = data.codice;
+      customError.error = data.error;
+      throw customError;
+    }
+    
+    // Successo reale
+    return data.data || data;
   } else {
+    // Altri errori (404, 500, ecc.)
+    console.error(`Errore API ${response.status}:`, data);
     throw data;
   }
 }

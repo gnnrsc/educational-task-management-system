@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
-import API from "../../API";
-import LoadingSpinner from "../utils/LoadingSpinner";
+import API from "../../../API";
+import LoadingSpinner from "../../utils/LoadingSpinner";
 
-function ValutazioniStudente() {
+function Valutazioni() {
   const [compiti, setCompiti] = useState([]);
   //stato per i dati della media dello studente
   const [mediaData, setMediaData] = useState(null);
@@ -289,4 +289,4 @@ const compitiOrdinati = [...compiti].sort((a, b) => {
   );
 }
 
-export default ValutazioniStudente;
+export default Valutazioni;

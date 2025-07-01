@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router";
-import LoadingSpinner from "../utils/LoadingSpinner";
-import API from "../../API";
+import LoadingSpinner from "../../utils/LoadingSpinner";
+import ErrorAlert from "../../utils/ErrorAlert";
+import API from "../../../API";
 
 function ValutazioneCompito() {
   const { id } = useParams();
@@ -13,6 +14,9 @@ function ValutazioneCompito() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [staSalvando, setStaSalvando] = useState(false);
+
+  // nuovo stato per gestire gli errori di conflitto (valutazione con risposta cambiata - valutazione quando il compito è già chiuso)
+  const [alertError, setAlertError] = useState(null);
 
   // determina da dove arriva l'utente - se da dettaglio compito o da lista compiti
   const daDettaglio = location.state?.daDettaglio;
@@ -74,22 +78,30 @@ function ValutazioneCompito() {
         state: { conferma: 'valutazione-completata', messaggio: `Compito valutato con successo! Punteggio: ${punteggioNumero}/30` }
       });
     } catch (error) {
-      // gestione specifica per risposta modificata
-      if (error.codice === 'RISPOSTA_MODIFICATA') {
-        setErrors({ 
-          general: error.error,
-          tipo: 'risposta_modificata'
+      // gestione silenziosa degli errori di conflitto 
+      if (error.isConflict) {
+        setAlertError({
+          codice: error.codice || 'GENERIC_CONFLICT',
+          message: error.error,
+          originalError: error
         });
       } else {
-        setErrors({ general: error.message || "Errore nel salvataggio. Riprova." });
+        setErrors({ general: error.error || "Errore nel salvataggio. Riprova." });
       }
     } finally {
       setStaSalvando(false);
     }
   };
+  // gestione dell'alert di errore conflitto
+  const handleAlertClose = () => {
+    setAlertError(null);
+  };
 
-  const handleRicaricaPagina = () => {
-    window.location.reload();
+  const handleAlertAction = (action) => {
+    if (action === 'back') {
+      navigate(backPath);
+    }
+    setAlertError(null);
   };
 
   const handleBackClick = () => {
@@ -128,6 +140,14 @@ function ValutazioneCompito() {
 
   return (
     <div className="container my-3">
+      {/* alert modale per errori di conflitto */}
+      {alertError && (
+        <ErrorAlert 
+          error={alertError} 
+          onClose={handleAlertClose}
+          onAction={handleAlertAction}
+        />
+      )}
       {/* breadcrumb */}
       <nav aria-label="breadcrumb" className="mb-3">
         <ol className="breadcrumb mb-0">
@@ -205,26 +225,8 @@ function ValutazioneCompito() {
 
               <form onSubmit={handleSubmit} noValidate> 
                 {errors.general && (
-                  <div className={`alert ${errors.tipo === 'risposta_modificata' ? 'alert-warning' : 'alert-danger'} py-2 mb-3`}>
-                    <div className="d-flex align-items-center justify-content-between">
-                      <div>
-                        <strong>⚠️ {errors.general}</strong>
-                        {errors.tipo === 'risposta_modificata' && (
-                          <div className="mt-1">
-                            <small>Lo studente ha modificato la risposta mentre stavi valutando il compito.</small>
-                          </div>
-                        )}
-                      </div>
-                      {errors.tipo === 'risposta_modificata' && (
-                        <button
-                          type="button"
-                          className="btn btn-warning btn-sm ms-2"
-                          onClick={handleRicaricaPagina}
-                        >
-                          🔄 Ricarica pagina
-                        </button>
-                      )}
-                    </div>
+                  <div className="alert alert-danger py-2 mb-3">
+                    <strong>⚠️ {errors.general}</strong>
                   </div>
                 )}
                 
@@ -290,7 +292,6 @@ function ValutazioneCompito() {
                   >
                     ❌ Annulla
                   </button>
-
                   <button 
                     type="submit"
                     className="btn btn-primary"

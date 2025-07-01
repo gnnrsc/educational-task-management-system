@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
-import { useAuth } from "../../AuthContext";
-import LoadingSpinner from "../utils/LoadingSpinner";
-import API from "../../API";
+import { useAuth } from "../../../AuthContext";
+import LoadingSpinner from "../../utils/LoadingSpinner";
+import ErrorAlert from "../../utils/ErrorAlert";
+import API from "../../../API";
 
 function RispostaCompito() {
   const navigate = useNavigate();
@@ -16,6 +17,9 @@ function RispostaCompito() {
   const [staSalvando, setStaSalvando] = useState(false);
   const [caratteri, setCaratteri] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  // nuovo stato per gestire gli errori di conflitto (risposta quando il compito è già chiuso)
+  const [alertError, setAlertError] = useState(null);
 
   const MAX_CARATTERI = 2000;
 
@@ -95,22 +99,41 @@ function RispostaCompito() {
         }
       });
     } catch (error) {
-      console.error("Errore nel salvataggio:", error);
-      
-      let errorMessage = "Errore nel salvataggio. Riprova.";
-      
-      if (error.message) {
-        errorMessage = error.message;
-      } else if (error.error) {
-        errorMessage = error.error;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
+      // gestione silenziosa degli errori di conflitto
+      if (error.isConflict) {
+        setAlertError({
+          codice: error.codice || 'GENERIC_CONFLICT',
+          message: error.error,
+          originalError: error
+        });
+      } else {
+        
+        let errorMessage = "Errore nel salvataggio. Riprova.";
+        
+        if (error.message) {
+          errorMessage = error.message;
+        } else if (error.error) {
+          errorMessage = error.error;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        }
+        
+        setErrors({ general: errorMessage });
       }
-      
-      setErrors({ general: errorMessage });
     } finally {
       setStaSalvando(false);
     }
+  };
+  // gestione dell'alert di errore conflitto
+  const handleAlertClose = () => {
+    setAlertError(null);
+  };
+
+  const handleAlertAction = (action) => {
+    if (action === 'back') {
+      navigate(backPath);
+    }
+    setAlertError(null);
   };
 
   const handleTestoCambia = (e) => {
@@ -158,6 +181,14 @@ function RispostaCompito() {
 
   return (
     <div className="container my-3">
+      {/* alert modale per errori di conflitto */}
+      {alertError && (
+        <ErrorAlert 
+          error={alertError} 
+          onClose={handleAlertClose}
+          onAction={handleAlertAction}
+        />
+      )}
       {/* breadcrumb compatto */}
       <nav aria-label="breadcrumb" className="mb-3">
         <ol className="breadcrumb mb-0">
@@ -221,7 +252,7 @@ function RispostaCompito() {
             </div>
           </div>
 
-          {/* Informazioni del compito - tutto su una linea */}
+          {/* informazioni del compito */}
           <div className="d-flex flex-wrap align-items-center gap-3 mb-3">
             <div className="d-flex align-items-center gap-1">
               <small className="text-muted">Data assegnazione:</small>

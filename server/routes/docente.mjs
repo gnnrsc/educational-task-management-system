@@ -58,13 +58,24 @@ router.post(
 
       if (!checkRisultato.allowed) {
         const [s1, s2] = checkRisultato.coppia;
-        return res.status(400).json({
-          error: `Gli studenti ${s1} e ${s2} hanno già collaborato ${checkRisultato.count} volte, limite superato.`,
+        return res.status(200).json({
+          success: false,
+          conflict: true,
+          error: `Gli studenti ${s1} e ${s2} hanno già collaborato ${checkRisultato.count} volte. Il limite massimo di collaborazioni è stato superato.`,
+          codice: "LIMITE_COLLABORAZIONI_SUPERATO",
+          dettagli: {
+            studenti: [s1, s2],
+            collaborazioni: checkRisultato.count,
+            limite: 2
+          }
         });
       }
 
       const risultato = await dao.creaCompito(traccia, studentiIds, creatoDa);
-      res.status(201).json(risultato);
+      res.status(201).json({
+        success: true,
+        data: risultato
+      });
     } catch (error) {
       console.error("Errore creazione compito:", error);
       res.status(500).json({ error: "Errore nella creazione del compito" });
@@ -124,34 +135,41 @@ router.put(
       const { punteggio, ultimaModificaRisposta } = req.body;
       const docenteId = req.user.id;
 
-      const compito = await dao.verificaCompitoPerValutazione(
-        compitoId,
-        docenteId
-      );
+      const compito = await dao.verificaCompitoPerValutazione(compitoId, docenteId);
 
       if (!compito) {
         return res.status(404).json({ error: "Compito non trovato" });
       }
 
       if (compito.stato !== "aperto") {
-        return res.status(400).json({ error: "Compito già chiuso" });
+        return res.status(200).json({ 
+          success: false,
+          conflict: true,
+          error: "Il compito è già stato chiuso e non può essere più valutato", 
+          codice: "COMPITO_CHIUSO" 
+        });
       }
 
       if (!compito.ha_risposta) {
         return res.status(400).json({ error: "Nessuna risposta da valutare" });
       }
 
-      // Controllo se la risposta è cambiata durante la valutazione
+      // controllo se la risposta è cambiata durante la valutazione
       if (ultimaModificaRisposta && compito.ultima_modifica_risposta !== ultimaModificaRisposta) {
-        return res.status(409).json({ 
+        return res.status(200).json({ 
+          success: false,
+          conflict: true,
           error: "La risposta è stata modificata durante la valutazione. Ricarica la pagina per vedere la nuova risposta.",
           codice: "RISPOSTA_MODIFICATA"
         });
       }
 
       await dao.valutaEChiudiCompito(compitoId, punteggio);
-
-      res.json(punteggio);
+      
+      res.status(200).json({
+        success: true,
+        data: punteggio
+      });
     } catch (error) {
       console.error("Errore PUT valutazione:", error);
       res.status(500).json({ error: "Errore server" });

@@ -1,9 +1,9 @@
 import { useParams, useNavigate, useLocation } from "react-router";
 import { useState, useEffect } from "react";
-import LoadingSpinner from "../utils/LoadingSpinner.jsx";
-import ConfermaSuccesso from "../utils/ConfermaSuccesso.jsx";
-import { useAuth } from "../../AuthContext";
-import API from "../../API";
+import LoadingSpinner from "../../utils/LoadingSpinner.jsx";
+import ConfermaSuccesso from "../../utils/ConfermaSuccesso.jsx";
+import { useAuth } from "../../../AuthContext";
+import API from "../../../API";
 
 function DettaglioCompitoStudentePage() {
   const { id } = useParams();

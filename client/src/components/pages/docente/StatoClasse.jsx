@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import ListaStudenti from '../ListaStudenti';
+import ListaStudenti from '../../ListaStudenti';
 
 function StatoClasse() {
   const [ordinamento, setOrdinamento] = useState('alfabetico');

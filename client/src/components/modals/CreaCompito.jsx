@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import API from "../API";
-import { Utente } from "../models/Utente.mjs";
-import { Compito } from "../models/Compito.mjs";
-import StepDomanda from "./CreaCompitoComponents/StepDomanda";
-import StepSelezioneStudenti from "./CreaCompitoComponents/StepSelezioneStudenti";
-import FooterNavigazione from "./CreaCompitoComponents/FooterNavigazione";
+import API from "../../API";
+import { Utente } from "../../models/Utente.mjs";
+import { Compito } from "../../models/Compito.mjs";
+import StepDomanda from "./StepDomanda";
+import StepSelezioneStudenti from "./StepSelezioneStudenti";
+import FooterNavigazione from "./FooterNavigazione";
+import ErrorAlert from "../utils/ErrorAlert";
 
 function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIniziale = 1, domandaIniziale = "", onSalvaStato = null }) {
 
@@ -22,6 +23,9 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
   const [caricamentoStudenti, setCaricamentoStudenti] = useState(true);
   const [invioInCorso, setInvioInCorso] = useState(false);
   const [direzioneSlide, setDirezioneSlide] = useState("");
+
+  // nuovo stato per gestire gli errori di conflitto (numero di collaborazioni superate - stesso docente con 2 sessioni)
+  const [alertError, setAlertError] = useState(null);
 
   // sincronizza con props quando cambiano
   useEffect(() => {
@@ -139,7 +143,7 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
     try {
       const studentiIds = studentiSelezionati.map(studente => studente.id);
       const risultato = await API.creaCompito(domanda.trim(), studentiIds);
-
+      
       if (risultato && risultato.id) {
         const compitoCreato = new Compito({
           id: risultato.id,
@@ -162,10 +166,38 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
       }
       
     } catch (error) {
-      setErrore("Errore nella creazione del compito. Riprova.");
+      // gestione silenziosa degli errori di conflitto
+      if (error.isConflict) {
+        setAlertError({
+          codice: error.codice || 'GENERIC_CONFLICT',
+          message: error.error,
+          dettagli: error.dettagli,
+          originalError: error
+        });
+      } else {
+        setErrore("Errore nella creazione del compito. Riprova.");
+      }
     } finally {
       setInvioInCorso(false);
     }
+  };
+  // gestione dell'alert di errore conflitto
+  const handleAlertClose = () => {
+    setAlertError(null);
+  };
+
+  const handleAlertAction = (action) => {
+    if (action === 'cancel') {
+      // reset completo del form
+      setDomanda("");
+      setStudentiSelezionati([]);
+      setStepCorrente(1);
+      if (onCancella) onCancella();
+    } else if (action === 'close') {
+      // torna al step di selezione studenti per modificare il gruppo
+      setStepCorrente(2);
+    }
+    setAlertError(null);
   };
 
   // funzioni utility
@@ -183,6 +215,14 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
 
   return (
     <div className="p-4">
+      {/* alert modale per errori di conflitto */}
+      {alertError && (
+        <ErrorAlert 
+          error={alertError} 
+          onClose={handleAlertClose}
+          onAction={handleAlertAction}
+        />
+      )}
       { /* Intestazione step */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h6 className="mb-0 fw-bold">{ottieniTitoloStep()}</h6>
