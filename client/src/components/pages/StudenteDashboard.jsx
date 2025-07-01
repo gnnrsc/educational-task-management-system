@@ -50,7 +50,7 @@ function StudenteDashboard() {
 
   // naviga alla pagina di risposta
   const handleApriRisposta = (compito) => {
-    navigate(`/studente/compiti/${compito.id}/risposta`, { 
+    navigate(`/studente/compiti/${compito.id}/rispondi`, { 
       state: { daDettaglio: false } 
     });
   };

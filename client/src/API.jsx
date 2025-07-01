@@ -62,10 +62,10 @@ async function ottieniCompitiStudente(stato = null) {
   }
 }
 
-// PUT: /api/studente/compiti/:id/risposta - Inserisce o aggiorna la risposta a un compito
+// PUT: /api/studente/compiti/:id/rispondi - Inserisce o aggiorna la risposta a un compito
 async function aggiornaRispostaCompito(compitoId, testoRisposta) {
   const response = await fetch(
-    URL + `/studente/compiti/${compitoId}/risposta`,
+    URL + `/studente/compiti/${compitoId}/rispondi`,
     {
       method: "PUT",
       credentials: "include",

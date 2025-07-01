@@ -65,13 +65,13 @@ Content-Type: application/json
 }
 
 ### Ottenere la risposta di un compito
-GET {{server}}/api/docente/compiti/2/risposta
+GET {{server}}/api/docente/compiti/2/rispondi
 
 ### Ottenere la risposta di un compito - ERRORE compito non esistente
-GET {{server}}/api/docente/compiti/1000/risposta
+GET {{server}}/api/docente/compiti/1000/rispondi
 
 ### Ottenere la risposta di un compito - ERRORE risposta non ancora esistente
-GET {{server}}/api/docente/compiti/1/risposta
+GET {{server}}/api/docente/compiti/1/rispondi
 
 ### Aggiungere una valutazione a un compito - ERRORE risposta non ancora esistente
 ### SE ANCORA NON SI E' AGGIUNTA UNA RISPOSTA ALLA DOMANDA 1 PROVANDO LE API STUDENTI
@@ -164,7 +164,7 @@ GET {{server}}/api/studente/compiti?stato=chiuso
 GET {{server}}/api/studente/compiti?stato=invalido
 
 ### PUT: Inserisce risposta a un compito aperto (ID compito = 1)
-PUT {{server}}/api/studente/compiti/1/risposta
+PUT {{server}}/api/studente/compiti/1/rispondi
 Content-Type: application/json
 
 {
@@ -172,7 +172,7 @@ Content-Type: application/json
 }
 
 ### PUT: Aggiorna risposta esistente (ID compito = 1)
-PUT {{server}}/api/studente/compiti/1/risposta
+PUT {{server}}/api/studente/compiti/1/rispondi
 Content-Type: application/json
 
 {
@@ -180,7 +180,7 @@ Content-Type: application/json
 }
 
 ### PUT: Tentativo di risposta a compito - ERRORE compito non esistente
-PUT {{server}}/api/studente/compiti/11/risposta
+PUT {{server}}/api/studente/compiti/11/rispondi
 Content-Type: application/json
 
 {
@@ -189,7 +189,7 @@ Content-Type: application/json
 
 ### PUT: Tentativo di risposta a compito - ERRORE non autorizzato
 //DA ESEGUIRE DOPO CHE DOCENTE HA AGGIUNTO UN TERZO COMPITO PER ALTRI STUDENTI
-PUT {{server}}/api/studente/compiti/3/risposta
+PUT {{server}}/api/studente/compiti/3/rispondi
 Content-Type: application/json
 
 {
@@ -197,7 +197,7 @@ Content-Type: application/json
 }
 
 ### PUT: Tentativo di risposta a compito - ERRORE testo risposta vuoto
-PUT {{server}}/api/studente/compiti/1/risposta
+PUT {{server}}/api/studente/compiti/1/rispondi
 Content-Type: application/json
 
 {
@@ -205,7 +205,7 @@ Content-Type: application/json
 }
 
 ### PUT: Tentativo di risposta a compito - ERRORE compito già chiuso
-PUT {{server}}/api/studente/compiti/2/risposta
+PUT {{server}}/api/studente/compiti/2/rispondi
 Content-Type: application/json
 
 {
