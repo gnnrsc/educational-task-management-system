@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router";
 import { useAuth } from "../../../AuthContext";
 import LoadingSpinner from "../../utils/LoadingSpinner";
 import ErrorAlert from "../../utils/ErrorAlert";
+import RisoluzioneConflitti from "../../utils/RisoluzioneConflitti";
 import API from "../../../API";
 
 function RispostaCompito() {
@@ -18,8 +19,9 @@ function RispostaCompito() {
   const [caratteri, setCaratteri] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // nuovo stato per gestire gli errori di conflitto (risposta quando il compito è già chiuso)
-  const [alertError, setAlertError] = useState(null);
+  // nuovo stato per gestire gli errori di conflitto (risposta quando il compito è già chiuso - risposta modificata da un altro membro del gruppo)
+  const [alertErrore, setAlertErrore] = useState(null);
+  const [erroreConflitto, setErroreConflitto] = useState(null);
 
   const MAX_CARATTERI = 2000;
 
@@ -79,61 +81,92 @@ function RispostaCompito() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validaForm()) {
       return;
     }
 
     setStaSalvando(true);
-    
+
     try {
-      const result = await API.aggiornaRispostaCompito(compito.id, testoRisposta.trim());
+      const timestampRisposta =
+        compito?.risposta?.aggiornato_il?.format("YYYY-MM-DD HH:mm:ss") || null;
+      const result = await API.aggiornaRispostaCompito(
+        compito.id,
+        testoRisposta.trim(),
+        timestampRisposta
+      );
 
       // naviga alla pagina appropriata in base a dove arrivava l'utente
       const targetPath = daDettaglio ? `/studente/compiti/${id}` : '/studente/compiti';
 
-      navigate(targetPath, { 
-        state: { 
+      navigate(targetPath, {
+        state: {
           conferma: result.modificato ? 'risposta-modificata' : 'risposta-inviata',
           messaggio: result.modificato ? 'Risposta modificata con successo!' : 'Risposta inviata con successo!'
         }
       });
     } catch (error) {
-      // gestione silenziosa degli errori di conflitto
-      if (error.isConflict) {
-        setAlertError({
-          codice: error.codice || 'GENERIC_CONFLICT',
+      if (error.isConflict && error.codice === "RISPOSTA_MODIFICATA_STUDENTE") {
+        setErroreConflitto(error);
+      } else if (error.isConflict) {
+        setAlertErrore({
+          codice: error.codice || "GENERIC_CONFLICT",
           message: error.error,
-          originalError: error
+          originalError: error,
         });
       } else {
-        
-        let errorMessage = "Errore nel salvataggio. Riprova.";
-        
-        if (error.message) {
-          errorMessage = error.message;
-        } else if (error.error) {
-          errorMessage = error.error;
-        } else if (typeof error === 'string') {
-          errorMessage = error;
-        }
-        
-        setErrors({ general: errorMessage });
+        setErrors({
+          general: error.error || "Errore nel salvataggio. Riprova.",
+        });
       }
     } finally {
       setStaSalvando(false);
     }
   };
-  // gestione dell'alert di errore conflitto
-  const handleAlertClose = () => {
-    setAlertError(null);
+
+  const handleRisolviConflitto = async (risoluzione) => {
+    setStaSalvando(true);
+    try {
+      if (risoluzione.useCurrentResponse) {
+        // usa la risposta corrente dal database
+        setTestoRisposta(risoluzione.response);
+        setCaratteri(risoluzione.response.length);
+        setErroreConflitto(null);
+      } else {
+        // forza l'aggiornamento con la tua risposta
+        const result = await API.aggiornaRispostaCompito(compito.id, risoluzione.response, null);
+        
+        const targetPath = daDettaglio ? `/studente/compiti/${id}` : '/studente/compiti';
+        navigate(targetPath, { 
+          state: { 
+            conferma: 'risposta-modificata',
+            messaggio: 'Risposta aggiornata con successo!'
+          }
+        });
+      }
+    } catch (error) {
+      setErrors({ general: "Errore nella risoluzione del conflitto. Riprova." });
+    } finally {
+      setStaSalvando(false);
+      setErroreConflitto(null);
+    }
   };
 
-  const handleAlertAction = (action) => {
+  const handleChiudiConflitto = () => {
+    setErroreConflitto(null);
+  };
+
+  // gestione dell'alert di errore conflitto
+  const handleChiudiAlert = () => {
+    setAlertErrore(null);
+  };
+
+  const handleAzioneAlert = (action) => {
     if (action === 'back') {
       navigate(backPath);
     }
-    setAlertError(null);
+    setAlertErrore(null);
   };
 
   const handleTestoCambia = (e) => {
@@ -181,12 +214,20 @@ function RispostaCompito() {
 
   return (
     <div className="container my-3">
+      {/* alert per conflitti di modifica */}
+      {erroreConflitto && (
+        <RisoluzioneConflitti 
+          error={erroreConflitto}
+          onClose={handleChiudiConflitto}
+          onResolve={handleRisolviConflitto}
+        />
+      )}
       {/* alert modale per errori di conflitto */}
-      {alertError && (
+      {alertErrore && (
         <ErrorAlert 
-          error={alertError} 
-          onClose={handleAlertClose}
-          onAction={handleAlertAction}
+          error={alertErrore} 
+          onClose={handleChiudiAlert}
+          onAction={handleAzioneAlert}
         />
       )}
       {/* breadcrumb compatto */}

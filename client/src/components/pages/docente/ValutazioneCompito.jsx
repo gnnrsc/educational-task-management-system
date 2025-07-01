@@ -16,7 +16,7 @@ function ValutazioneCompito() {
   const [staSalvando, setStaSalvando] = useState(false);
 
   // nuovo stato per gestire gli errori di conflitto (valutazione con risposta cambiata - valutazione quando il compito è già chiuso)
-  const [alertError, setAlertError] = useState(null);
+  const [alertErrore, setAlertErrore] = useState(null);
 
   // determina da dove arriva l'utente - se da dettaglio compito o da lista compiti
   const daDettaglio = location.state?.daDettaglio;
@@ -80,7 +80,7 @@ function ValutazioneCompito() {
     } catch (error) {
       // gestione silenziosa degli errori di conflitto 
       if (error.isConflict) {
-        setAlertError({
+        setAlertErrore({
           codice: error.codice || 'GENERIC_CONFLICT',
           message: error.error,
           originalError: error
@@ -93,15 +93,15 @@ function ValutazioneCompito() {
     }
   };
   // gestione dell'alert di errore conflitto
-  const handleAlertClose = () => {
-    setAlertError(null);
+  const handleChiudiAlert = () => {
+    setAlertErrore(null);
   };
 
-  const handleAlertAction = (action) => {
+  const handleAzioneAlert = (action) => {
     if (action === 'back') {
       navigate(backPath);
     }
-    setAlertError(null);
+    setAlertErrore(null);
   };
 
   const handleBackClick = () => {
@@ -141,11 +141,11 @@ function ValutazioneCompito() {
   return (
     <div className="container my-3">
       {/* alert modale per errori di conflitto */}
-      {alertError && (
+      {alertErrore && (
         <ErrorAlert 
-          error={alertError} 
-          onClose={handleAlertClose}
-          onAction={handleAlertAction}
+          error={alertErrore} 
+          onClose={handleChiudiAlert}
+          onAction={handleAzioneAlert}
         />
       )}
       {/* breadcrumb */}

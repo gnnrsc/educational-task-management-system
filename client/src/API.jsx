@@ -63,7 +63,12 @@ async function ottieniCompitiStudente(stato = null) {
 }
 
 // PUT: /api/studente/compiti/:id/rispondi - Inserisce o aggiorna la risposta a un compito
-async function aggiornaRispostaCompito(compitoId, testoRisposta) {
+async function aggiornaRispostaCompito(compitoId, testoRisposta, ultimaModificaRisposta = null) {
+  const body = { testo_risposta: testoRisposta };
+  if (ultimaModificaRisposta) {
+    body.ultimaModificaRisposta = ultimaModificaRisposta;
+  }
+
   const response = await fetch(
     URL + `/studente/compiti/${compitoId}/rispondi`,
     {
@@ -72,20 +77,21 @@ async function aggiornaRispostaCompito(compitoId, testoRisposta) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ testo_risposta: testoRisposta }),
+      body: JSON.stringify(body),
     }
   );
   
   const data = await response.json();
   
   if (response.ok) {
-    // controlla se è un successo o un conflitto
+    // controlla se è un successo o se è un conflitto
     if (data.success === false && data.conflict) {
       // crea un errore personalizzato per i conflitti
       const customError = new Error(data.error);
       customError.isConflict = true;
       customError.codice = data.codice;
       customError.error = data.error;
+      customError.dettagli = data.dettagli;
       throw customError;
     }
     

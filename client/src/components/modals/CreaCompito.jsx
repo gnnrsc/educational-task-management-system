@@ -25,7 +25,7 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
   const [direzioneSlide, setDirezioneSlide] = useState("");
 
   // nuovo stato per gestire gli errori di conflitto (numero di collaborazioni superate - stesso docente con 2 sessioni)
-  const [alertError, setAlertError] = useState(null);
+  const [alertErrore, setAlertErrore] = useState(null);
 
   // sincronizza con props quando cambiano
   useEffect(() => {
@@ -168,7 +168,7 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
     } catch (error) {
       // gestione silenziosa degli errori di conflitto
       if (error.isConflict) {
-        setAlertError({
+        setAlertErrore({
           codice: error.codice || 'GENERIC_CONFLICT',
           message: error.error,
           dettagli: error.dettagli,
@@ -182,11 +182,11 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
     }
   };
   // gestione dell'alert di errore conflitto
-  const handleAlertClose = () => {
-    setAlertError(null);
+  const handleChiudiAlert = () => {
+    setAlertErrore(null);
   };
 
-  const handleAlertAction = (action) => {
+  const handleAzioneAlert = (action) => {
     if (action === 'cancel') {
       // reset completo del form
       setDomanda("");
@@ -197,7 +197,7 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
       // torna al step di selezione studenti per modificare il gruppo
       setStepCorrente(2);
     }
-    setAlertError(null);
+    setAlertErrore(null);
   };
 
   // funzioni utility
@@ -216,11 +216,11 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
   return (
     <div className="p-4">
       {/* alert modale per errori di conflitto */}
-      {alertError && (
+      {alertErrore && (
         <ErrorAlert 
-          error={alertError} 
-          onClose={handleAlertClose}
-          onAction={handleAlertAction}
+          error={alertErrore} 
+          onClose={handleChiudiAlert}
+          onAction={handleAzioneAlert}
         />
       )}
       { /* Intestazione step */}

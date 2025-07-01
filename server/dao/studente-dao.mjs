@@ -50,6 +50,33 @@ export const aggiornaRispostaCompito = (compitoId, testoRisposta, studenteId) =>
   });
 };
 
+// Ottiene la risposta corrente per controllo conflitti
+export const ottieniRispostaCorrente = (compitoId) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT r.testo_risposta, r.aggiornato_il, 
+             u.nome, u.cognome, u.id as inviato_da_id
+      FROM risposte_compiti r
+      JOIN utenti u ON r.inviato_da = u.id
+      WHERE r.compito_id = ?
+    `;
+
+    db.get(sql, [compitoId], (err, row) => {
+      if (err) return reject(err);
+      resolve(row ? {
+        testo_risposta: row.testo_risposta,
+        aggiornato_il: row.aggiornato_il,
+        inviato_da: {
+          id: row.inviato_da_id,
+          nome: row.nome,
+          cognome: row.cognome
+        }
+      } : null);
+    });
+  });
+};
+
+
 // Ottiene tutti i compiti assegnati a uno studente con filtro opzionale
 export const ottieniCompitiStudente = (studenteId, stato = null) => {
   return new Promise((resolve, reject) => {

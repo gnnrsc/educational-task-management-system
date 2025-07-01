@@ -68,12 +68,16 @@ router.put(
       .isString()
       .isLength({ min: 1 })
       .withMessage("La risposta deve essere una stringa non vuota"),
+    body("ultimaModificaRisposta")
+      .optional()
+      .isString()
+      .withMessage("Timestamp ultima modifica non valido"),
   ],
   handleValidationErrors,
   async (req, res) => {
     try {
       const compitoId = parseInt(req.params.id);
-      const { testo_risposta } = req.body;
+      const { testo_risposta, ultimaModificaRisposta } = req.body;
       const studenteId = req.user.id;
 
       // Verifica che il compito esista e sia aperto
@@ -97,6 +101,25 @@ router.put(
         return res
           .status(403)
           .json({ error: "Non sei autorizzato a rispondere a questo compito" });
+      }
+
+      // Controllo conflitto di modifica simultanea
+      if (ultimaModificaRisposta) {
+        const rispostaCorrente = await dao.ottieniRispostaCorrente(compitoId);
+        if (rispostaCorrente && rispostaCorrente.aggiornato_il !== ultimaModificaRisposta) {
+          return res.status(200).json({
+            success: false,
+            conflict: true,
+            error: "La risposta è stata modificata da un altro membro del gruppo mentre stavi scrivendo.",
+            codice: "RISPOSTA_MODIFICATA_STUDENTE",
+            dettagli: {
+              rispostaCorrente: rispostaCorrente.testo_risposta,
+              ultimaModifica: rispostaCorrente.aggiornato_il,
+              modificataDa: rispostaCorrente.inviato_da,
+              tuaRisposta: testo_risposta
+            }
+          });
+        }
       }
 
       // Inserisce o aggiorna la risposta
