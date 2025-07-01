@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import TabellaStudenti from '../TabellaStudenti';
+import ListaStudenti from '../ListaStudenti';
 
 function StatoClasse() {
   const [ordinamento, setOrdinamento] = useState('alfabetico');
@@ -43,7 +43,7 @@ function StatoClasse() {
         </div>
       </div>
 
-      <TabellaStudenti ordinamento={ordinamento} />
+      <ListaStudenti ordinamento={ordinamento} />
 
       {/* legenda */}
       <div className="mt-4">

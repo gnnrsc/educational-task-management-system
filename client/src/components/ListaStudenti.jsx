@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import LoadingSpinner from "./utils/LoadingSpinner";
 import API from "../API";
 
-function TabellaStudenti({ ordinamento }) {
+function ListaStudenti({ ordinamento }) {
   const [studenti, setStudenti] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -250,4 +250,4 @@ function TabellaStudenti({ ordinamento }) {
   );
 }
 
-export default TabellaStudenti;
+export default ListaStudenti;
