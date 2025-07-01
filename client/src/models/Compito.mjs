@@ -3,12 +3,12 @@ import { Utente } from './Utente.mjs';
 
 function Risposta(testo, aggiornato_il, inviato_da) {
   this.testo = testo;
-  this.aggiornato_il = dayjs(aggiornato_il).format('YYYY-MM-DD HH:mm:ss');
+  this.aggiornato_il = dayjs(aggiornato_il).format('DD/MM/YYYY [alle] HH:mm');
   this.inviato_da = new Utente(inviato_da);
 
   this.serialize = () => ({
     testo: this.testo,
-    aggiornato_il: this.aggiornato_il.format('YYYY-MM-DD HH:mm:ss'),
+    aggiornato_il: this.aggiornato_il.format('DD/MM/YYYY [alle] HH:mm'),
     inviato_da: this.inviato_da.serialize(),
   });
 }
@@ -17,8 +17,8 @@ function Compito(data) {
   this.id = data.id;
   this.traccia = data.traccia;
   this.stato = data.stato;
-  this.creato_il = dayjs(data.creato_il).format('YYYY-MM-DD HH:mm:ss');
-  this.chiuso_il = data.chiuso_il ? dayjs(data.chiuso_il).format('YYYY-MM-DD HH:mm:ss') : null;
+  this.creato_il = dayjs(data.creato_il).format('DD/MM/YYYY [alle] HH:mm');
+  this.chiuso_il = data.chiuso_il ? dayjs(data.chiuso_il).format('DD/MM/YYYY [alle] HH:mm') : null;
   this.numero_studenti = data.numero_studenti;
   this.punteggio = data.punteggio ?? null;
   //creato_da
@@ -31,8 +31,8 @@ function Compito(data) {
     id: this.id,
     traccia: this.traccia,
     stato: this.stato,
-    creato_il: this.creato_il.format('YYYY-MM-DD HH:mm:ss'),
-    chiuso_il: this.chiuso_il?.format('YYYY-MM-DD HH:mm:ss') ?? null,
+    creato_il: this.creato_il.format('DD/MM/YYYY [alle] HH:mm'),
+    chiuso_il: this.chiuso_il?.format('DD/MM/YYYY [alle] HH:mm') ?? null,
     numero_studenti: this.numero_studenti,
     ha_risposta: this.ha_risposta,
     gruppo: this.gruppo.map(p => p.serialize()),

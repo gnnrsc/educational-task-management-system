@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
+import dayjs from "dayjs";
 import API from "../../API";
 import LoadingSpinner from "../utils/LoadingSpinner";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+dayjs.extend(customParseFormat);
 
 function ValutazioniStudente() {
   const [compiti, setCompiti] = useState([]);
@@ -41,22 +44,30 @@ function ValutazioniStudente() {
   };
 
 
+// Ordina i compiti in base al filtro selezionato
+const compitiOrdinati = [...compiti].sort((a, b) => {
+  const formatoData = "DD/MM/YYYY [alle] HH:mm";
 
-  // Ordina i compiti in base al filtro selezionato
-  const compitiOrdinati = [...compiti].sort((a, b) => {
-    switch (ordinamento) {
-      case 'recente':
-        return new Date(b.creato_il) - new Date(a.creato_il);
-      case 'antico':
-        return new Date(a.creato_il) - new Date(b.creato_il);
-      case 'punteggio_alto':
-        return b.punteggio - a.punteggio;
-      case 'punteggio_basso':
-        return a.punteggio - b.punteggio;
-      default:
-        return 0;
-    }
-  });
+  switch (ordinamento) {
+    case "recente":
+      return (
+        dayjs(b.chiuso_il, formatoData).valueOf() -
+        dayjs(a.chiuso_il, formatoData).valueOf()
+      );
+    case "antico":
+      return (
+        dayjs(a.chiuso_il, formatoData).valueOf() -
+        dayjs(b.chiuso_il, formatoData).valueOf()
+      );
+    case "punteggio_alto":
+      return b.punteggio - a.punteggio;
+    case "punteggio_basso":
+      return a.punteggio - b.punteggio;
+    default:
+      return 0;
+  }
+});
+
 
   // Funzione per ottenere il colore del badge in base al punteggio
   const getBadgeClass = (punteggio) => {
@@ -139,8 +150,8 @@ function ValutazioniStudente() {
         <div>
           <label className="fw-semibold me-2">Ordina per:</label>
           {[
-            { value: 'recente', label: 'Compiti più recenti' },
-            { value: 'antico', label: 'Compiti meno recenti' },
+            { value: 'recente', label: 'Più recenti' },
+            { value: 'antico', label: 'Meno recenti' },
             { value: 'punteggio_alto', label: 'Punteggio alto' },
             { value: 'punteggio_basso', label: 'Punteggio basso' }
           ].map((opzione) => (
@@ -190,7 +201,7 @@ function ValutazioniStudente() {
             >
               <tr>
                 <th style={{ width: "50%" }}>Traccia</th>
-                <th>Data assegnazione</th>
+                <th>Data valutazione</th>
                 <th>Punteggio</th>
                 <th>Valutazione</th>
               </tr>
@@ -215,7 +226,7 @@ function ValutazioniStudente() {
                   </td>
                   <td>
                     <div className="d-flex flex-column">
-                      <small>{compito.creato_il}</small>
+                      <small>{compito.chiuso_il}</small>
                       <small className="text-muted">
                         Gruppo: {compito.numero_studenti} studenti
                       </small>
