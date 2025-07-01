@@ -17,7 +17,7 @@
 - Route `/studente/compiti/:id/rispondi`: pagina per rispondere o modificare la risposta del compito.
 - Route `/studente/valutazioni`: pagina con i voti e le performance degli studenti.
 
-###### **Modal Routes (**Gestione Modali tramite Parametri URL**)**
+#### **Modal Routes (**Gestione Modali tramite Parametri URL**)**
 
 Per la creazione dei compiti da parte del docente, sono stati utilizzati modali (in 2 step) con gestione dello stato basata su URL:
 
