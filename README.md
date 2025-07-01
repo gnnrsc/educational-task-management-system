@@ -19,14 +19,14 @@
 
 **Modal Routes (**Gestione Modali tramite Parametri URL**)**
 
-Il sistema di creazione compiti utilizza una gestione dello stato basata su URL, per gestire modali complessi con navigazione persistente:
+Per la creazione dei compiti da parte del docente, sono stati utilizzati modali (in 2 step) con gestione dello stato basata su URL:
 
 * Route `/docente/compiti?modal=crea`: Modal creazione compito - appena aperto.
 * Route `/docente/compiti?modal=crea&step=1`: Modal creazione compito - Step 1 (inserimento domanda).
 * Route `/docente/compiti?modal=crea&step=2`: Modal creazione compito - Step 2 (selezione studenti del gruppo).
 * Route `/docente/compiti?modal=crea&assegna=:id`: Modal riassegnazione compito esistente (id) ad un nuovo gruppo.
 
-*Caratteristiche avanzate*:
+*Caratteristiche avanzate aggiunte*:
 
 - Deep linking diretto ai modali: l'URL apre direttamente un modal specifico in un determinato stato.
 - Persistenza stato durante refresh: lo stato del modale del primo step sopravvive al refresh della pagina, grazie alla combinazione di URL params e sessionStorage.
@@ -66,7 +66,7 @@ Queste caratteristiche avanzate sono state implementate per superare le limitazi
 **GET `/api/docente/classe/collaborazioni`**
 
 - Parametri della richiesta: `minCount` (opzionale, default: 2)
-- Response body: Oggetto con le coppie di studenti che hanno il conteggio di collaborazioni >=minCount `{ "1-2", "2-3" }` (coppia di studenti 1 e 2 ha 2 collaborazioni ecc.)
+- Response body: Oggetto con le coppie di studenti che hanno il conteggio di collaborazioni >=minCount `{ "1-2", "2-3" }` (gli studenti con id 1 ed id 2 hanno collaborato due volte insieme ecc.)
 
 **PUT `/api/docente/compiti/:id/valuta`**
 
@@ -99,7 +99,7 @@ Queste caratteristiche avanzate sono state implementate per superare le limitazi
 
 - Parametri della richiesta: `:id` (ID del compito)
 - Request body: `{ testo_risposta: string, ultimaModificaRisposta?: string }`
-- Response body: Oggetto risposta aggiornato oppure errore di conflitto (compito chiuso / risposta modificata da un altro membro)
+- Response body: Oggetto risposta aggiornato/creato oppure errore di conflitto (compito chiuso / risposta modificata da un altro membro)
 
 **GET `/api/studente/media`**
 
