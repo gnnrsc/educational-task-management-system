@@ -171,11 +171,11 @@ function ListaCompiti({
             style={{ position: "sticky", top: 0, zIndex: 1 }}
           >
             <tr>
-              <th style={{ width: "40%" }}>Traccia</th>
+              <th style={{ width: "35%" }}>Traccia</th>
               <th>Gruppo</th>
-              <th>Data</th>
-              <th>Stato</th>
-              <th>Azioni</th>
+              <th>Data assegnazione</th>
+              <th className="text-center">Stato</th>
+              <th className="text-center">Azioni</th>
             </tr>
           </thead>
           <tbody>
@@ -198,19 +198,30 @@ function ListaCompiti({
             ) : (
               compitiFiltrati.map((c) => (
                 <tr key={c.id}>
-                  <td style={{ width: "40%" }}>
+                  <td style={{ width: "35%" }}>
                     <strong>
-                      {c.traccia.length > 60
-                        ? c.traccia.slice(0, 60) + "..."
+                      {c.traccia.length > 50
+                        ? c.traccia.slice(0, 50) + "..."
                         : c.traccia}
                     </strong>
                   </td>
-                  <td>
-                    <div className="d-flex flex-wrap gap-1">
+                  <td style={{ width: "18%" }}>
+                    <div
+                      className="d-grid"
+                      style={{
+                        gridTemplateColumns: "repeat(3, auto)",
+                        width: "fit-content",
+                      }}
+                    >
                       {c.gruppo.map((utente, j) => (
                         <span
                           key={`${c.id}-${utente.id || j}`}
                           className="badge bg-light text-secondary border"
+                          style={{
+                            fontSize: "0.75rem",
+                            padding: "0.2em 0.4em",
+                            margin: "1.5px",
+                          }}
                         >
                           {utente.cognome} {utente.nome[0]}.
                         </span>
@@ -220,8 +231,16 @@ function ListaCompiti({
                       {c.numero_studenti} studenti
                     </small>
                   </td>
-                  <td>{c.creato_il}</td>
                   <td>
+                    <small>{c.creato_il}</small>
+                  </td>
+                  <td
+                    style={{
+                      position: "relative",
+                      textAlign: "center",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     <span
                       className={`badge px-3 py-1 rounded-pill ${
                         c.stato === "aperto"

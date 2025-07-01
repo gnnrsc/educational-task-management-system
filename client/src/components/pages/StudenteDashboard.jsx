@@ -84,7 +84,7 @@ function StudenteDashboard() {
         onApriRisposta={handleApriRisposta}
       />
 
-      <div className="d-flex justify-content-center mt-4 mb-3">
+      <div className="d-flex justify-content-center mt-3 mb-3">
         <div
           className="card border-top shadow-sm px-3 py-2"
           style={{

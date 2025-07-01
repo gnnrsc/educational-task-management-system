@@ -190,7 +190,7 @@ function ValutazioniStudente() {
             >
               <tr>
                 <th style={{ width: "50%" }}>Traccia</th>
-                <th>Data</th>
+                <th>Data assegnazione</th>
                 <th>Punteggio</th>
                 <th>Valutazione</th>
               </tr>
@@ -215,7 +215,7 @@ function ValutazioniStudente() {
                   </td>
                   <td>
                     <div className="d-flex flex-column">
-                      <span>{compito.creato_il}</span>
+                      <small>{compito.creato_il}</small>
                       <small className="text-muted">
                         Gruppo: {compito.numero_studenti} studenti
                       </small>
