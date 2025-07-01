@@ -150,8 +150,8 @@ const compitiOrdinati = [...compiti].sort((a, b) => {
         <div>
           <label className="fw-semibold me-2">Ordina per:</label>
           {[
-            { value: 'recente', label: 'Più recenti' },
-            { value: 'antico', label: 'Meno recenti' },
+            { value: 'recente', label: 'Più recente' },
+            { value: 'antico', label: 'Meno recente' },
             { value: 'punteggio_alto', label: 'Punteggio alto' },
             { value: 'punteggio_basso', label: 'Punteggio basso' }
           ].map((opzione) => (
