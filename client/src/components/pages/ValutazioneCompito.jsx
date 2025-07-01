@@ -65,7 +65,7 @@ function ValutazioneCompito() {
     try {
       const punteggioNumero = parseInt(punteggio);
       // passa il timestamp dell'ultima modifica direttamente dal compito corrente
-      const timestampRisposta = compito?.risposta?.aggiornato_il;
+      const timestampRisposta = compito?.risposta?.aggiornato_il.format('YYYY-MM-DD HH:mm:ss') || null;
       await API.valutaCompito(compito.id, punteggioNumero, timestampRisposta);
       
       // naviga alla pagina appropriata in base a dove arrivava l'utente
@@ -178,7 +178,7 @@ function ValutazioneCompito() {
           <div className="row mb-3">
             <div className="col-md-6">
               <small className="text-muted">Data: </small>
-              <span style={{ fontSize: '0.9rem' }}>{compito.creato_il}</span>
+              <span style={{ fontSize: '0.9rem' }}>{compito.creato_il.format('DD/MM/YYYY [alle] HH:mm')}</span>
             </div>
             <div className="col-md-6">
               <small className="text-muted">Gruppo: </small>
@@ -194,7 +194,7 @@ function ValutazioneCompito() {
                 <div className="mb-2">
                   <h6 className="mb-1" style={{ fontSize: '1rem' }}>👥 Risposta del gruppo</h6>
                   <small className="text-muted">
-                    📅 {compito.risposta.aggiornato_il}
+                    📅 {compito.risposta.aggiornato_il.format('DD/MM/YYYY [alle] HH:mm')}
                     {compito.risposta.inviato_da && (
                       <span className="ms-2">• Inviata da: <strong>{compito.risposta.inviato_da.nome} {compito.risposta.inviato_da.cognome}</strong></span>
                     )}
@@ -203,7 +203,7 @@ function ValutazioneCompito() {
                 <div style={{ fontSize: '0.95rem' }}>{compito.risposta.testo}</div>
               </div>
 
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} noValidate> 
                 {errors.general && (
                   <div className={`alert ${errors.tipo === 'risposta_modificata' ? 'alert-warning' : 'alert-danger'} py-2 mb-3`}>
                     <div className="d-flex align-items-center justify-content-between">
@@ -237,6 +237,7 @@ function ValutazioneCompito() {
                       type="number"
                       className={`form-control ${errors.punteggio ? 'is-invalid' : ''}`}
                       id="punteggio"
+                      name="punteggio"
                       value={punteggio}
                       onChange={(e) => {
                         setPunteggio(e.target.value);
@@ -247,6 +248,7 @@ function ValutazioneCompito() {
                       min="0" max="30" step="1"
                       placeholder="Inserisci punteggio"
                       disabled={staSalvando}
+                      required
                     />
                     {errors.punteggio && (
                       <div className="invalid-feedback">{errors.punteggio}</div>
@@ -260,20 +262,22 @@ function ValutazioneCompito() {
                     </div>
                   </div>
                   <div className="col-md-8">
-                    <label className="form-label">🎯 Punteggi rapidi:</label>
-                    <div className="d-flex gap-2 flex-wrap">
-                      {[0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30].map(voto => (
-                        <button
-                          key={voto}
-                          type="button"
-                          className={`btn ${punteggio == voto.toString() ? 'btn-primary' : 'btn-outline-secondary'}`}
-                          onClick={() => setPunteggio(voto.toString())}
-                          disabled={staSalvando}
-                        >
-                          {voto}
-                        </button>
-                      ))}
-                    </div>
+                    <fieldset>
+                      <legend className="form-label small">🎯 Punteggi rapidi:</legend>
+                      <div className="d-flex gap-2 flex-wrap" role="group" aria-label="Punteggi rapidi">
+                        {[0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30].map(voto => (
+                          <button
+                            key={voto}
+                            type="button"
+                            className={`btn ${punteggio == voto.toString() ? 'btn-primary' : 'btn-outline-secondary'}`}
+                            onClick={() => setPunteggio(voto.toString())}
+                            disabled={staSalvando}
+                          >
+                            {voto}
+                          </button>
+                        ))}
+                      </div>
+                    </fieldset>
                   </div>
                 </div>
 
