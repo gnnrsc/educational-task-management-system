@@ -59,9 +59,9 @@ router.get(
   }
 );
 
-// PUT: /compiti/:id/risposta - Inserisce o aggiorna la risposta a un compito
+// PUT: /compiti/:id/rispondi - Inserisce o aggiorna la risposta a un compito
 router.put(
-  "/compiti/:id/risposta",
+  "/compiti/:id/rispondi",
   [
     param("id").isInt({ min: 1 }).withMessage("ID compito non valido"),
     body("testo_risposta")

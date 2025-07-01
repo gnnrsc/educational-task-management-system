@@ -9,7 +9,6 @@ import API from "../../API";
 function StudenteDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
   
   const [compiti, setCompiti] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,46 +82,6 @@ function StudenteDashboard() {
         onApriDettaglio={handleApriDettaglio}
         onApriRisposta={handleApriRisposta}
       />
-
-      <div className="d-flex justify-content-center mt-3 mb-3">
-        <div
-          className="card border-top shadow-sm px-3 py-2"
-          style={{
-            minWidth: "280px",
-            width: "98%",
-          }}
-        >
-          <div className="row text-center small">
-            <div className="col">
-              <div className="d-flex flex-column">
-                <span className="fw-semibold text-primary">
-                  {compiti.filter((c) => c.stato === "aperto").length}
-                </span>
-                <small className="text-muted">Compiti aperti</small>
-              </div>
-            </div>
-            <div className="col">
-              <div className="d-flex flex-column">
-                <span className="fw-semibold text-warning">
-                  {
-                    compiti.filter((c) => c.stato === "aperto" && !c.ha_risposta)
-                      .length
-                  }
-                </span>
-                <small className="text-muted">Compiti da completare</small>
-              </div>
-            </div>
-            <div className="col">
-              <div className="d-flex flex-column">
-                <span className="fw-semibold text-secondary">
-                  {compiti.filter((c) => c.stato === "chiuso").length}
-                </span>
-                <small className="text-muted">Compiti chiusi</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
       <ConfermaSuccesso {...conferma} onChiudi={() => setConferma({})} />
     </div>
   );

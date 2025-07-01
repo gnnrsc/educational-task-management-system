@@ -162,8 +162,8 @@ function RispostaCompito() {
       <nav aria-label="breadcrumb" className="mb-3">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="btn btn-link p-0 text-decoration-none"
               onClick={handleTornaIndietro}
             >
@@ -171,7 +171,7 @@ function RispostaCompito() {
             </button>
           </li>
           <li className="breadcrumb-item">
-            <button 
+            <button
               className="btn btn-link p-0 text-decoration-none"
               onClick={() => navigate(`/studente/compiti/${compito.id}`)}
             >
@@ -205,7 +205,11 @@ function RispostaCompito() {
                 <strong className="text-muted" style={{ fontSize: "0.9rem" }}>
                   Traccia:
                 </strong>
-                <span className={`badge bg-${compito.stato === "aperto" ? "success" : "secondary"} ms-auto`}>
+                <span
+                  className={`badge bg-${
+                    compito.stato === "aperto" ? "success" : "secondary"
+                  } ms-auto`}
+                >
                   {compito.stato === "aperto" ? "🟢 Aperto" : "🔴 Chiuso"}
                 </span>
               </div>
@@ -221,7 +225,18 @@ function RispostaCompito() {
           <div className="d-flex flex-wrap align-items-center gap-3 mb-3">
             <div className="d-flex align-items-center gap-1">
               <small className="text-muted">Data assegnazione:</small>
-              <span style={{ fontSize: "0.9rem" }}>{compito.creato_il.format('DD/MM/YYYY [alle] HH:mm')}</span>
+              <span style={{ fontSize: "0.9rem" }}>
+                {compito.creato_il.format("DD/MM/YYYY [alle] HH:mm")}
+              </span>
+            </div>
+
+            <div className="d-flex align-items-center gap-1">
+              <small className="text-muted">Docente:</small>
+              <span style={{ fontSize: "0.9rem" }}>
+                {compito.docente
+                  ? `${compito.docente.nome} ${compito.docente.cognome}`
+                  : "N/A"}
+              </span>
             </div>
 
             <div className="d-flex align-items-center gap-1">
@@ -253,16 +268,19 @@ function RispostaCompito() {
             <div className="d-flex flex-wrap align-items-center gap-3 mb-3 p-2 bg-light rounded">
               <div className="d-flex align-items-center gap-1">
                 <small className="text-muted">📅 Ultima modifica:</small>
-                <span style={{ fontSize: "0.9rem" }}>{compito.risposta.aggiornato_il.format('DD/MM/YYYY [alle] HH:mm')}</span>
+                <span style={{ fontSize: "0.9rem" }}>
+                  {compito.risposta.aggiornato_il.format(
+                    "DD/MM/YYYY [alle] HH:mm"
+                  )}
+                </span>
               </div>
               <div className="d-flex align-items-center gap-1">
                 <small className="text-muted">Inviata da:</small>
-                  <strong>
-                    {compito.risposta.inviato_da.id === user.id 
-                      ? "Te" 
-                      : `${compito.risposta.inviato_da.nome} ${compito.risposta.inviato_da.cognome}`
-                    }
-                  </strong>
+                <strong>
+                  {compito.risposta.inviato_da.id === user.id
+                    ? "Te"
+                    : `${compito.risposta.inviato_da.nome} ${compito.risposta.inviato_da.cognome}`}
+                </strong>
               </div>
             </div>
           )}
@@ -278,9 +296,13 @@ function RispostaCompito() {
             <div className="mb-3">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <label htmlFor="testoRisposta" className="form-label mb-0">
-                  <strong style={{ fontSize: "0.9rem" }}>💬 Risposta del gruppo *</strong>
+                  <strong style={{ fontSize: "0.9rem" }}>
+                    💬 Risposta del gruppo *
+                  </strong>
                   {haInviatoRisposta && (
-                    <span className="badge bg-success ms-2">✓ Inviata da te</span>
+                    <span className="badge bg-success ms-2">
+                      ✓ Inviata da te
+                    </span>
                   )}
                 </label>
                 <small className={`${ottieniColoreCaratteri()}`}>
@@ -288,7 +310,9 @@ function RispostaCompito() {
                 </small>
               </div>
               <textarea
-                className={`form-control ${errors.testoRisposta ? "is-invalid" : ""}`}
+                className={`form-control ${
+                  errors.testoRisposta ? "is-invalid" : ""
+                }`}
                 id="testoRisposta"
                 value={testoRisposta}
                 onChange={handleTestoCambia}
@@ -299,9 +323,7 @@ function RispostaCompito() {
                 style={{ fontSize: "0.95rem" }}
               />
               {errors.testoRisposta && (
-                <div className="invalid-feedback">
-                  {errors.testoRisposta}
-                </div>
+                <div className="invalid-feedback">{errors.testoRisposta}</div>
               )}
             </div>
 
@@ -324,7 +346,9 @@ function RispostaCompito() {
                 {staSalvando ? (
                   <LoadingSpinner variant="inline" />
                 ) : (
-                  <>{isModifica ? "💾 Aggiorna Risposta" : "📤 Invia Risposta"}</>
+                  <>
+                    {isModifica ? "💾 Aggiorna Risposta" : "📤 Invia Risposta"}
+                  </>
                 )}
               </button>
             </div>
@@ -334,9 +358,10 @@ function RispostaCompito() {
               <small>
                 <strong>💡 Suggerimenti:</strong>
                 <br />
-                • Puoi sempre modificare la risposta finché il docente non la valuta
-                <br />
-                • Tutti i membri del gruppo possono vedere e modificare questa risposta
+                • Puoi sempre modificare la risposta finché il docente non la
+                valuta
+                <br />• Tutti i membri del gruppo possono vedere e modificare
+                questa risposta
               </small>
             </div>
           </form>
