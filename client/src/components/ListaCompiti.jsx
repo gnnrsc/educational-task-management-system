@@ -232,7 +232,7 @@ function ListaCompiti({
                     </small>
                   </td>
                   <td>
-                    <small>{c.creato_il}</small>
+                    <small>{c.creato_il.format('DD/MM/YYYY [alle] HH:mm')}</small>
                   </td>
                   <td
                     style={{

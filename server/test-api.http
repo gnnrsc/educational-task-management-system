@@ -75,7 +75,7 @@ GET {{server}}/api/docente/compiti/1/risposta
 
 ### Aggiungere una valutazione a un compito - ERRORE risposta non ancora esistente
 ### SE ANCORA NON SI E' AGGIUNTA UNA RISPOSTA ALLA DOMANDA 1 PROVANDO LE API STUDENTI
-PUT {{server}}/api/docente/compiti/1/valutazione
+PUT {{server}}/api/docente/compiti/1/valuta
 Content-Type: application/json
 
 {
@@ -83,7 +83,7 @@ Content-Type: application/json
 }
 ### Aggiungere una valutazione a un compito
 ### ESEGUIRLA DOPO AVER AGGIUNTO UNA RISPOSTA ALLA DOMANDA 1 PROVANDO LE API STUDENTI
-PUT {{server}}/api/docente/compiti/1/valutazione
+PUT {{server}}/api/docente/compiti/1/valuta
 Content-Type: application/json
 
 {
@@ -91,7 +91,7 @@ Content-Type: application/json
 }
 
 ### Aggiungere una valutazione a un compito - ERRORE punteggio non valido
-PUT {{server}}/api/docente/compiti/1/valutazione
+PUT {{server}}/api/docente/compiti/1/valuta
 Content-Type: application/json
 
 {
@@ -99,7 +99,7 @@ Content-Type: application/json
 }
 
 ### Aggiungere una valutazione a un compito - ERRORE compito non esistente
-PUT {{server}}/api/docente/compiti/11/valutazione
+PUT {{server}}/api/docente/compiti/11/valuta
 Content-Type: application/json
 
 {
@@ -107,7 +107,7 @@ Content-Type: application/json
 }
 
 ### Aggiungere una valutazione a un compito - ERRORE compito già valutato
-PUT {{server}}/api/docente/compiti/2/valutazione
+PUT {{server}}/api/docente/compiti/2/valuta
 Content-Type: application/json
 
 {

@@ -221,7 +221,7 @@ function RispostaCompito() {
           <div className="d-flex flex-wrap align-items-center gap-3 mb-3">
             <div className="d-flex align-items-center gap-1">
               <small className="text-muted">Data assegnazione:</small>
-              <span style={{ fontSize: "0.9rem" }}>{compito.creato_il}</span>
+              <span style={{ fontSize: "0.9rem" }}>{compito.creato_il.format('DD/MM/YYYY [alle] HH:mm')}</span>
             </div>
 
             <div className="d-flex align-items-center gap-1">
@@ -253,7 +253,7 @@ function RispostaCompito() {
             <div className="d-flex flex-wrap align-items-center gap-3 mb-3 p-2 bg-light rounded">
               <div className="d-flex align-items-center gap-1">
                 <small className="text-muted">📅 Ultima modifica:</small>
-                <span style={{ fontSize: "0.9rem" }}>{compito.risposta.aggiornato_il}</span>
+                <span style={{ fontSize: "0.9rem" }}>{compito.risposta.aggiornato_il.format('DD/MM/YYYY [alle] HH:mm')}</span>
               </div>
               <div className="d-flex align-items-center gap-1">
                 <small className="text-muted">Inviata da:</small>

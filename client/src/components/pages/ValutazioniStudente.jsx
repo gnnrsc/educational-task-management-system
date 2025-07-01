@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import API from "../../API";
 import LoadingSpinner from "../utils/LoadingSpinner";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-dayjs.extend(customParseFormat);
 
 function ValutazioniStudente() {
   const [compiti, setCompiti] = useState([]);
@@ -46,18 +44,17 @@ function ValutazioniStudente() {
 
 // Ordina i compiti in base al filtro selezionato
 const compitiOrdinati = [...compiti].sort((a, b) => {
-  const formatoData = "DD/MM/YYYY [alle] HH:mm";
 
   switch (ordinamento) {
     case "recente":
       return (
-        dayjs(b.chiuso_il, formatoData).valueOf() -
-        dayjs(a.chiuso_il, formatoData).valueOf()
+        dayjs(b.chiuso_il).valueOf() -
+        dayjs(a.chiuso_il).valueOf()
       );
     case "antico":
       return (
-        dayjs(a.chiuso_il, formatoData).valueOf() -
-        dayjs(b.chiuso_il, formatoData).valueOf()
+        dayjs(a.chiuso_il).valueOf() -
+        dayjs(b.chiuso_il).valueOf()
       );
     case "punteggio_alto":
       return b.punteggio - a.punteggio;
@@ -226,7 +223,7 @@ const compitiOrdinati = [...compiti].sort((a, b) => {
                   </td>
                   <td>
                     <div className="d-flex flex-column">
-                      <small>{compito.chiuso_il}</small>
+                      <small>{compito.chiuso_il.format('DD/MM/YYYY [alle] HH:mm')}</small>
                       <small className="text-muted">
                         Gruppo: {compito.numero_studenti} studenti
                       </small>

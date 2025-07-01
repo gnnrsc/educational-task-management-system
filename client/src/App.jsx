@@ -38,7 +38,7 @@ function App() {
         ) : ( <LoginForm /> ) } />
         <Route path="/docente/compiti" element={ <ProtectedRoute ruoliConcessi={['docente']}><DocenteDashboard /></ProtectedRoute> } />
         <Route path="/docente/compiti/:id" element={<ProtectedRoute ruoliConcessi={['docente']}><DettaglioCompito /></ProtectedRoute>} />
-        <Route path="/docente/compiti/:id/valutazione" element={<ProtectedRoute ruoliConcessi={['docente']}><ValutazioneCompito /></ProtectedRoute>} />
+        <Route path="/docente/compiti/:id/valuta" element={<ProtectedRoute ruoliConcessi={['docente']}><ValutazioneCompito /></ProtectedRoute>} />
         <Route path="/docente/classe" element={ <ProtectedRoute ruoliConcessi={['docente']}><StatoClasse /></ProtectedRoute> } />
         <Route path="/studente/compiti" element={ <ProtectedRoute ruoliConcessi={['studente']}><StudenteDashboard /></ProtectedRoute> } />
         <Route path="/studente/compiti/:id" element={<ProtectedRoute ruoliConcessi={['studente']}><DettaglioCompitoStudente /></ProtectedRoute>} />

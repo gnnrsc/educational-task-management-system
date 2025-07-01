@@ -113,7 +113,7 @@ function DocenteDashboard() {
   // naviga alla pagina di valutazione ricordando che si arriva da lista compiti
   
   const apriValutazione = (compito) => {
-    navigate(`/docente/compiti/${compito.id}/valutazione`, { 
+    navigate(`/docente/compiti/${compito.id}/valuta`, { 
       state: { daDettaglio: false } 
     });
   };

@@ -103,9 +103,9 @@ router.get(
 );
 
 
-// PUT: /compiti/:id/valutazione - Effettuare una valutazione di un compito (solo per docenti)
+// PUT: /compiti/:id/valuta - Effettuare una valutazione di un compito (solo per docenti)
 router.put(
-  "/compiti/:id/valutazione",
+  "/compiti/:id/valuta",
   [
     param("id").isInt({ min: 1 }).withMessage("ID compito non valido").toInt(),
     body("punteggio")

@@ -55,7 +55,7 @@ function DettaglioCompitoPage() {
   }, [location.state, location.pathname]);
   
   const apriValutazione = () => {
-    navigate(`/docente/compiti/${id}/valutazione`, {
+    navigate(`/docente/compiti/${id}/valuta`, {
       state: { daDettaglio: true },
     });
     
@@ -180,7 +180,7 @@ function DettaglioCompito({ compito, onApriValutazione, onAssegnaAltroGruppo }) 
         <div className="row mb-3">
           <div className="col-md-3">
             <small className="text-muted">Data creazione: </small>
-            <span style={{ fontSize: '0.9rem' }}>{compito.creato_il}</span>
+            <span style={{ fontSize: '0.9rem' }}>{compito.creato_il.format('DD/MM/YYYY [alle] HH:mm')}</span>
           </div>
           <div className="col-md-6">
             <small className="text-muted">Gruppo: </small>
@@ -190,7 +190,7 @@ function DettaglioCompito({ compito, onApriValutazione, onAssegnaAltroGruppo }) 
             <div className="col-md-3">
               <small className="text-muted">Data chiusura: </small>
               <span style={{ fontSize: '0.9rem' }} className="text-danger">
-                🔒 {compito.chiuso_il}
+                🔒 {compito.chiuso_il.format('DD/MM/YYYY [alle] HH:mm')}
               </span>
             </div>
           )}
@@ -201,7 +201,7 @@ function DettaglioCompito({ compito, onApriValutazione, onAssegnaAltroGruppo }) 
             <div className="mb-2">
               <h6 className="mb-1" style={{ fontSize: '1rem' }}>👥 Risposta del gruppo</h6>
               <small className="text-muted">
-                📅 {compito.risposta.aggiornato_il}
+                📅 {compito.risposta.aggiornato_il.format('DD/MM/YYYY [alle] HH:mm')}
                 {compito.risposta.inviato_da && (
                   <span className="ms-2">• Inviata da: <strong>{compito.risposta.inviato_da.nome} {compito.risposta.inviato_da.cognome}</strong></span>
                 )}

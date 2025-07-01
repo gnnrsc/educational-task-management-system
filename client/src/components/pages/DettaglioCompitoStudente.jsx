@@ -140,7 +140,7 @@ function DettaglioCompitoStudente({ compito, utenteCorrente, onApriRisposta }) {
         <div className="d-flex flex-wrap align-items-center gap-3 mb-3">
           <div className="d-flex align-items-center gap-1">
             <small className="text-muted">Data assegnazione:</small>
-            <span style={{ fontSize: "0.9rem" }}>{compito.creato_il}</span>
+            <span style={{ fontSize: "0.9rem" }}>{compito.creato_il.format('DD/MM/YYYY [alle] HH:mm')}</span>
           </div>
 
           <div className="d-flex align-items-center gap-1">
@@ -190,7 +190,7 @@ function DettaglioCompitoStudente({ compito, utenteCorrente, onApriRisposta }) {
                 )}
               </h6>
               <small className="text-muted">
-                📅 {compito.risposta.aggiornato_il}
+                📅 {compito.risposta.aggiornato_il.format('DD/MM/YYYY [alle] HH:mm')}
                 {compito.risposta.inviato_da && (
                   <span className="ms-2">
                     • Inviata da:{" "}
@@ -266,9 +266,9 @@ function DettaglioCompitoStudente({ compito, utenteCorrente, onApriRisposta }) {
                 <br />
                 <small>
                   Questo compito è stato valutato dal docente e non può più essere modificato.
-                  {compito.chiuso_il && (
+                  {compito.chiuso_il.format('DD/MM/YYYY [alle] HH:mm') && (
                     <span className="d-block mt-1">
-                      📅 Data di chiusura: {compito.chiuso_il}
+                      📅 Data di chiusura: {compito.chiuso_il.format('DD/MM/YYYY [alle] HH:mm')}
                     </span>
                   )}
                 </small>

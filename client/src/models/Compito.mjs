@@ -3,7 +3,7 @@ import { Utente } from './Utente.mjs';
 
 function Risposta(testo, aggiornato_il, inviato_da) {
   this.testo = testo;
-  this.aggiornato_il = dayjs(aggiornato_il).format('DD/MM/YYYY [alle] HH:mm');
+  this.aggiornato_il = dayjs(aggiornato_il);
   this.inviato_da = new Utente(inviato_da);
 
   this.serialize = () => ({
@@ -17,8 +17,8 @@ function Compito(data) {
   this.id = data.id;
   this.traccia = data.traccia;
   this.stato = data.stato;
-  this.creato_il = dayjs(data.creato_il).format('DD/MM/YYYY [alle] HH:mm');
-  this.chiuso_il = data.chiuso_il ? dayjs(data.chiuso_il).format('DD/MM/YYYY [alle] HH:mm') : null;
+  this.creato_il = dayjs(data.creato_il);
+  this.chiuso_il = data.chiuso_il ? dayjs(data.chiuso_il) : null;
   this.numero_studenti = data.numero_studenti;
   this.punteggio = data.punteggio ?? null;
   //creato_da
