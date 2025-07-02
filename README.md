@@ -126,9 +126,7 @@ Queste caratteristiche avanzate sono state implementate per superare le limitazi
 
 ## Screenshot
 
-<p>
-  <img src="./demo/crea_compito.gif" width="50%" />
-</p>
+##### Crea compito:
 
 ![Crea Compito](./demo/crea_compito.gif)
 
