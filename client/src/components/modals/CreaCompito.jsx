@@ -6,6 +6,7 @@ import StepDomanda from "./StepDomanda";
 import StepSelezioneStudenti from "./StepSelezioneStudenti";
 import FooterNavigazione from "./FooterNavigazione";
 import ErrorAlert from "../utils/ErrorAlert";
+import ConfermaAzione from "../utils/ConfermaAzione";
 
 function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIniziale = 1, domandaIniziale = "", onSalvaStato = null }) {
 
@@ -24,8 +25,10 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
   const [invioInCorso, setInvioInCorso] = useState(false);
   const [direzioneSlide, setDirezioneSlide] = useState("");
 
-  // nuovo stato per gestire gli errori di conflitto (numero di collaborazioni superate - stesso docente con 2 sessioni)
+  // stato per gestire gli errori di conflitto (numero di collaborazioni superate - stesso docente con 2 sessioni)
   const [alertErrore, setAlertErrore] = useState(null);
+  // stato per mostrare la conferma di invio
+  const [mostraConferma, setMostraConferma] = useState(false);
 
   // sincronizza con props quando cambiano
   useEffect(() => {
@@ -131,19 +134,25 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
     setErrore("");
 
     const gruppoValido = studentiSelezionati.length >= SELEZIONE_MINIMA && 
-                        studentiSelezionati.length <= SELEZIONE_MASSIMA;
+      studentiSelezionati.length <= SELEZIONE_MASSIMA;
 
     if (!gruppoValido) {
       setErrore(`Il gruppo deve avere almeno ${SELEZIONE_MINIMA} studenti e al massimo ${SELEZIONE_MASSIMA}.`);
       return;
     }
 
+    // mostra la conferma azione, invece di procedere direttamente all'invio
+    setMostraConferma(true);
+  };
+
+
+  const gestisciConfermaCreazione = async () => {
     setInvioInCorso(true);
-    
+
     try {
-      const studentiIds = studentiSelezionati.map(studente => studente.id);
+      const studentiIds = studentiSelezionati.map((studente) => studente.id);
       const risultato = await API.creaCompito(domanda.trim(), studentiIds);
-      
+
       if (risultato && risultato.id) {
         const compitoCreato = new Compito({
           id: risultato.id,
@@ -153,34 +162,41 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
           numero_studenti: studentiIds.length,
           gruppo: studentiSelezionati,
         });
-        
+
         // reset del form all'invio
         setDomanda("");
         setStudentiSelezionati([]);
         setStepCorrente(1);
+        setMostraConferma(false);
 
         onCompitoCreato(compitoCreato);
-
       } else {
         setErrore("Compito non creato correttamente. Riprova.");
+        setMostraConferma(false);
       }
-      
     } catch (error) {
       // gestione silenziosa degli errori di conflitto
       if (error.isConflict) {
         setAlertErrore({
-          codice: error.codice || 'GENERIC_CONFLICT',
+          codice: error.codice || "GENERIC_CONFLICT",
           message: error.error,
           dettagli: error.dettagli,
-          originalError: error
+          originalError: error,
         });
       } else {
         setErrore("Errore nella creazione del compito. Riprova.");
       }
+      setMostraConferma(false);
     } finally {
       setInvioInCorso(false);
     }
   };
+
+  // handle per annullare la creazione dalla conferma
+  const gestisciAnnullaConferma = () => {
+    setMostraConferma(false);
+  };
+
   // gestione dell'alert di errore conflitto
   const handleChiudiAlert = () => {
     setAlertErrore(null);
@@ -215,15 +231,23 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
 
   return (
     <div className="p-4">
+      {/* componente di conferma creazione */}
+      <ConfermaAzione
+        tipo="compito"
+        mostra={mostraConferma}
+        onConferma={gestisciConfermaCreazione}
+        onAnnulla={gestisciAnnullaConferma}
+        caricamentoInCorso={invioInCorso}
+      />
       {/* alert modale per errori di conflitto */}
       {alertErrore && (
-        <ErrorAlert 
-          error={alertErrore} 
+        <ErrorAlert
+          error={alertErrore}
           onClose={handleChiudiAlert}
           onAction={handleAzioneAlert}
         />
       )}
-      { /* Intestazione step */}
+      {/* Intestazione step */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h6 className="mb-0 fw-bold">{ottieniTitoloStep()}</h6>
         <small className="text-muted">Step {ottieniProgresso()}</small>

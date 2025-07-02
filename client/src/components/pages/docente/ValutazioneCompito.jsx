@@ -15,8 +15,10 @@ function ValutazioneCompito() {
   const [loading, setLoading] = useState(true);
   const [staSalvando, setStaSalvando] = useState(false);
 
-  // nuovo stato per gestire gli errori di conflitto (valutazione con risposta cambiata - valutazione quando il compito è già chiuso)
+  // stato per gestire gli errori di conflitto (valutazione con risposta cambiata - valutazione quando il compito è già chiuso)
   const [alertErrore, setAlertErrore] = useState(null);
+  // stato per mostrare la conferma di azione
+  const [mostraConferma, setMostraConferma] = useState(false);
 
   // determina da dove arriva l'utente - se da dettaglio compito o da lista compiti
   const daDettaglio = location.state?.daDettaglio;
@@ -64,33 +66,46 @@ function ValutazioneCompito() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validaForm()) return;
-    
+
+    // mostra la conferma invece di procedere direttamente all'invio della valutazione
+    setMostraConferma(true);
+  };
+
+  // handle per gestire la conferma dell'azione
+  const gestisciConfermaValutazione = async () => {
     setStaSalvando(true);
+
     try {
       const punteggioNumero = parseInt(punteggio);
       // passa il timestamp dell'ultima modifica direttamente dal compito corrente
       const timestampRisposta = compito?.risposta?.aggiornato_il.format('YYYY-MM-DD HH:mm:ss') || null;
       await API.valutaCompito(compito.id, punteggioNumero, timestampRisposta);
-      
+
       // naviga alla pagina appropriata in base a dove arrivava l'utente
       const targetPath = daDettaglio ? `/docente/compiti/${id}` : '/docente/compiti';
-      navigate(targetPath, { 
+      navigate(targetPath, {
         state: { conferma: 'valutazione-completata', messaggio: `Compito valutato con successo! Punteggio: ${punteggioNumero}/30` }
       });
     } catch (error) {
       // gestione silenziosa degli errori di conflitto 
       if (error.isConflict) {
         setAlertErrore({
-          codice: error.codice || 'GENERIC_CONFLICT',
+          codice: error.codice || "GENERIC_CONFLICT",
           message: error.error,
-          originalError: error
+          originalError: error,
         });
       } else {
         setErrors({ general: error.error || "Errore nel salvataggio. Riprova." });
       }
+      setMostraConferma(false);
     } finally {
       setStaSalvando(false);
     }
+  };
+
+  // handle per annullare la conferma di valutazione
+  const gestisciAnnullaConferma = () => {
+    setMostraConferma(false);
   };
   // gestione dell'alert di errore conflitto
   const handleChiudiAlert = () => {
@@ -140,6 +155,13 @@ function ValutazioneCompito() {
 
   return (
     <div className="container my-3">
+      <ConfermaAzione
+        mostra={mostraConferma}
+        tipo="valutazione"
+        onConferma={gestisciConfermaValutazione}
+        onAnnulla={gestisciAnnullaConferma}
+        caricamentoInCorso={staSalvando}
+      />
       {/* alert modale per errori di conflitto */}
       {alertErrore && (
         <ErrorAlert 
