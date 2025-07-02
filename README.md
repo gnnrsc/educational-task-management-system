@@ -21,10 +21,10 @@
 
 Per la creazione dei compiti da parte del docente, sono stati utilizzati modali (in 2 step) con gestione dello stato basata su URL:
 
-* Route `/docente/compiti?modal=crea`: Modal creazione compito - appena aperto.
-* Route `/docente/compiti?modal=crea&step=1`: Modal creazione compito - Step 1 (inserimento domanda).
-* Route `/docente/compiti?modal=crea&step=2`: Modal creazione compito - Step 2 (selezione studenti del gruppo).
-* Route `/docente/compiti?modal=crea&assegna=:id`: Modal riassegnazione compito esistente (id) ad un nuovo gruppo.
+* Route `/docente/compiti?modal=crea`: modal creazione compito - appena aperto.
+* Route `/docente/compiti?modal=crea&step=1`: modal creazione compito - Step 1 (inserimento domanda).
+* Route `/docente/compiti?modal=crea&step=2`: modal creazione compito - Step 2 (selezione studenti del gruppo).
+* Route `/docente/compiti?modal=crea&assegna=:id`: modal riassegnazione compito esistente (id) ad un nuovo gruppo.
 
 *Caratteristiche avanzate aggiunte*:
 
@@ -42,73 +42,73 @@ Queste caratteristiche avanzate sono state implementate per superare le limitazi
 **POST `/api/sessions`**
 
 - Request body: `{ email: string, password: string }`
-- Response body: Oggetto utente `{ id, email, nome, cognome, ruolo }` oppure messaggio di errore
+- Response body: oggetto utente `{ id, email, nome, cognome, ruolo }` oppure messaggio di errore
 
 **DELETE `/api/sessions/current`**
 
-- Response body: Vuoto (status 200)
+- Response body: vuoto (status 200)
 
 **GET `/api/sessions/current`**
 
-- Response body: Oggetto utente corrente oppure errore se non autenticato
+- Response body: oggetto utente corrente oppure errore se non autenticato
 
 ### Route per Docenti
 
 **GET `/api/docente/classe`**
 
-- Response body: Array di studenti `[{ id, nome, cognome }]`
+- Response body: array di studenti `[{ id, nome, cognome }]`
 
 **POST `/api/docente/compiti`**
 
 - Request body: `{ traccia: string, studentiIds: number[] }`
-- Response body: Oggetto compito creato oppure errore di conflitto per limiti di collaborazione
+- Response body: oggetto compito creato oppure errore di conflitto per limiti di collaborazione
 
 **GET `/api/docente/classe/collaborazioni`**
 
 - Parametri della richiesta: `minCount` (opzionale, default: 2)
-- Response body: Oggetto con le coppie di studenti che hanno il conteggio di collaborazioni >=minCount `{ "1-2", "2-3" }` (gli studenti con id 1 ed id 2 hanno collaborato due volte insieme ecc.)
+- Response body: oggetto con le coppie di studenti che hanno il conteggio di collaborazioni >=minCount `{ "1-2", "2-3" }` (gli studenti con id 1 ed id 2 hanno collaborato due volte insieme ecc.)
 
 **PUT `/api/docente/compiti/:id/valuta`**
 
 - Parametri della richiesta: `:id` (ID del compito)
 - Request body: `{ punteggio: number, ultimaModificaRisposta?: string }`
-- Response body: Conferma di successo e punteggio, oppure errore di conflitto (compito già chiuso / risposta modificata)
+- Response body: conferma di successo e punteggio, oppure errore di conflitto (compito già chiuso / risposta modificata)
 
 **GET `/api/docente/classe/stato`**
 
 - Parametri della richiesta: `sort` (opzionale: "media", "alfabetico", "totale")
-- Response body: Array di statistiche degli studenti con voti e conteggio compiti
+- Response body: array di statistiche degli studenti con voti e conteggio compiti
 
 **GET `/api/docente/compiti`**
 
-- Response body: Array dei compiti del docente con info base e stato della risposta
+- Response body: array dei compiti del docente con info base e stato della risposta
 
 **GET `/api/docente/compiti/:id`**
 
 - Parametri della richiesta: `:id` (ID del compito)
-- Response body: Oggetto dettagliato del compito con membri del gruppo e risposta
+- Response body: oggetto dettagliato del compito con membri del gruppo e risposta
 
 ### Route per Studenti
 
 **GET `/api/studente/compiti`**
 
 - Parametri della richiesta: `stato` (opzionale: "aperto", "chiuso")
-- Response body: Array di compiti dello studente con filtro e totale
+- Response body: array di compiti dello studente con filtro e totale
 
 **PUT `/api/studente/compiti/:id/rispondi`**
 
 - Parametri della richiesta: `:id` (ID del compito)
 - Request body: `{ testo_risposta: string, ultimaModificaRisposta?: string }`
-- Response body: Oggetto risposta aggiornato/creato oppure errore di conflitto (compito chiuso / risposta modificata da un altro membro)
+- Response body: oggetto risposta aggiornato/creato oppure errore di conflitto (compito chiuso / risposta modificata da un altro membro)
 
 **GET `/api/studente/media`**
 
-- Response body: Media voti del singolo studente e totale compiti
+- Response body: media voti del singolo studente e totale compiti
 
 **GET `/api/studente/compiti/:id`**
 
 - Parametri della richiesta: `:id` (ID del compito)
-- Response body: Oggetto dettagliato del compito con info su gruppo e risposta
+- Response body: oggetto dettagliato del compito con info su gruppo e risposta
 
 ## Database Tables
 
@@ -118,11 +118,11 @@ Queste caratteristiche avanzate sono state implementate per superare le limitazi
 
 ## Main React Components
 
-- `ListOfSomething` (in `List.js`): component purpose and main functionality
-- `GreatButton` (in `GreatButton.js`): component purpose and main functionality
-- [`CreaCompito`](client/src/components/modals/CreaCompito.jsx): modale a più step per creare compiti con input della traccia e selezione degli studenti, con evidenziazione visuale del limite delle collaborazioni. Incluso inoltre il rilevamento dei conflitti di collaborazione, persistenza temporanea della traccia della domanda, gestione dello stato basato su URL e transizioni animate tra gli step.
-
-(only _main_ components, minor ones may be skipped)
+- [`CreaCompito`](client/src/components/modals/CreaCompito.jsx) (e sotto componenti): modale a più step per creare compiti con input della traccia e selezione degli studenti, con evidenziazione visuale del limite delle collaborazioni. Incluso inoltre il rilevamento dei conflitti di collaborazione, persistenza temporanea della traccia della domanda, gestione dello stato basato su URL e transizioni animate tra gli step.
+- [`ListaCompiti`](client/src/components/ListaCompiti.jsx): componente riutilizzabile per docenti e studenti, mostra l'elenco dei compiti in formato tabellare con filtri, azioni e funzionalità basate sul ruolo. E' presente inoltre un menu kebab con gestione del click al di fuori.
+- [`AuthContext`](client/src/AuthContext.jsx): uso di un contesto per la gestione globale dell'autentificazione, evitando prop drilling. 
+- [`RisoluzioneConflitti`](client/src/components/utils/RisoluzioneConflitti.jsx): gestione dei conflitti per le risposte modificate contemporaneamente dagli studenti, consente la scelta della versione da mantenere.
+- [`ProtectedRoute`](client/src/components/utils/ProtectedRoute.jsx): Componente di protezione delle rotte che garantisce l’accesso solo agli utenti autenticati con ruolo appropriato.
 
 ## Screenshot
 
@@ -134,4 +134,3 @@ Queste caratteristiche avanzate sono state implementate per superare le limitazi
 - username, password (plus any other requested info)
 
 [Prova collegamento file](client/src/components/modals/CreaCompito.jsx)
-
