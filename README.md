@@ -130,9 +130,11 @@ Queste caratteristiche avanzate sono state implementate per superare le limitazi
 
 ![Crea Compito](./demo/crea_compito.gif)
 
+##### Stato della classe:
+
+![Stato Classe](./demo/stato_classe.jpg)
+
 ## Users Credentials
 
 - username, password (plus any other requested info)
 - username, password (plus any other requested info)
-
-[Prova collegamento file](client/src/components/modals/CreaCompito.jsx)
