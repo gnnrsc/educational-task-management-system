@@ -120,7 +120,7 @@ Queste caratteristiche avanzate sono state implementate per superare le limitazi
 
 - `ListOfSomething` (in `List.js`): component purpose and main functionality
 - `GreatButton` (in `GreatButton.js`): component purpose and main functionality
-- ...
+- [`CreaCompito`](client/src/components/modals/CreaCompito.jsx): modale a più step per creare compiti con input della traccia e selezione degli studenti, con evidenziazione visuale del limite delle collaborazioni. Incluso inoltre il rilevamento dei conflitti di collaborazione, persistenza temporanea della traccia della domanda, gestione dello stato basato su URL e transizioni animate tra gli step.
 
 (only _main_ components, minor ones may be skipped)
 
@@ -132,3 +132,6 @@ Queste caratteristiche avanzate sono state implementate per superare le limitazi
 
 - username, password (plus any other requested info)
 - username, password (plus any other requested info)
+
+[Prova collegamento file](client/src/components/modals/CreaCompito.jsx)
+
