@@ -112,9 +112,11 @@ Queste caratteristiche avanzate sono state implementate per superare le limitazi
 
 ## Database Tables
 
-- Table `users` - contains xx yy zz
-- Table `something` - contains ww qq ss
-- ...
+* **Tabella `utenti`** – Contiene le informazioni degli utenti: id, email, password, salt, nome, cognome, ruolo (docente/studente)
+* **Tabella `compiti`** – Contiene i compiti: id, traccia, creato_da, stato, numero_studenti, punteggio, creato_il, chiuso_il
+* **Tabella `assegnazioni_compiti`** – Relazione compito-studente: id, compito_id, studente_id
+* **Tabella `risposte_compiti`** – Contiene le risposte degli studenti: id, compito_id, testo_risposta, inviato_da, aggiornato_il
+* **Tabella `collaborazioni_studenti`** – Tracciamento delle collaborazioni: studente1_id, studente2_id, docente_id, numero_collaborazioni
 
 ## Main React Components
 
@@ -136,5 +138,12 @@ Queste caratteristiche avanzate sono state implementate per superare le limitazi
 
 ## Users Credentials
 
-- username, password (plus any other requested info)
-- username, password (plus any other requested info)
+Per semplicità si riportano le credenziali di un docente e di uno solo degli studenti.
+
+###### DOCENTE:
+
+- Email: luigi.derussis@polito.it  - Password: prova123
+
+###### STUDENTE:
+
+- Email: alice.rossi@studenti.polito.it  - Password: prova123
