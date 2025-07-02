@@ -6,7 +6,7 @@
 
 ## React Client Application Routes
 
-- Route `/`: Homepage con un messaggio di benvenuto che invoglia all'azione. Reindirizza automaticamente gli utenti autentificati alla propria dashboard in base al ruolo, altrimenti indirizza al Login.
+- Route `/`: homepage con un messaggio di benvenuto che invoglia all'azione. Reindirizza automaticamente gli utenti autentificati alla propria dashboard in base al ruolo, altrimenti indirizza al Login.
 - Route `/login`: pagina di login con campo email e password per autentificarsi.
 - Route `/docente/compiti`: dashboard docente che mostra tutti i compiti creati, con filtri e possibilità di creazione.
 - Route `/docente/compiti/:id`: vista dettagliata di un compito specifico (id) per i docenti.
