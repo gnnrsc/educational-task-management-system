@@ -7,14 +7,10 @@ function ListaCompiti({
   onFiltroChange, // callback per notificare il padre del cambio filtro (studente)
   onApriDettaglio, 
   onApriValutazione, // per docente
-  onAssegnaAltroGruppo, // per docente
   onApriRisposta // per studenti
 }) {
 
   const { user } = useAuth();
-  
-  // stato per gestire il menu a tendina per copiare il compito
-  const [menuApertoId, setMenuApertoId] = useState(null);
 
   // se il docente non passa filtroStato, usa uno stato interno (altrimenti studente usa filtroStato)
   const [filtroStatoInterno, setFiltroStatoInterno] = useState("tutti");
@@ -26,16 +22,6 @@ function ListaCompiti({
   const compitiFiltrati = filtroAttivo === "tutti" 
     ? compiti 
     : compiti.filter(compito => compito.stato === filtroAttivo);
-
-  useEffect(() => {
-    const handleClickFuori = (e) => {
-      if (!e.target.closest(".menu-kebab-trigger")) {
-        setMenuApertoId(null);
-      }
-    };
-    document.addEventListener("click", handleClickFuori);
-    return () => document.removeEventListener("click", handleClickFuori);
-  }, []);
 
   const handleCambioFiltro = (nuovoFiltro) => {
     if (onFiltroChange) {
@@ -94,37 +80,6 @@ function ListaCompiti({
       >
         👁️ Visualizza
       </button>
-
-      <span
-        role="button"
-        className="menu-kebab-trigger"
-        title="Altro"
-        style={{
-          cursor: "pointer",
-          fontSize: "20px",
-          padding: "0 6px",
-        }}
-        onClick={() =>
-          setMenuApertoId(menuApertoId === c.id ? null : c.id)
-        }
-      >
-        ⋮
-      </span>
-
-      {menuApertoId === c.id && (
-        <div className="menu-kebab-wrapper">
-          <div
-            className="menu-kebab"
-            onClick={() => {
-              onAssegnaAltroGruppo(c);
-              setMenuApertoId(null);
-            }}
-          >
-            ᯓ➤ Assegna ad un altro gruppo
-            <div className="menu-kebab-arrow" />
-          </div>
-        </div>
-      )}
     </div>
   );
 

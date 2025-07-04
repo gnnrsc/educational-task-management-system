@@ -31,7 +31,7 @@ function StudenteDashboard() {
     caricaCompiti();
   }, [filtroStato]);
 
-  //gestione della conferma dopo le operazioni di assegnazione da DettaglioCompitoStudente e valutazione compito
+  //gestione della conferma dopo le operazioni di valutazione compito
   useEffect(() => {
     if(location.state?.conferma) {
 

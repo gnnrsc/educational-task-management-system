@@ -1,4 +1,4 @@
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation} from 'react-router';
 import CreaCompito from "../../modals/CreaCompito";
 import ListaCompiti from "../../ListaCompiti";
@@ -19,15 +19,11 @@ function DocenteDashboard() {
   
   // lettura parametri URL per gestire modali e stati
   const modalParam = searchParams.get('modal');     
-  const stepParam = searchParams.get('step');             
-  const assegnaParam = searchParams.get('assegna');       
+  const stepParam = searchParams.get('step');       
   
   // stati derivati dall'URL
   const mostraCreaCompito = modalParam === 'crea';
   const stepCorrente = stepParam ? parseInt(stepParam) : 1;
-  const compitoDatiIniziali = assegnaParam && compiti.length > 0 
-    ? compiti.find(c => c.id === parseInt(assegnaParam)) 
-    : null;
   
   // stato persistente per salvare la domanda (non esponendola in URL)
   const domandaSalvata = sessionStorage.getItem('creaCompito_domanda') || "";
@@ -59,18 +55,14 @@ function DocenteDashboard() {
     }
   }, []);
 
-  //gestione della conferma dopo le operazioni di assegnazione da DettaglioCompitoDocente e valutazione compito
+  //gestione della conferma dopo le operazioni di valutazione compito
   useEffect(() => {
     if(location.state?.conferma) {
-      const messaggi = {
-        'compito-assegnato': 'Compito assegnato con successo ad un nuovo gruppo!',
-        'valutazione-completata': location.state.messaggio || 'Valutazione completata con successo!'
-      };
 
       setConferma({
         mostra: true,
         tipo: location.state.conferma,
-        messaggio: messaggi[location.state.conferma] || 'Operazione completata!'
+        messaggio: location.state.messaggio || 'Valutazione completata con successo!'
       });
       
       // rimuove lo stato per evitare che si ripeta alla navigazione
@@ -122,16 +114,12 @@ function DocenteDashboard() {
   
   const handleCompitoCreato = (nuovoCompito) => {
     setCompiti(prev => [nuovoCompito, ...prev]);
-    // controlla se era un'assegnazione o una creazione
-    const eraAssegnazione = compitoDatiIniziali !== null;
     
-    // Mostra la conferma appropriata
+    // Mostra la conferma creazione compito
     setConferma({
       mostra: true,
-      tipo: eraAssegnazione ? 'compito-assegnato' : 'compito-creato',
-      messaggio: eraAssegnazione 
-        ? `Compito assegnato con successo ad un nuovo gruppo!`
-        : `Compito creato con successo!`
+      tipo: 'compito-creato',
+      messaggio: `Compito creato con successo!`
     });
     chiudiTuttiIModali();
   };
@@ -139,14 +127,6 @@ function DocenteDashboard() {
   //cambia pagina al dettaglio del compito
   const handleApriDettaglio = (compitoId) => {
     navigate(`/docente/compiti/${compitoId}`);
-  };
-
-// funzione per gestire l'assegnazione dello stesso compito ad un altro gruppo
-  const handleAssegnaAltroGruppo = (compito) => {
-    setSearchParams({ 
-      modal: 'crea', 
-      assegna: compito.id.toString() 
-    });
   };
 
   if (loading) return <LoadingSpinner />;
@@ -175,7 +155,6 @@ function DocenteDashboard() {
         compiti={compiti}
         onApriDettaglio={handleApriDettaglio}
         onApriValutazione={apriValutazione} 
-        onAssegnaAltroGruppo={handleAssegnaAltroGruppo}
       />
 
       {/* modale per creare nuovo compito */}
@@ -188,7 +167,7 @@ function DocenteDashboard() {
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  {compitoDatiIniziali ? "📋 Assegna Compito ad un altro Gruppo" : "➕ Crea Nuovo Compito"}
+                  "➕ Crea Nuovo Compito"
                 </h5>
                 <button
                   type="button"
@@ -200,7 +179,6 @@ function DocenteDashboard() {
                 <CreaCompito
                   onCompitoCreato={handleCompitoCreato}
                   onCancella={chiudiTuttiIModali}
-                  datiIniziali={compitoDatiIniziali}
                   stepIniziale={stepCorrente}
                   domandaIniziale={domandaSalvata}
                   onSalvaStato={salvaStatoForm}

@@ -16,6 +16,7 @@
 - Route `/studente/compiti/:id`: vista dettagliata di un compito specifico (id) per studenti.
 - Route `/studente/compiti/:id/rispondi`: pagina per rispondere o modificare la risposta del compito.
 - Route `/studente/valutazioni`: pagina con i voti e le performance degli studenti.
+- Route `*`: qualsiasi altra pagina non presente, viene gestita come un - 404 pagina non trovata
 
 #### **Modal Routes (**Gestione Modali tramite Parametri URL**)**
 

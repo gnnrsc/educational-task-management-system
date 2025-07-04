@@ -19,7 +19,6 @@ function StepDomanda({
             as="textarea"
             rows={5}
             placeholder="Scrivi qui il testo del compito che vuoi assegnare agli studenti..."
-            //nel caso la domanda sia stata copiata da un compito precedente, la visualizzo
             value={domanda}
             onChange={(e) => onCambioDomanda(e.target.value)}
             disabled={invioInCorso}

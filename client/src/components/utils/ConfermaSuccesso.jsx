@@ -31,7 +31,6 @@ function ConfermaSuccesso({
   const getConfig = () => {
     const configs = {
       'compito-creato': { icona: '✅', titolo: 'Compito Creato!', colore: 'success' },
-      'compito-assegnato': { icona: '📤', titolo: 'Compito Assegnato!', colore: 'success' },
       'valutazione-completata': { icona: '📝', titolo: 'Valutazione Completata!', colore: 'success' },
       'risposta-inviata': { icona: '📬', titolo: 'Risposta Inviata!', colore: 'success' },
       'risposta-modificata': { icona: '✏️', titolo: 'Risposta Modificata!', colore: 'success' },

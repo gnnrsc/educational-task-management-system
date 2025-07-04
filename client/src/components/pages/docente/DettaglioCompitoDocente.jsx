@@ -16,10 +16,6 @@ function DettaglioCompitoDocentePage() {
   const [error, setError] = useState(null);
   const [conferma, setConferma] = useState({});
 
-  // gestione stati modali tramite URL params
-  const modalParam = searchParams.get('modal');
-  const mostraAssegnaAltroGruppo = modalParam === 'assegna';
-
   useEffect(() => {
     const caricaCompito = async () => {
       setLoading(true);
@@ -60,21 +56,6 @@ function DettaglioCompitoDocentePage() {
     });
     
   };
-// gestore per aprire il modale di assegnazione ad un altro gruppo
-  const apriAssegnaAltroGruppo = () => {
-    setSearchParams({ modal: 'assegna' });
-  };
-
-  const chiudiModali = () => {
-    setSearchParams({});
-  };
-  
-  const handleCompitoAssegnato = (nuovoCompito) => {
-    chiudiModali();
-    navigate(`/docente/compiti`,{
-      state:{conferma:'compito-assegnato',}
-    });
-  };
 
   if (loading) return <LoadingSpinner />;
   if (error) return <div className="alert alert-danger m-3">Errore: {error}</div>;
@@ -110,36 +91,7 @@ function DettaglioCompitoDocentePage() {
       <DettaglioCompitoDocente
         compito={compito}
         onApriValutazione={apriValutazione}
-        onAssegnaAltroGruppo={apriAssegnaAltroGruppo}
       />
-
-      {/* modale per assegnare il compito ad un altro Gruppo */}
-      {mostraAssegnaAltroGruppo && (
-        <div
-          className="modal show d-block"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog" style={{ maxWidth: '1400px' }}>
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">📋 Assegna Compito ad un altro Gruppo</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={chiudiModali}
-                ></button>
-              </div>
-              <div className="modal-body p-0">
-                <CreaCompito
-                  onCompitoCreato={handleCompitoAssegnato}
-                  onCancella={chiudiModali}
-                  datiIniziali={{ traccia: compito.traccia }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       <ConfermaSuccesso
         {...conferma}
         onChiudi={() => setConferma({})}
@@ -149,7 +101,7 @@ function DettaglioCompitoDocentePage() {
 }
 
 // Componente distinto per il contenuto del compito
-function DettaglioCompitoDocente({ compito, onApriValutazione, onAssegnaAltroGruppo }) {
+function DettaglioCompitoDocente({ compito, onApriValutazione }) {
 
   const ottieniColoreSfondoMedia = (media) => {
     if (media === null || media === undefined) return "bg-secondary";
@@ -256,15 +208,6 @@ function DettaglioCompitoDocente({ compito, onApriValutazione, onAssegnaAltroGru
             </div>
           </div>
         )}
-
-        <div className="d-flex justify-content-end pt-2 border-top">
-          <button
-            className="btn btn-outline-secondary btn-sm"
-            onClick={onAssegnaAltroGruppo}
-          >
-            ᯓ➤ Assegna ad un altro gruppo
-          </button>
-        </div>
       </div>
     </div>
   );

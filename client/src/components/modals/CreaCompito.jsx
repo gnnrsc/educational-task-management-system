@@ -8,13 +8,13 @@ import FooterNavigazione from "./FooterNavigazione";
 import ErrorAlert from "../utils/ErrorAlert";
 import ConfermaAzione from "../utils/ConfermaAzione";
 
-function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIniziale = 1, domandaIniziale = "", onSalvaStato = null }) {
+function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIniziale = "", onSalvaStato = null }) {
 
   const SELEZIONE_MINIMA = 2;
   const SELEZIONE_MASSIMA = 6;
  
-  const [stepCorrente, setStepCorrente] = useState(datiIniziali ? 2 : stepIniziale);
-  const [domanda, setDomanda] = useState(datiIniziali ? datiIniziali.traccia : domandaIniziale);
+  const [stepCorrente, setStepCorrente] = useState(stepIniziale);
+  const [domanda, setDomanda] = useState(domandaIniziale);
   const [studentiSelezionati, setStudentiSelezionati] = useState([]);
   const [studenti, setStudenti] = useState([]);
   const [collaborazioni, setCollaborazioni] = useState([]);
@@ -32,14 +32,9 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
 
   // sincronizza con props quando cambiano
   useEffect(() => {
-    if (datiIniziali?.traccia) {
-      setStepCorrente(2);
-      setDomanda(datiIniziali.traccia);
-    } else {
       setStepCorrente(stepIniziale);
       setDomanda(domandaIniziale);
-    }
-  }, [datiIniziali?.traccia, stepIniziale, domandaIniziale]);
+  }, [stepIniziale, domandaIniziale]);
 
   // carica i dati degli studenti e collaborazioni
   useEffect(() => {
@@ -67,8 +62,8 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
 
   const handleCambioDomanda = (nuovaDomanda) => {
     setDomanda(nuovaDomanda);
-    // salva lo stato attuale solo se non stiamo riassegnando un compito esistente ad un altro gruppo
-    if (onSalvaStato && !datiIniziali) {
+    // salva lo stato attuale
+    if (onSalvaStato) {
       onSalvaStato(stepCorrente, nuovaDomanda, true);
     }
   };
@@ -83,7 +78,7 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
     setDirezioneSlide("slide-left");
     setTimeout(() => {
       setStepCorrente(2);
-      if (onSalvaStato && !datiIniziali) {
+      if (onSalvaStato) {
         onSalvaStato(2, domanda, true);
       }
       setDirezioneSlide("");
@@ -96,7 +91,7 @@ function CreaCompito({ onCompitoCreato, onCancella, datiIniziali = null, stepIni
     setDirezioneSlide("slide-right");
     setTimeout(() => {
       setStepCorrente(1);
-      if (onSalvaStato && !datiIniziali) {
+      if (onSalvaStato) {
         onSalvaStato(1, domanda, true);
       }
       setDirezioneSlide("");
