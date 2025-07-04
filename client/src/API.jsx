@@ -190,7 +190,6 @@ async function creaCompito(traccia, studentiIds) {
       customError.isConflict = true;
       customError.codice = data.codice;
       customError.error = data.error;
-      customError.dettagli = data.dettagli;
       throw customError;
     }
 

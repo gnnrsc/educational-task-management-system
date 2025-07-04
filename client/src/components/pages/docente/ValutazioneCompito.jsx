@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router";
 import LoadingSpinner from "../../utils/LoadingSpinner";
 import ErrorAlert from "../../utils/ErrorAlert";
+import ConfermaAzione from "../../utils/ConfermaAzione";
 import API from "../../../API";
 
 function ValutazioneCompito() {

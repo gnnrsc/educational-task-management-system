@@ -63,11 +63,6 @@ router.post(
           conflict: true,
           error: `Gli studenti ${s1} e ${s2} hanno già collaborato ${checkRisultato.count} volte. Il limite massimo di collaborazioni è stato superato.`,
           codice: "LIMITE_COLLABORAZIONI_SUPERATO",
-          dettagli: {
-            studenti: [s1, s2],
-            collaborazioni: checkRisultato.count,
-            limite: 2
-          }
         });
       }
 
