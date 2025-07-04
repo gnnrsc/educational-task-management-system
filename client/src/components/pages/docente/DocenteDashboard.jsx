@@ -9,13 +9,18 @@ import API from "../../../API";
 
 function DocenteDashboard() {
   const navigate = useNavigate();
+  // per decidere che Conferma mostrare
   const location = useLocation();
+  // per gestire i parametri URL e le modali
   const [searchParams, setSearchParams] = useSearchParams();
-  const [conferma, setConferma] = useState({});
+  
   
   // stati principali per caricamento compiti e gestione dei caricamenti
   const [compiti, setCompiti] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // stato per gestire la conferma dopo operazioni di valutazione o creazione compito
+  const [conferma, setConferma] = useState({});
   
   // lettura parametri URL per gestire modali e stati
   const modalParam = searchParams.get('modal');     
@@ -55,14 +60,14 @@ function DocenteDashboard() {
     }
   }, []);
 
-  //gestione della conferma dopo le operazioni di valutazione compito
+  //gestione della conferma dopo le operazioni di valutazione o creazione compito
   useEffect(() => {
     if(location.state?.conferma) {
 
       setConferma({
         mostra: true,
         tipo: location.state.conferma,
-        messaggio: location.state.messaggio || 'Valutazione completata con successo!'
+        messaggio: location.state.messaggio
       });
       
       // rimuove lo stato per evitare che si ripeta alla navigazione
@@ -70,8 +75,34 @@ function DocenteDashboard() {
     }
   }, [location.state, location.pathname]);
 
-  // GESTORI PER CAMBIARE URL
+  // HANDLER PRINCIPALI
   
+  const handleCompitoCreato = (nuovoCompito) => {
+    setCompiti(prev => [nuovoCompito, ...prev]);
+    
+    // Mostra la conferma creazione compito
+    setConferma({
+      mostra: true,
+      tipo: 'compito-creato',
+      messaggio: `Compito creato con successo!`
+    });
+    chiudiTuttiIModali();
+  };
+
+  //cambia pagina al dettaglio del compito
+  const handleApriDettaglio = (compitoId) => {
+    navigate(`/docente/compiti/${compitoId}`);
+  };
+
+  // naviga alla pagina di valutazione ricordando che si arriva da lista compiti
+  const handleApriValutazione = (compito) => {
+    navigate(`/docente/compiti/${compito.id}/valuta`, { 
+      state: { daDettaglio: false } 
+    });
+  };
+
+  // HANDLER PER GESTIRE I MODALI (agendo sui parametri URL)
+
   const apriCreaCompito = () => {
     setSearchParams({ modal: 'crea' });
   };
@@ -84,6 +115,8 @@ function DocenteDashboard() {
       setSearchParams({});
     }
   };
+
+  // HANDLER PER SALVARE LO STATO DEL FORM (attraverso la sessionStorage)
 
   const salvaStatoForm = (step, domanda, isUserAction = false) => {
     // salva sempre in sessionStorage la domanda corrente se è presente
@@ -102,32 +135,6 @@ function DocenteDashboard() {
     }
   };
 
-  // naviga alla pagina di valutazione ricordando che si arriva da lista compiti
-  
-  const apriValutazione = (compito) => {
-    navigate(`/docente/compiti/${compito.id}/valuta`, { 
-      state: { daDettaglio: false } 
-    });
-  };
-
-  // GESTORI COMPITI
-  
-  const handleCompitoCreato = (nuovoCompito) => {
-    setCompiti(prev => [nuovoCompito, ...prev]);
-    
-    // Mostra la conferma creazione compito
-    setConferma({
-      mostra: true,
-      tipo: 'compito-creato',
-      messaggio: `Compito creato con successo!`
-    });
-    chiudiTuttiIModali();
-  };
-
-  //cambia pagina al dettaglio del compito
-  const handleApriDettaglio = (compitoId) => {
-    navigate(`/docente/compiti/${compitoId}`);
-  };
 
   if (loading) return <LoadingSpinner />;
   
@@ -154,7 +161,7 @@ function DocenteDashboard() {
       <ListaCompiti 
         compiti={compiti}
         onApriDettaglio={handleApriDettaglio}
-        onApriValutazione={apriValutazione} 
+        onApriValutazione={handleApriValutazione} 
       />
 
       {/* modale per creare nuovo compito */}
@@ -189,6 +196,7 @@ function DocenteDashboard() {
         </div>
       )}
       <ConfermaSuccesso
+       //spacchetto l'oggetto conferma per passare tutte le props
         {...conferma}
         onChiudi={() => setConferma({})}
       />

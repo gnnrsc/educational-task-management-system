@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, useContext } from "react";
 import API from "./API";
 
 //Uso il contesto di autenticazione per ottenere lo stato di login, l'utente e le funzioni di login/logout
+//Usato in App.jsx - Navbar.jsx - Login.jsx - ProtectedRoute.jsx - Homepage.jsx - ListaCompiti.jsx -DettaglioCompitoStudente.jsx - RispostaCompito.jsx 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
