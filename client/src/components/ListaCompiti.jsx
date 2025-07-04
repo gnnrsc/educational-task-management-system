@@ -18,10 +18,10 @@ function ListaCompiti({
   // determina quale filtro usare: quello passato dal padre (studente) o quello interno (docente)
   const filtroAttivo = filtroStato !== undefined ? filtroStato : filtroStatoInterno;
 
-  // filtra i compiti in base al filtro selezionato
-  const compitiFiltrati = filtroAttivo === "tutti" 
-    ? compiti 
-    : compiti.filter(compito => compito.stato === filtroAttivo);
+  // filtra i compiti in base al filtro selezionato (docente)
+  const compitiFiltrati = filtroStato !== undefined 
+    ? compiti // per studente: compiti già filtrati dal padre
+    : (filtroStatoInterno === "tutti" ? compiti : compiti.filter(compito => compito.stato === filtroStatoInterno));
 
   const handleCambioFiltro = (nuovoFiltro) => {
     if (onFiltroChange) {
