@@ -41,7 +41,7 @@ const RisoluzioneConflitti = ({ error, onClose, onResolve }) => {
                     onChange={(e) => setSelectedOption(e.target.value)}
                   />
                   <label className="form-check-label fw-bold" htmlFor="keepCurrent">
-                    📄 Mantieni la versione attuale (in database)
+                    📄 Mantieni la versione attuale
                   </label>
                 </div>
                 <div className="border rounded p-3 bg-light" style={{ maxHeight: '200px', overflowY: 'auto' }}>

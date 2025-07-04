@@ -128,16 +128,16 @@ function RispostaCompito() {
   const handleRisolviConflitto = async (risoluzione) => {
     setStaSalvando(true);
     try {
+      const targetPath = daDettaglio ? `/studente/compiti/${id}` : '/studente/compiti';
       if (risoluzione.useCurrentResponse) {
         // usa la risposta corrente dal database
-        setTestoRisposta(risoluzione.response);
-        setCaratteri(risoluzione.response.length);
-        setErroreConflitto(null);
+        //setTestoRisposta(risoluzione.response);
+        //setCaratteri(risoluzione.response.length);
+        navigate(targetPath);
       } else {
-        // forza l'aggiornamento con la tua risposta
-        const result = await API.aggiornaRispostaCompito(compito.id, risoluzione.response, null);
+        // forza l'aggiornamento con la tua risposta, passo il timestamp della versione che sto sovrascrivendo per procedere con l'aggiornamento 
+        const result = await API.aggiornaRispostaCompito(compito.id, risoluzione.response, erroreConflitto.dettagli.ultimaModifica );
         
-        const targetPath = daDettaglio ? `/studente/compiti/${id}` : '/studente/compiti';
         navigate(targetPath, { 
           state: { 
             conferma: 'risposta-modificata',
