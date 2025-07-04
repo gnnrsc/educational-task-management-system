@@ -465,7 +465,7 @@ Descrizione: visualizzare i dettagli di un compito specifico
 ## Main React Components
 
 - [`CreaCompito`](client/src/components/modals/CreaCompito.jsx) (e sotto componenti): modale a più step per creare compiti con input della traccia e selezione degli studenti, con evidenziazione visuale del limite delle collaborazioni. Incluso inoltre il rilevamento dei conflitti di collaborazione, persistenza temporanea della traccia della domanda, gestione dello stato basato su URL e transizioni animate tra gli step.
-- [`ListaCompiti`](client/src/components/ListaCompiti.jsx): componente riutilizzabile per docenti e studenti, mostra l'elenco dei compiti in formato tabellare con filtri, azioni e funzionalità basate sul ruolo. E' presente inoltre un menu kebab con gestione del click al di fuori, per consentire la riassegnazione automatica di un compito già esistente ad un altro gruppo.
+- [`ListaCompiti`](client/src/components/ListaCompiti.jsx): componente riutilizzabile per docenti e studenti, mostra l'elenco dei compiti in formato tabellare con filtri, azioni e funzionalità basate sul ruolo.
 - [`AuthContext`](client/src/AuthContext.jsx): uso di un contesto per la gestione globale dell'autentificazione, evitando prop drilling.
 - [`RisoluzioneConflitti`](client/src/components/utils/RisoluzioneConflitti.jsx): gestione dei conflitti per le risposte modificate contemporaneamente dagli studenti, consente la scelta della versione da mantenere.
 - [`ProtectedRoute`](client/src/components/utils/ProtectedRoute.jsx): componente di protezione delle rotte che garantisce l’accesso solo agli utenti autenticati con ruolo appropriato.
