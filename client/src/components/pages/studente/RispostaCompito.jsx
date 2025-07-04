@@ -54,7 +54,7 @@ function RispostaCompito() {
           setCaratteri(response.risposta.testo.length);
         }
       } catch (error) {
-        console.error("Errore nel caricamento compito:", error);
+        //console.error("Errore nel caricamento compito:", error);
         setErrors({ general: "Errore nel caricamento del compito" });
       } finally {
         setLoading(false);

@@ -99,7 +99,7 @@ async function aggiornaRispostaCompito(compitoId, testoRisposta, ultimaModificaR
     return data.data || data;
   } else {
     // altri errori (404, 500, ecc.)
-    console.error(`Errore API ${response.status}:`, data);
+    //console.error(`Errore API ${response.status}:`, data);
     throw data;
   }
 }
@@ -197,7 +197,7 @@ async function creaCompito(traccia, studentiIds) {
     return data.data || data;
   } else {
     // altri errori (404, 500, ecc.)
-    console.error(`Errore API ${response.status}:`, data);
+    //console.error(`Errore API ${response.status}:`, data);
     throw data;
   }
 }
@@ -238,7 +238,7 @@ async function valutaCompito(compitoId, punteggio, ultimaModificaRisposta = null
     return data.data || data;
   } else {
     // Altri errori (404, 500, ecc.)
-    console.error(`Errore API ${response.status}:`, data);
+    //console.error(`Errore API ${response.status}:`, data);
     throw data;
   }
 }
