@@ -104,7 +104,7 @@ Descrizione: ottenere la lista di tutti gli studenti della classe
     "nome": "Alice",
     "cognome": "Rossi"
   },
-  ...
+  //altri studenti
 ]
 ```
 
@@ -481,7 +481,7 @@ Descrizione: visualizzare i dettagli di un compito specifico
 
 ## Users Credentials
 
-Per semplicità si riportano le credenziali di un docente e di uno solo degli studenti.
+Per semplicità si riportano le credenziali di uno dei due docenti e di uno solo dei 20 studenti.
 
 ###### DOCENTE:
 
