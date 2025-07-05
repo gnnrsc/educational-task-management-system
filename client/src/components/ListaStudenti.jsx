@@ -12,7 +12,7 @@ function ListaStudenti({ ordinamento }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await API.ottieniStatisticheClasse(ordinamento);
+      const response = await API.ottieniStatisticheClasse(ordinamento); //model Statistiche Studente
       setStudenti(response.studenti);
     } catch (error) {
       setError(error.message || "Errore nel caricamento dei dati");
@@ -209,7 +209,7 @@ function ListaStudenti({ ordinamento }) {
                   {(
                     studenti
                       .filter((s) => s.media !== null && s.media !== undefined)
-                      .reduce((acc, s) => acc + s.media, 0) /
+                      .reduce((acc, s) => acc + s.media, 0) / //divide per il numero di studenti con media
                     studenti.filter(
                       (s) => s.media !== null && s.media !== undefined
                     ).length

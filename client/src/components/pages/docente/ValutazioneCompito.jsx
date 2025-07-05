@@ -73,12 +73,12 @@ function ValutazioneCompito() {
   };
 
   // handle per gestire la conferma dell'azione
-  const gestisciConfermaValutazione = async () => {
+  const handleConfermaValutazione = async () => {
     setStaSalvando(true);
 
     try {
       const punteggioNumero = parseInt(punteggio);
-      // passa il timestamp dell'ultima modifica direttamente dal compito corrente
+      // passa il timestamp dell'ultima modifica direttamente dal compito corrente - per controllare conflitti risposta modificata mentre si valuta
       const timestampRisposta = compito?.risposta?.aggiornato_il.format('YYYY-MM-DD HH:mm:ss') || null;
       await API.valutaCompito(compito.id, punteggioNumero, timestampRisposta);
 
@@ -91,9 +91,8 @@ function ValutazioneCompito() {
       // gestione silenziosa degli errori di conflitto 
       if (error.isConflict) {
         setAlertErrore({
-          codice: error.codice || "GENERIC_CONFLICT",
+          codice: error.codice, //RISPOSTA_MODIFICATA
           message: error.error,
-          originalError: error,
         });
       } else {
         setErrors({ general: error.error || "Errore nel salvataggio. Riprova." });
@@ -105,7 +104,7 @@ function ValutazioneCompito() {
   };
 
   // handle per annullare la conferma di valutazione
-  const gestisciAnnullaConferma = () => {
+  const handleAnnullaConferma = () => {
     setMostraConferma(false);
   };
   // gestione dell'alert di errore conflitto
@@ -113,6 +112,7 @@ function ValutazioneCompito() {
     setAlertErrore(null);
   };
 
+  // gestione dell'azione dell'alert di errore conflitto - torna indietro di pagina
   const handleAzioneAlert = (action) => {
     if (action === 'back') {
       navigate(backPath);
@@ -120,7 +120,7 @@ function ValutazioneCompito() {
     setAlertErrore(null);
   };
 
-  const handleBackClick = () => {
+  const handleClickIndietro = () => {
     navigate(backPath);
   };
 
@@ -159,8 +159,8 @@ function ValutazioneCompito() {
       <ConfermaAzione
         mostra={mostraConferma}
         tipo="valutazione"
-        onConferma={gestisciConfermaValutazione}
-        onAnnulla={gestisciAnnullaConferma}
+        onConferma={handleConfermaValutazione}
+        onAnnulla={handleAnnullaConferma}
         caricamentoInCorso={staSalvando}
       />
       {/* alert modale per errori di conflitto */}
@@ -198,7 +198,7 @@ function ValutazioneCompito() {
         <h4 className="mb-0">📊 Valutazione Compito</h4>
         <button 
           className="btn btn-outline-secondary btn-sm"
-          onClick={handleBackClick}
+          onClick={handleClickIndietro}
         >
           {backText}
         </button>
@@ -310,7 +310,7 @@ function ValutazioneCompito() {
                   <button
                     type="button"
                     className="btn btn-outline-secondary"
-                    onClick={handleBackClick}
+                    onClick={handleClickIndietro}
                     disabled={staSalvando}
                   >
                     ❌ Annulla

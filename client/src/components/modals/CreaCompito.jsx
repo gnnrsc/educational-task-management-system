@@ -176,10 +176,9 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
       // gestione silenziosa degli errori di conflitto
       if (error.isConflict) {
         setAlertErrore({
-          codice: error.codice || "GENERIC_CONFLICT",
+          codice: error.codice, //LIMITE_COLLABORAZIONI_SUPERATO
           message: error.error,
           dettagli: error.dettagli,
-          originalError: error,
         });
       } else {
         setErrore("Errore nella creazione del compito. Riprova.");

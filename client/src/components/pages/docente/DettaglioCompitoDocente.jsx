@@ -2,14 +2,12 @@ import { useParams, useNavigate, useSearchParams, useLocation} from 'react-route
 import { useState, useEffect } from 'react';
 import LoadingSpinner from '../../utils/LoadingSpinner.jsx';
 import ConfermaSuccesso from '../../utils/ConfermaSuccesso.jsx';
-import CreaCompito from '../../modals/CreaCompito.jsx';
 import API from '../../../API.jsx';
 
 function DettaglioCompitoDocentePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
   
   const [compito, setCompito] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,7 +22,6 @@ function DettaglioCompitoDocentePage() {
         const compitoData = await API.ottieniCompitoDettaglioDocente(id);
         setCompito(compitoData);
       } catch (error) {
-        //console.error('Errore nel caricamento del compito:', error);
         setError(error.message || 'Errore nel caricamento del compito');
       } finally {
         setLoading(false);
@@ -165,26 +162,12 @@ function DettaglioCompitoDocente({ compito, onApriValutazione }) {
             <div className="d-flex justify-content-end mt-auto pt-2">
               {compito.stato !== "chiuso" && (
                 <>
-                  {compito.punteggio !== null && compito.punteggio !== undefined ? (
-                    <div className="d-flex align-items-center gap-2">
-                      <span className="badge bg-primary">
-                        Punteggio: {compito.punteggio}/30
-                      </span>
-                      <button
-                        className="btn btn-outline-success btn-sm"
-                        onClick={() => onApriValutazione(compito)}
-                      >
-                        ✏️ Valuta
-                      </button>
-                    </div>
-                  ) : (
                     <button
                       className="btn btn-outline-success"
                       onClick={() => onApriValutazione(compito)}
                     >
                       📊 Valuta
                     </button>
-                  )}
                 </>
               )}
 

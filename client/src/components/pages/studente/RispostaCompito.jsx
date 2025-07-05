@@ -111,9 +111,8 @@ function RispostaCompito() {
         setErroreConflitto(error);
       } else if (error.isConflict) {
         setAlertErrore({
-          codice: error.codice || "GENERIC_CONFLICT",
+          codice: error.codice,
           message: error.error,
-          originalError: error,
         });
       } else {
         setErrors({
