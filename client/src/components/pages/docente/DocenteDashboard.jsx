@@ -118,7 +118,7 @@ function DocenteDashboard() {
 
   // HANDLER PER SALVARE LO STATO DEL FORM (attraverso la sessionStorage)
 
-  const handleSalvaStatoForm = (step, domanda, isUserAction = false) => {
+  const handleSalvaStatoForm = (step, domanda) => {
     // salva sempre in sessionStorage la domanda corrente se è presente
     if (domanda.trim()) {
       sessionStorage.setItem('creaCompito_domanda', domanda.trim());
@@ -127,12 +127,10 @@ function DocenteDashboard() {
     }
     
     // aggiorna URL non appena l'utente cambia step o modifica la domanda
-    if (isUserAction) {
-      const params = new URLSearchParams(searchParams);
-      params.set('modal', 'crea');
-      params.set('step', step.toString());
-      setSearchParams(params);
-    }
+    const params = new URLSearchParams(searchParams);
+    params.set('modal', 'crea');
+    params.set('step', step.toString());
+    setSearchParams(params);
   };
 
 

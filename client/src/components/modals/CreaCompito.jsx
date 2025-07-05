@@ -66,12 +66,12 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
 
   // HANDLER
 
-  // gestisce il cambio della domanda, salva lo stato se necessario (figlio StepDomanda)
+  // gestisce il cambio/modifica della domanda, salva lo stato se necessario (figlio StepDomanda)
   const handleCambioDomanda = (nuovaDomanda) => {
     setDomanda(nuovaDomanda);
     // salva lo stato attuale (con controllo esistenza handler, nel caso non si voglia salvare)
     if (onSalvaStato) {
-      onSalvaStato(stepCorrente, nuovaDomanda, true);
+      onSalvaStato(stepCorrente, nuovaDomanda);
     }
   };
 
@@ -110,7 +110,7 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
     setTimeout(() => {
       setStepCorrente(2);
       if (onSalvaStato) {
-        onSalvaStato(2, domanda, true);
+        onSalvaStato(2, domanda);
       }
       setDirezioneSlide("");
     }, 300);
@@ -124,7 +124,7 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
     setTimeout(() => {
       setStepCorrente(1);
       if (onSalvaStato) {
-        onSalvaStato(1, domanda, true);
+        onSalvaStato(1, domanda);
       }
       setDirezioneSlide("");
     }, 300);
