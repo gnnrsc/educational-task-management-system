@@ -216,6 +216,7 @@ Descrizione: ottenere le statistiche della classe con voti e performance degli s
 - Parametri della richiesta: `sort` (opzionale: "media", "alfabetico", "totale")
 - Response: 200 OK (success) o 500 Internal Server Error (errore generico).
 - Response body:
+
 ```json
 {
   "ordinamento": "alfabetico",
@@ -242,6 +243,7 @@ Descrizione: visualizzare tutti i compiti creati dal docente, con relative infor
 
 - Response: 200 OK (success) o 500 Internal Server Error (errore generico).
 - Response body:
+
 ```json
 {
   "totale": 10,
@@ -276,6 +278,7 @@ Descrizione: visualizzare i dettagli di un compito specifico
 - Parametri della richiesta: `:id` (ID del compito)
 - Response: 200 OK (success) o 404 Not Found (compito non trovato) o 403 Forbidden (non autorizzato) o 500 Internal Server Error (errore generico).
 - Response body:
+
 ```json
 {
   "id": 15,
@@ -313,6 +316,7 @@ Descrizione: visualizzare tutti i compiti assegnati allo studente
 - Parametri della richiesta: `stato` (opzionale: "aperto", "chiuso")
 - Response: 200 OK (success) o 500 Internal Server Error (errore generico).
 - Response body:
+
 ```json
 {
   "filtro": "tutti",
@@ -352,14 +356,17 @@ Descrizione: inserire o aggiornare la risposta a un compito
 
 - Parametri della richiesta: `:id` (ID del compito)
 - Request body:
+
 ```json
 {
   "testo_risposta": "Come si passa un dato da un componente genitore a uno figlio?",
   "ultimaModificaRisposta": "2025-07-04 15:30:00"
 }
 ```
+
 - Response: 200 OK (success o conflitto) o 404 Not Found (compito non trovato) o 403 Forbidden (non autorizzato) o 422 Unprocessable Entity (validation error) o 500 Internal Server Error (errore generico).
 - Response body:
+
 ```json
 {
   "success": true,
@@ -370,7 +377,9 @@ Descrizione: inserire o aggiornare la risposta a un compito
   }
 }
 ```
+
 oppure, conflitto compito chiuso:
+
 ```json
 {
   "success": false,
@@ -381,6 +390,7 @@ oppure, conflitto compito chiuso:
 ```
 
 oppure, conflitto risposta modificata da un altro membro:
+
 ```json
 {
   "success": false,
@@ -406,6 +416,7 @@ Descrizione: ottenere la media dei voti del singolo studente e il totale dei com
 
 - Response: 200 OK (success) o 500 Internal Server Error (errore generico).
 - Response body:
+
 ```json
 {
   "totale_compiti": 5,
@@ -420,6 +431,7 @@ Descrizione: visualizzare i dettagli di un compito specifico
 - Parametri della richiesta: `:id` (ID del compito)
 - Response: 200 OK (success) o 404 Not Found (compito non trovato) o 403 Forbidden (non autorizzato) o 500 Internal Server Error (errore generico).
 - Response body:
+
 ```json
 {
   "id": 15,
@@ -464,7 +476,7 @@ Descrizione: visualizzare i dettagli di un compito specifico
 
 ## Main React Components
 
-- [`CreaCompito`](client/src/components/modals/CreaCompito.jsx) (e sotto componenti): modale a più step per creare compiti con input della traccia e selezione degli studenti, con evidenziazione visuale del limite delle collaborazioni. Incluso inoltre il rilevamento dei conflitti di collaborazione, persistenza temporanea della traccia della domanda, gestione dello stato basato su URL e transizioni animate tra gli step.
+- [`CreaCompito`](client/src/components/modals/CreaCompito.jsx): modale a più step per creare compiti con input della traccia e selezione degli studenti, con evidenziazione visuale del limite delle collaborazioni. Incluso inoltre il rilevamento dei conflitti di collaborazione, persistenza temporanea della traccia della domanda, gestione dello stato basato su URL e transizioni animate tra gli step.
 - [`ListaCompiti`](client/src/components/ListaCompiti.jsx): componente riutilizzabile per docenti e studenti, mostra l'elenco dei compiti in formato tabellare con filtri, azioni e funzionalità basate sul ruolo.
 - [`AuthContext`](client/src/AuthContext.jsx): uso di un contesto per la gestione globale dell'autentificazione, evitando prop drilling.
 - [`RisoluzioneConflitti`](client/src/components/utils/RisoluzioneConflitti.jsx): gestione dei conflitti per le risposte modificate contemporaneamente dagli studenti, consente la scelta della versione da mantenere.

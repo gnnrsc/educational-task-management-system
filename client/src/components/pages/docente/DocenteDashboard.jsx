@@ -86,7 +86,7 @@ function DocenteDashboard() {
       tipo: 'compito-creato',
       messaggio: `Compito creato con successo!`
     });
-    chiudiTuttiIModali();
+    handleChiudiTuttiIModali();
   };
 
   //cambia pagina al dettaglio del compito
@@ -103,11 +103,11 @@ function DocenteDashboard() {
 
   // HANDLER PER GESTIRE I MODALI (agendo sui parametri URL)
 
-  const apriCreaCompito = () => {
+  const handleApriCreaCompito = () => {
     setSearchParams({ modal: 'crea' });
   };
 
-  const chiudiTuttiIModali = () => {
+  const handleChiudiTuttiIModali = () => {
     sessionStorage.removeItem('creaCompito_domanda');
     if (searchParams.get('step') == 2) {
       setSearchParams({}, { replace: true });
@@ -118,7 +118,7 @@ function DocenteDashboard() {
 
   // HANDLER PER SALVARE LO STATO DEL FORM (attraverso la sessionStorage)
 
-  const salvaStatoForm = (step, domanda, isUserAction = false) => {
+  const handleSalvaStatoForm = (step, domanda, isUserAction = false) => {
     // salva sempre in sessionStorage la domanda corrente se è presente
     if (domanda.trim()) {
       sessionStorage.setItem('creaCompito_domanda', domanda.trim());
@@ -152,7 +152,7 @@ function DocenteDashboard() {
       <div className="d-flex justify-content-center mb-4">
         <button
           className="btn btn-primary btn-lg"
-          onClick={apriCreaCompito}
+          onClick={handleApriCreaCompito}
         >
           ➕ Crea Nuovo Compito
         </button>
@@ -179,16 +179,16 @@ function DocenteDashboard() {
                 <button
                   type="button"
                   className="btn-close"
-                  onClick={chiudiTuttiIModali}
+                  onClick={handleChiudiTuttiIModali}
                 ></button>
               </div>
               <div className="modal-body p-0">
                 <CreaCompito
                   onCompitoCreato={handleCompitoCreato}
-                  onCancella={chiudiTuttiIModali}
+                  onCancella={handleChiudiTuttiIModali}
                   stepIniziale={stepCorrente}
                   domandaIniziale={domandaSalvata}
-                  onSalvaStato={salvaStatoForm}
+                  onSalvaStato={handleSalvaStatoForm}
                 />
               </div>
             </div>

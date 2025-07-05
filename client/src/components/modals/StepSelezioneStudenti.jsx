@@ -16,7 +16,7 @@ function StepSelezioneStudenti({
   // converte l'array di collaborazioni in un Set per ricerca più veloce
   const collaborazioniSet = new Set(collaborazioni);
 
-  // ottiene gli ID degli studenti selezionati
+  // ottiene gli ID degli studenti selezionati - si aggiorna ad ogni render
   const studentiSelezionatiIds = studentiSelezionati.map((s) => s.id);
 
   // evidenzia gli studenti che hanno collaborato ≥ 2 volte con uno dei selezionati

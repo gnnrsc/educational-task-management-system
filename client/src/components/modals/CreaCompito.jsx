@@ -8,29 +8,32 @@ import FooterNavigazione from "./FooterNavigazione";
 import ErrorAlert from "../utils/ErrorAlert";
 import ConfermaAzione from "../utils/ConfermaAzione";
 
+//Padre - controlla l'intero form - lifting state up
 function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIniziale = "", onSalvaStato = null }) {
 
   const SELEZIONE_MINIMA = 2;
   const SELEZIONE_MASSIMA = 6;
  
+  //stati principali del form
   const [stepCorrente, setStepCorrente] = useState(stepIniziale);
   const [domanda, setDomanda] = useState(domandaIniziale);
   const [studentiSelezionati, setStudentiSelezionati] = useState([]);
   const [studenti, setStudenti] = useState([]);
   const [collaborazioni, setCollaborazioni] = useState([]);
-  const [errore, setErrore] = useState("");
+
   
   // stati per gestione delle varie visualizzazioni e caricamenti
   const [caricamentoStudenti, setCaricamentoStudenti] = useState(true);
   const [invioInCorso, setInvioInCorso] = useState(false);
   const [direzioneSlide, setDirezioneSlide] = useState("");
 
-  // stato per gestire gli errori di conflitto (numero di collaborazioni superate - stesso docente con 2 sessioni)
+  const [errore, setErrore] = useState("");
+  // stato per gestire gli errori di conflitto (numero di collaborazioni superate, se lo stesso docente con 2 sessioni)
   const [alertErrore, setAlertErrore] = useState(null);
   // stato per mostrare la conferma di invio
   const [mostraConferma, setMostraConferma] = useState(false);
 
-  // sincronizza con props quando cambiano
+  // sincronizza con props quando cambiano (dipendono da URL e se c'è una domanda salvata in sessionStorage)
   useEffect(() => {
       setStepCorrente(stepIniziale);
       setDomanda(domandaIniziale);
@@ -58,47 +61,22 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
     caricaDati();
   }, []);
 
-  // GESTORI EVENTI
+  //valore derivato (sarebbe meglio usare useMemo) - si ricalcola ad ogni render
+  const gruppoValido = studentiSelezionati.length >= SELEZIONE_MINIMA && studentiSelezionati.length <= SELEZIONE_MASSIMA;
 
+  // HANDLER
+
+  // gestisce il cambio della domanda, salva lo stato se necessario (figlio StepDomanda)
   const handleCambioDomanda = (nuovaDomanda) => {
     setDomanda(nuovaDomanda);
-    // salva lo stato attuale
+    // salva lo stato attuale (con controllo esistenza handler, nel caso non si voglia salvare)
     if (onSalvaStato) {
       onSalvaStato(stepCorrente, nuovaDomanda, true);
     }
   };
 
-  const gestisciAvanti = () => {
-    setErrore("");
-    if (!domanda.trim()) {
-      setErrore("La domanda non può essere vuota.");
-      return;
-    }
-    //classe css per la transizione a sinistra
-    setDirezioneSlide("slide-left");
-    setTimeout(() => {
-      setStepCorrente(2);
-      if (onSalvaStato) {
-        onSalvaStato(2, domanda, true);
-      }
-      setDirezioneSlide("");
-    }, 300);
-  };
-
-  const gestisciIndietro = () => {
-    setErrore("");
-    //classe css per la transizione a destra
-    setDirezioneSlide("slide-right");
-    setTimeout(() => {
-      setStepCorrente(1);
-      if (onSalvaStato) {
-        onSalvaStato(1, domanda, true);
-      }
-      setDirezioneSlide("");
-    }, 300);
-  };
-
-  const gestisciToggleStudente = (studenteId) => {
+  // gestisce il toggle di selezione degli studenti (figlio StepSelezioneStudenti)
+  const handleToggleStudente = (studenteId) => {
     setErrore("");
     setStudentiSelezionati((precedenti) => {
       const giaSelezionato = precedenti.find(s => s.id === studenteId);
@@ -120,16 +98,41 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
     });
   };
 
-  const gestisciResetSelezione = () => {
-    setStudentiSelezionati([]);
+  // gestire la navigazione (figlio FooterNavigazione) avanti...
+  const handleAvanti = () => {
     setErrore("");
+    if (!domanda.trim()) {
+      setErrore("La domanda non può essere vuota.");
+      return;
+    }
+    //classe css per la transizione a sinistra
+    setDirezioneSlide("slide-left");
+    setTimeout(() => {
+      setStepCorrente(2);
+      if (onSalvaStato) {
+        onSalvaStato(2, domanda, true);
+      }
+      setDirezioneSlide("");
+    }, 300);
   };
 
-  const gestisciInvio = async () => {
+  // ...ed indietro
+  const handleIndietro = () => {
     setErrore("");
+    //classe css per la transizione a destra
+    setDirezioneSlide("slide-right");
+    setTimeout(() => {
+      setStepCorrente(1);
+      if (onSalvaStato) {
+        onSalvaStato(1, domanda, true);
+      }
+      setDirezioneSlide("");
+    }, 300);
+  };
 
-    const gruppoValido = studentiSelezionati.length >= SELEZIONE_MINIMA && 
-      studentiSelezionati.length <= SELEZIONE_MASSIMA;
+  // gestisce l'invio del compito (figlio FooterNavigazione)
+  const handleInvio = async () => {
+    setErrore("");
 
     if (!gruppoValido) {
       setErrore(`Il gruppo deve avere almeno ${SELEZIONE_MINIMA} studenti e al massimo ${SELEZIONE_MASSIMA}.`);
@@ -140,8 +143,8 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
     setMostraConferma(true);
   };
 
-
-  const gestisciConfermaCreazione = async () => {
+  // gestisce la domanda di conferma della creazione del compito (in ConfermaAzione)
+  const handleConfermaCreazione = async () => {
     setInvioInCorso(true);
 
     try {
@@ -187,16 +190,17 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
     }
   };
 
-  // handle per annullare la creazione dalla conferma
-  const gestisciAnnullaConferma = () => {
+  // handle per annullare la creazione, dalla conferma azione
+  const handleAnnullaConferma = () => {
     setMostraConferma(false);
   };
 
-  // gestione dell'alert di errore conflitto
+  // gestire la chiusura dell'alert di errore conflitto
   const handleChiudiAlert = () => {
     setAlertErrore(null);
   };
 
+  // gestisce le azioni dell'alert di errore (conflitto)
   const handleAzioneAlert = (action) => {
     if (action === 'cancel') {
       // reset completo del form
@@ -211,10 +215,13 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
     setAlertErrore(null);
   };
 
-  // funzioni utility
+  // reset della selezione degli studenti (figlio StepSelezioneStudenti)
+   const handleResetSelezione = () => {
+    setStudentiSelezionati([]);
+    setErrore("");
+  };
 
-  const gruppoValido = studentiSelezionati.length >= SELEZIONE_MINIMA && 
-                      studentiSelezionati.length <= SELEZIONE_MASSIMA;
+  // funzioni utility
 
   const ottieniTitoloStep = () => {
     return stepCorrente === 1 ? "📝 Domanda del Compito" : "👥 Seleziona Studenti";
@@ -230,8 +237,8 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
       <ConfermaAzione
         tipo="compito"
         mostra={mostraConferma}
-        onConferma={gestisciConfermaCreazione}
-        onAnnulla={gestisciAnnullaConferma}
+        onConferma={handleConfermaCreazione}
+        onAnnulla={handleAnnullaConferma}
         caricamentoInCorso={invioInCorso}
       />
       {/* alert modale per errori di conflitto */}
@@ -280,8 +287,8 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
           selezioneMinima={SELEZIONE_MINIMA}
           selezioneMassima={SELEZIONE_MASSIMA}
           gruppoValido={gruppoValido}
-          onToggleStudente={gestisciToggleStudente}
-          onResetSelezione={gestisciResetSelezione}
+          onToggleStudente={handleToggleStudente}
+          onResetSelezione={handleResetSelezione}
         />
       </div>
 
@@ -290,9 +297,9 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
         domanda={domanda}
         invioInCorso={invioInCorso}
         gruppoValido={gruppoValido}
-        onIndietro={gestisciIndietro}
-        onAvanti={gestisciAvanti}
-        onInvio={gestisciInvio}
+        onIndietro={handleIndietro}
+        onAvanti={handleAvanti}
+        onInvio={handleInvio}
         onAnnulla={onCancella}
       />
     </div>
