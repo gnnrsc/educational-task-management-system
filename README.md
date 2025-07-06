@@ -476,11 +476,12 @@ Descrizione: visualizzare i dettagli di un compito specifico
 
 ## Main React Components
 
+- [`DocenteDashboard`](client/src/components/pages/docente/DocenteDashboard.jsx): pagina principale per la gestione dei compiti da parte del docente autentificato. Consente di navigare al dettaglio o alla valutazione dei compiti. Gestisce le conferme di successo per le operazioni e i vari handle di controllo per CreaCompito.
 - [`CreaCompito`](client/src/components/modals/CreaCompito.jsx): modale a più step per creare compiti con input della traccia e selezione degli studenti, con evidenziazione visuale del limite delle collaborazioni. Incluso inoltre il rilevamento dei conflitti di collaborazione, persistenza temporanea della traccia della domanda, gestione dello stato basato su URL e transizioni animate tra gli step.
+- [`StudenteDashboard`](client/src/components/pages/studente/StudenteDashboard.jsx): pagina principale per la gestione dei compiti da parte dello studente autetificato. Consente di navigare al dettaglio o rispondere direttamente ai compiti. Gestisce le conferme di successo per le varie operazioni.
+- [`RisoluzioneConflitti`](client/src/components/utils/RisoluzioneConflitti.jsx): gestione dei conflitti per le risposte modificate contemporaneamente dagli studenti, consente la scelta della versione da mantenere.
 - [`ListaCompiti`](client/src/components/ListaCompiti.jsx): componente riutilizzabile per docenti e studenti, mostra l'elenco dei compiti in formato tabellare con filtri, azioni e funzionalità basate sul ruolo.
 - [`AuthContext`](client/src/AuthContext.jsx): uso di un contesto per la gestione globale dell'autentificazione, evitando prop drilling.
-- [`RisoluzioneConflitti`](client/src/components/utils/RisoluzioneConflitti.jsx): gestione dei conflitti per le risposte modificate contemporaneamente dagli studenti, consente la scelta della versione da mantenere.
-- [`ProtectedRoute`](client/src/components/utils/ProtectedRoute.jsx): componente di protezione delle rotte che garantisce l’accesso solo agli utenti autenticati con ruolo appropriato.
 
 ## Screenshot
 
