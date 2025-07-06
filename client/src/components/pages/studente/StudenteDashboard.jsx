@@ -22,7 +22,6 @@ function StudenteDashboard() {
         const response = await API.ottieniCompitiStudente(stato);
         setCompiti(response.compiti);
       } catch (error) {
-        //console.error("Errore nel caricamento compiti:", error);
         setCompiti([]);
       }
       setLoading(false);

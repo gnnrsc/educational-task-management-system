@@ -101,6 +101,7 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
   // gestire la navigazione (figlio FooterNavigazione) avanti...
   const handleAvanti = () => {
     setErrore("");
+    // validazione step 1
     if (!domanda.trim()) {
       setErrore("La domanda non può essere vuota.");
       return;
@@ -131,6 +132,7 @@ function CreaCompito({ onCompitoCreato, onCancella, stepIniziale = 1, domandaIni
   };
 
   // gestisce l'invio del compito (figlio FooterNavigazione)
+  // validazione step 2
   const handleInvio = async () => {
     setErrore("");
 

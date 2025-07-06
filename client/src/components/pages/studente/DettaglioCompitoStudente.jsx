@@ -49,7 +49,7 @@ function DettaglioCompitoStudentePage() {
   }
   }, [location.state, location.pathname]);
 
-  // Naviga alla pagina di risposta
+  // naviga alla pagina di risposta
   const handleApriRisposta = (compito) => {
     navigate(`/studente/compiti/${compito.id}/rispondi`, {
       state: { daDettaglio: true },

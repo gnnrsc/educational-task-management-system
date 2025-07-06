@@ -37,11 +37,10 @@ function RispostaCompito() {
       try {
         const response = await API.ottieniCompitoDettaglioStudente(id);
         
-        // Controlla se il compito è chiuso e reindirizza
+        // Controlla se il compito è chiuso e reindirizza in caso
         if (response?.stato === 'chiuso') {
           navigate(`/studente/compiti/${id}`, { 
             replace: true,
-            state: { warningMessage: "Il compito è chiuso e non può essere più modificato." }
           });
           return; // il componente verrà smontato
         }
@@ -54,7 +53,6 @@ function RispostaCompito() {
           setCaratteri(response.risposta.testo.length);
         }
       } catch (error) {
-        //console.error("Errore nel caricamento compito:", error);
         setErrors({ general: "Errore nel caricamento del compito" });
       } finally {
         setLoading(false);
@@ -89,8 +87,8 @@ function RispostaCompito() {
     setStaSalvando(true);
 
     try {
-      const timestampRisposta =
-        compito?.risposta?.aggiornato_il?.format("YYYY-MM-DD HH:mm:ss") || null;
+      //utile per gestire i conflitti di modifica
+      const timestampRisposta = compito?.risposta?.aggiornato_il?.format("YYYY-MM-DD HH:mm:ss") || null;
       const result = await API.aggiornaRispostaCompito(
         compito.id,
         testoRisposta.trim(),
@@ -130,8 +128,6 @@ function RispostaCompito() {
       const targetPath = daDettaglio ? `/studente/compiti/${id}` : '/studente/compiti';
       if (risoluzione.useCurrentResponse) {
         // usa la risposta corrente dal database
-        //setTestoRisposta(risoluzione.response);
-        //setCaratteri(risoluzione.response.length);
         navigate(targetPath);
       } else {
         // forza l'aggiornamento con la tua risposta, passo il timestamp della versione che sto sovrascrivendo per procedere con l'aggiornamento 
@@ -208,8 +204,11 @@ function RispostaCompito() {
     );
   }
 
+  //variabili derivate per la visualizzazione e controlli
   const haInviatoRisposta = compito?.risposta?.inviato_da?.id === user.id;
   const isModifica = compito?.risposta?.testo;
+  const testoOriginale = compito?.risposta?.testo || "";
+  const haModifiche = testoRisposta.trim() !== testoOriginale.trim();
 
   return (
     <div className="container my-3">
@@ -348,7 +347,7 @@ function RispostaCompito() {
               <div className="d-flex align-items-center gap-1">
                 <small className="text-muted">Inviata da:</small>
                 <strong>
-                  {compito.risposta.inviato_da.id === user.id
+                  {haInviatoRisposta
                     ? "Te"
                     : `${compito.risposta.inviato_da.nome} ${compito.risposta.inviato_da.cognome}`}
                 </strong>
@@ -412,7 +411,7 @@ function RispostaCompito() {
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={staSalvando || !testoRisposta.trim()}
+                disabled={staSalvando || !testoRisposta.trim() || (isModifica && !haModifiche)}
               >
                 {staSalvando ? (
                   <LoadingSpinner variant="inline" />

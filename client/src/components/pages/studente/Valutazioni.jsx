@@ -26,7 +26,6 @@ function Valutazioni() {
         );
         setCompiti(compitiConPunteggio);
       } catch (error) {
-        //console.error("Errore nel caricamento dati:", error);
         setCompiti([]);
         setMediaData(null);
       } finally {
@@ -42,7 +41,7 @@ function Valutazioni() {
   };
 
 
-// Ordina i compiti in base al filtro selezionato
+// ordina i compiti in base al filtro selezionato
 const compitiOrdinati = [...compiti].sort((a, b) => {
 
   switch (ordinamento) {
@@ -67,7 +66,7 @@ const compitiOrdinati = [...compiti].sort((a, b) => {
 
 
   // Funzione per ottenere il colore del badge in base al punteggio
-  const getBadgeClass = (punteggio) => {
+  const ottieniColoreBadge = (punteggio) => {
     if (punteggio >= 27) return 'bg-success text-white';
     if (punteggio >= 24) return 'bg-primary text-white';
     if (punteggio >= 21) return 'bg-info text-white';
@@ -76,7 +75,7 @@ const compitiOrdinati = [...compiti].sort((a, b) => {
   };
 
   // Funzione per ottenere la descrizione del voto
-  const getDescrizioneVoto = (punteggio) => {
+  const ottieniDescrizioneVoto = (punteggio) => {
     if (punteggio >= 27) return 'Eccezionale';
     if (punteggio >= 24) return 'Eccellente';
     if (punteggio >= 21) return 'Buono';
@@ -113,7 +112,7 @@ const compitiOrdinati = [...compiti].sort((a, b) => {
         <div className="col-md-3">
           <div className="card text-center">
             <div className="card-body py-3">
-              <h5 className={`card-title mb-1 ${getBadgeClass(parseFloat(media)).includes('bg-') ? 'text-success' : 'text-primary'}`}>
+              <h5 className={`card-title mb-1 ${ottieniColoreBadge(parseFloat(media)).includes('bg-') ? 'text-success' : 'text-primary'}`}>
                 {media.toFixed(2)}
               </h5>
               <small className="text-muted">Media voti</small>
@@ -231,7 +230,7 @@ const compitiOrdinati = [...compiti].sort((a, b) => {
                   </td>
                   <td>
                     <span
-                      className={`badge px-3 py-2 rounded-pill fs-6 ${getBadgeClass(compito.punteggio)}`}
+                      className={`badge px-3 py-2 rounded-pill fs-6 ${ottieniColoreBadge(compito.punteggio)}`}
                     >
                       {compito.punteggio}/30
                     </span>
@@ -239,7 +238,7 @@ const compitiOrdinati = [...compiti].sort((a, b) => {
                   <td>
                     <div className="d-flex flex-column">
                       <span className="fw-semibold">
-                        {getDescrizioneVoto(compito.punteggio)}
+                        {ottieniDescrizioneVoto(compito.punteggio)}
                       </span>
                       <small className="text-muted">
                         {compito.punteggio >= 27 ? '🏆' : 

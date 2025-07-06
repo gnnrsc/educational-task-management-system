@@ -104,39 +104,30 @@ router.put(
       }
 
       // Controllo conflitto di modifica simultanea
-        const rispostaCorrente = await dao.ottieniRispostaCorrente(compitoId);
-        if (rispostaCorrente) {
-          // Caso 1: Esiste già una risposta
-          if (rispostaCorrente.aggiornato_il !== ultimaModificaRisposta) {
-            return res.status(200).json({
-              success: false,
-              conflict: true,
-              error: "La risposta è stata modificata da un altro membro del gruppo mentre stavi scrivendo.",
-              codice: "RISPOSTA_MODIFICATA_STUDENTE",
-              dettagli: {
-                rispostaCorrente: rispostaCorrente.testo_risposta,
-                ultimaModifica: rispostaCorrente.aggiornato_il,
-                modificataDa: rispostaCorrente.inviato_da,
-                tuaRisposta: testo_risposta
-              }
-            });
-          }
-          // Caso 2: Stai tentando di creare una nuova risposta ma ne esiste già una
-          if(!ultimaModificaRisposta){
-            return res.status(200).json({
-              success: false,
-              conflict: true,
-              error: "Un altro membro del gruppo ha già inviato una risposta mentre stavi scrivendo.",
-              codice: "RISPOSTA_MODIFICATA_STUDENTE",
-              dettagli: {
-                rispostaCorrente: rispostaCorrente.testo_risposta,
-                ultimaModifica: rispostaCorrente.aggiornato_il,
-                modificataDa: rispostaCorrente.inviato_da,
-                tuaRisposta: testo_risposta
-              }
-            });
-          }
+      const rispostaCorrente = await dao.ottieniRispostaCorrente(compitoId);
+      
+      if (rispostaCorrente) {
+        // Conflitto: risposta esistente ma timestamp diverso O tentativo di creazione quando esiste già
+        if (rispostaCorrente.aggiornato_il !== ultimaModificaRisposta) {
+          const errorMessage = ultimaModificaRisposta 
+            ? "La risposta è stata modificata da un altro membro del gruppo mentre stavi scrivendo."
+            : "Un altro membro del gruppo ha già inviato una risposta mentre stavi scrivendo.";
+
+          return res.status(200).json({
+            success: false,
+            conflict: true,
+            error: errorMessage,
+            codice: "RISPOSTA_MODIFICATA_STUDENTE",
+            dettagli: {
+              rispostaCorrente: rispostaCorrente.testo_risposta,
+              ultimaModifica: rispostaCorrente.aggiornato_il,
+              modificataDa: rispostaCorrente.inviato_da,
+              tuaRisposta: testo_risposta
+            }
+          });
+        }
       }
+
       // Inserisce o aggiorna la risposta
       const result = await dao.aggiornaRispostaCompito(compitoId, testo_risposta, studenteId);
 
