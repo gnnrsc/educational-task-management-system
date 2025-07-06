@@ -124,10 +124,10 @@ export const ottieniCollaborazioniStudenti = (docenteId, minCount = 2) => {
 // Controlla se le coppie di studenti superano il limite minimo di collaborazioni
 export const checkLimiteCoppiaStudenti = (studentiIds, docenteId, minLimit = 2) => {
   return new Promise((resolve, reject) => {
-    //se ci sono meno di 2 studenti, non c'è coppia da controllare
+    //se ci sono meno di 2 studenti, non c'è coppia da controllare - mai
     if (studentiIds.length < 2) return resolve({ allowed: true });
 
-    //crea tutte le possibili coppie di studenti e genera condizioni SQL del tipo: (studente1_id = ? AND studente2_id = ?) OR (studente1_id = ? AND studente2_id = ?)
+    //crea tutte le possibili coppie di studenti e genera condizioni SQL del tipo: (MIN(a1.studente_id, a2.studente_id) = ? AND MAX(a1.studente_id, a2.studente_id) = ?) OR (MIN(a1.studente_id, a2.studente_id) = ? AND MAX(a1.studente_id, a2.studente_id) = ?)
     const conditions = studentiIds.flatMap((id1, i) => 
       studentiIds.slice(i + 1).map(id2 => '(MIN(a1.studente_id, a2.studente_id) = ? AND MAX(a1.studente_id, a2.studente_id) = ?)')
     ).join(' OR ');
