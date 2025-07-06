@@ -172,7 +172,7 @@ function DocenteDashboard() {
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  "➕ Crea Nuovo Compito"
+                  ➕ Crea Nuovo Compito
                 </h5>
                 <button
                   type="button"
