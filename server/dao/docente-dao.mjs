@@ -40,7 +40,6 @@ export const creaCompito = (traccia, studentiIds, creatoDa) => {
 
           // esegue tutte le operazioni nella stessa transazione
           assegnaStudenti(compitoId, studentiIds)
-            .then(() => aggiornaCollaborazioni(studentiIds, creatoDa))
             .then(() => {
               // se tutto va bene, commit della transazione
               db.run("COMMIT", (err) => {
@@ -89,84 +88,6 @@ const assegnaStudenti = (compitoId, studentiIds) => {
   });
 };
 
-// funzione per aggiornare il conteggio delle collaborazioni tra studenti per quel docente - usata in creaCompito
-const aggiornaCollaborazioni = (studentiIds, docenteId) => {
-  return new Promise((resolve, reject) => {
-    if (!studentiIds || studentiIds.length < 2) {
-      return resolve();
-    }
-
-    const coppie = [];
-    
-    // genera tutte le coppie
-    for (let i = 0; i < studentiIds.length; i++) {
-      for (let j = i + 1; j < studentiIds.length; j++) {
-        const s1 = Math.min(studentiIds[i], studentiIds[j]);
-        const s2 = Math.max(studentiIds[i], studentiIds[j]);
-        coppie.push({ s1, s2 });
-      }
-    }
-
-    let completati = 0;
-    let erroreOccorso = false;
-
-    coppie.forEach(({ s1, s2 }) => {
-      if (erroreOccorso) return;
-
-      const checkSql = `
-        SELECT numero_collaborazioni 
-        FROM collaborazioni_studenti 
-        WHERE studente1_id = ? AND studente2_id = ? AND docente_id = ?
-      `;
-      
-      db.get(checkSql, [s1, s2, docenteId], (err, row) => {
-        if (err && !erroreOccorso) {
-          erroreOccorso = true;
-          return reject(new Error(`Errore nel controllo collaborazioni ${s1}-${s2}: ${err.message}`));
-        }
-
-        if (row) {
-          // aggiorna collaborazione esistente
-          const updateSql = `
-            UPDATE collaborazioni_studenti 
-            SET numero_collaborazioni = numero_collaborazioni + 1 
-            WHERE studente1_id = ? AND studente2_id = ? AND docente_id = ?
-          `;
-          db.run(updateSql, [s1, s2, docenteId], (err) => {
-            if (err && !erroreOccorso) {
-              erroreOccorso = true;
-              return reject(new Error(`Errore nell'aggiornamento collaborazione ${s1}-${s2}: ${err.message}`));
-            }
-
-            completati++;
-            if (completati === coppie.length && !erroreOccorso) {
-              resolve();
-            }
-          });
-        } else {
-          // crea nuova collaborazione
-          const insertSql = `
-            INSERT INTO collaborazioni_studenti 
-            (studente1_id, studente2_id, docente_id, numero_collaborazioni) 
-            VALUES (?, ?, ?, 1)
-          `;
-          db.run(insertSql, [s1, s2, docenteId], (err) => {
-            if (err && !erroreOccorso) {
-              erroreOccorso = true;
-              return reject(new Error(`Errore nella creazione collaborazione ${s1}-${s2}: ${err.message}`));
-            }
-
-            completati++;
-            if (completati === coppie.length && !erroreOccorso) {
-              resolve();
-            }
-          });
-        }
-      });
-    });
-  });
-};
-
 // Funzione per ottenere le collaborazioni tra coppie di studenti per quel docente con un conteggio minimo
 // Restituisce un oggetto con le coppie degli id degli studenti che hanno >= minCount collaborazioni
 // Esempio: { "1-2", "1-3", "2-3"}
@@ -174,11 +95,19 @@ const aggiornaCollaborazioni = (studentiIds, docenteId) => {
 export const ottieniCollaborazioniStudenti = (docenteId, minCount = 2) => {
   return new Promise((resolve, reject) => {
     const sql = `
-      SELECT studente1_id, studente2_id
-      FROM collaborazioni_studenti
-      WHERE docente_id = ?
-      AND numero_collaborazioni >= ?
+      SELECT 
+        MIN(a1.studente_id, a2.studente_id) as studente1_id,
+        MAX(a1.studente_id, a2.studente_id) as studente2_id,
+        COUNT(*) as numero_collaborazioni
+      FROM assegnazioni_compiti a1
+      JOIN assegnazioni_compiti a2 ON a1.compito_id = a2.compito_id 
+        AND a1.studente_id < a2.studente_id
+      JOIN compiti c ON a1.compito_id = c.id
+      WHERE c.creato_da = ?
+      GROUP BY a1.studente_id, a2.studente_id
+      HAVING COUNT(*) >= ?
     `;
+    
     db.all(sql, [docenteId, minCount], (err, rows) => {
       if (err) return reject(err);
 
@@ -200,7 +129,7 @@ export const checkLimiteCoppiaStudenti = (studentiIds, docenteId, minLimit = 2) 
 
     //crea tutte le possibili coppie di studenti e genera condizioni SQL del tipo: (studente1_id = ? AND studente2_id = ?) OR (studente1_id = ? AND studente2_id = ?)
     const conditions = studentiIds.flatMap((id1, i) => 
-      studentiIds.slice(i + 1).map(id2 => '(studente1_id = ? AND studente2_id = ?)') //senza appunto mettere già i parametri
+      studentiIds.slice(i + 1).map(id2 => '(MIN(a1.studente_id, a2.studente_id) = ? AND MAX(a1.studente_id, a2.studente_id) = ?)')
     ).join(' OR ');
 
     //parametri per la query: docenteId, minLimit e poi tutte le coppie di studenti in ordine crescente
@@ -208,18 +137,26 @@ export const checkLimiteCoppiaStudenti = (studentiIds, docenteId, minLimit = 2) 
       studentiIds.slice(i + 1).flatMap(id2 => id1 < id2 ? [id1, id2] : [id2, id1])
     )];
 
-    const sql = `SELECT 
-        c.studente1_id, 
-        c.studente2_id, 
-        c.numero_collaborazioni,
+    const sql = `
+      SELECT 
+        MIN(a1.studente_id, a2.studente_id) as studente1_id,
+        MAX(a1.studente_id, a2.studente_id) as studente2_id,
+        COUNT(*) as numero_collaborazioni,
         s1.nome as nome1,
         s1.cognome as cognome1,
         s2.nome as nome2,
         s2.cognome as cognome2
-      FROM collaborazioni_studenti c
-      JOIN utenti s1 ON c.studente1_id = s1.id
-      JOIN utenti s2 ON c.studente2_id = s2.id
-      WHERE c.docente_id = ? AND c.numero_collaborazioni >= ? AND (${conditions}) LIMIT 1`;
+      FROM assegnazioni_compiti a1
+      JOIN assegnazioni_compiti a2 ON a1.compito_id = a2.compito_id 
+        AND a1.studente_id < a2.studente_id
+      JOIN compiti c ON a1.compito_id = c.id
+      JOIN utenti s1 ON MIN(a1.studente_id, a2.studente_id) = s1.id
+      JOIN utenti s2 ON MAX(a1.studente_id, a2.studente_id) = s2.id
+      WHERE c.creato_da = ? 
+      GROUP BY a1.studente_id, a2.studente_id
+      HAVING COUNT(*) >= ? AND (${conditions})
+      LIMIT 1
+    `;
 
     db.get(sql, params, (err, row) => {
       if (err) return reject(err);

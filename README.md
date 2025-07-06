@@ -472,7 +472,6 @@ Descrizione: visualizzare i dettagli di un compito specifico
 * **Tabella `compiti`** – Contiene i compiti: id, traccia, creato_da, stato, numero_studenti, punteggio, creato_il, chiuso_il
 * **Tabella `assegnazioni_compiti`** – Relazione compito-studente: id, compito_id, studente_id
 * **Tabella `risposte_compiti`** – Contiene le risposte degli studenti: id, compito_id, testo_risposta, inviato_da, aggiornato_il
-* **Tabella `collaborazioni_studenti`** – Tracciamento delle collaborazioni: studente1_id, studente2_id, docente_id, numero_collaborazioni
 
 ## Main React Components
 
