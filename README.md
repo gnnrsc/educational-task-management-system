@@ -31,25 +31,9 @@ This isn't just a simple to-do list. It implements several advanced web developm
 
 ## ⚙️ Installation & Setup
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/gnnrsc/educational-task-management-system.git
-
-## 📸 Preview
-
-##### Crea compito:
-
-![Crea Compito](./demo/crea_compito.gif)
-
-##### Stato della classe:
-
-![Stato Classe](./demo/stato_classe.jpg)
-
-## ⚙️ Installation & Setup
-
 1.  **Clone the repository**:
     ```bash
-    git clone [https://github.com/gnnrsc/educational-task-management-system.git](https://github.com/gnnrsc/educational-task-management-system.git)
+    git clone https://github.com/gnnrsc/educational-task-management-system.git
     ```
 2.  **Setup Backend**:
     ```bash
