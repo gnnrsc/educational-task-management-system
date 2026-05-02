@@ -33,7 +33,7 @@ This isn't just a simple to-do list. It implements several advanced web developm
 
 1. **Clone the repository**:
    ```bash
-   git clone [https://github.com/gnnrsc/educational-task-management-system.git](https://github.com/gnnrsc/educational-task-management-system.git)
+   git clone https://github.com/gnnrsc/educational-task-management-system.git
 
 ## 📸 Preview
 
